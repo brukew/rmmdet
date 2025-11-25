@@ -1,0 +1,19 @@
+# Ignore all video files
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.flv
+*.wmv
+
+# Ignore all CSV files
+*.csv
+*.txt
+
+# Ignore cache
+*.pyc
+
+# Model runs
+*/wandb
+*/runs
