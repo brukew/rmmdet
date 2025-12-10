@@ -15,6 +15,9 @@ from functools import partial
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
@@ -22,7 +25,9 @@ import torch.nn.functional as F
 from decord import VideoReader, cpu
 from sklearn.metrics import (
     average_precision_score,
+    cohen_kappa_score,
     classification_report,
+    ConfusionMatrixDisplay,
     precision_recall_curve,
     precision_recall_fscore_support,
 )
@@ -383,6 +388,95 @@ def compute_classification_metrics(labels, preds, probs, id2label: Dict[int, str
     return summary, per_class, pr_curves
 
 
+def aggregate_video_predictions(
+    metas_df: pd.DataFrame, labels: np.ndarray, preds: np.ndarray, probs: Optional[np.ndarray], id2label: Dict[int, str]
+):
+    """Aggregate clip-level predictions into video-level predictions using average probs or majority vote."""
+    if metas_df is None or metas_df.empty or "video_id" not in metas_df:
+        logger.warning("No video_id metadata available; skipping video-level aggregation.")
+        return None
+
+    valid = metas_df["video_id"].notna()
+    if not valid.any():
+        logger.warning("video_id missing for all samples; skipping video-level aggregation.")
+        return None
+
+    probs_available = probs is not None and len(probs) == len(labels)
+    rows = []
+    for vid, grp in metas_df[valid].reset_index().groupby("video_id"):
+        clip_indices = grp["index"].to_numpy()
+        label_ids = labels[clip_indices]
+        pred_ids = preds[clip_indices]
+
+        true_label = Counter(label_ids).most_common(1)[0][0]
+        if probs_available:
+            mean_probs = probs[clip_indices].mean(axis=0)
+            pred_label = int(np.argmax(mean_probs))
+            pred_conf = float(mean_probs.max())
+        else:
+            pred_label = Counter(pred_ids).most_common(1)[0][0]
+            pred_conf = None
+            mean_probs = None
+
+        rows.append(
+            {
+                "video_id": vid,
+                "true_id": int(true_label),
+                "pred_id": int(pred_label),
+                "true_name": id2label[int(true_label)],
+                "pred_name": id2label[int(pred_label)],
+                "n_clips": len(grp),
+                "pred_conf": pred_conf,
+                "mean_probs": mean_probs,
+            }
+        )
+
+    if not rows:
+        return None
+
+    video_df = pd.DataFrame(rows)
+    probs_video = None
+    if probs_available:
+        probs_video = np.stack(video_df["mean_probs"].to_numpy(), axis=0)
+
+    return {
+        "df": video_df,
+        "labels": video_df["true_id"].to_numpy(),
+        "preds": video_df["pred_id"].to_numpy(),
+        "probs": probs_video,
+    }
+
+
+def save_confusion_matrix(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    label_ids: List[int],
+    label_names: List[str],
+    out_path: Path,
+    normalize: Optional[str] = "true",
+) -> None:
+    if y_true is None or y_pred is None or len(y_true) == 0:
+        logger.warning("Empty inputs; skipping confusion matrix.")
+        return
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ConfusionMatrixDisplay.from_predictions(
+        y_true,
+        y_pred,
+        labels=label_ids,
+        display_labels=label_names,
+        normalize=normalize,
+        values_format=".2f" if normalize else "d",
+        ax=ax,
+        colorbar=False,
+    )
+    plt.xticks(rotation=45, ha="right")
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    logger.info("Saved confusion matrix to %s", out_path)
+
+
 def metrics_for_subset(mask, labels, preds, probs, id2label: Dict[int, str]):
     if mask.sum() == 0:
         return None
@@ -461,6 +555,7 @@ def main() -> None:
 
         fold_out = args.output_root / f"fold_{fold_idx}"
         reuse_existing = args.reuse_checkpoints and fold_out.exists()
+        fold_out.mkdir(parents=True, exist_ok=True)
         if reuse_existing:
             fold_processor = VJEPA2VideoProcessor.from_pretrained(fold_out)
             frames_per_clip_fold = get_frames_per_clip(fold_processor, args.frames_per_clip)
@@ -605,6 +700,45 @@ def main() -> None:
             labels_arr, preds_arr, probs_arr, id2label
         )
 
+        # Video-level aggregation
+        video_metrics = aggregate_video_predictions(metas_df, labels_arr, preds_arr, probs_arr, id2label)
+        video_summary = None
+        video_per_class_df = None
+        video_acc = None
+        video_kappa = None
+        if video_metrics:
+            video_labels = video_metrics["labels"]
+            video_preds = video_metrics["preds"]
+            video_probs = video_metrics["probs"]
+            video_summary, video_per_class_df, _ = compute_classification_metrics(
+                video_labels, video_preds, video_probs, id2label
+            )
+            video_acc = float((video_labels == video_preds).mean()) if len(video_labels) else 0.0
+            video_kappa = float(cohen_kappa_score(video_labels, video_preds)) if len(video_labels) else float("nan")
+
+            video_conf_path = fold_out / "confusion_matrix_video.png"
+            save_confusion_matrix(
+                video_labels,
+                video_preds,
+                list(id2label.keys()),
+                list(id2label.values()),
+                video_conf_path,
+                normalize="true",
+            )
+
+            video_pred_path = fold_out / "video_level_preds.csv"
+            video_metrics["df"].to_csv(video_pred_path, index=False)
+            logger.info("Saved video-level predictions to %s", video_pred_path)
+        else:
+            logger.warning("Skipping video-level metrics for fold %d; missing video_id metadata.", fold_idx)
+
+        # Persist per-class tables
+        per_class_path = fold_out / "per_class_clip.csv"
+        per_class_df.to_csv(per_class_path, index=False)
+        if video_per_class_df is not None:
+            video_per_class_path = fold_out / "per_class_video.csv"
+            video_per_class_df.to_csv(video_per_class_path, index=False)
+
         # Subset masks (clip-level)
         masks = {
             "n_children_1": metas_df["n_children"] == 1,
@@ -632,6 +766,10 @@ def main() -> None:
                 "per_class": per_class_df,
                 "pr_curves": pr_curves,
                 "subset_metrics": subset_metrics,
+                "video_acc": video_acc,
+                "video_macro_f1": video_summary["macro_f1"] if video_summary else None,
+                "video_kappa": video_kappa,
+                "video_per_class": video_per_class_df,
                 "metas": metas_df,
             }
         )
@@ -647,6 +785,15 @@ def main() -> None:
             }
         )
         wb_logger.log_table("eval/per_class", per_class_df)
+        if video_summary and video_per_class_df is not None:
+            wb_logger.log(
+                {
+                    "eval/video_acc": video_acc,
+                    "eval/video_macro_f1": video_summary["macro_f1"],
+                    "eval/video_kappa": video_kappa,
+                }
+            )
+            wb_logger.log_table("eval/per_class_video", video_per_class_df)
         if subset_metrics:
             subset_rows = []
             for name, metrics in subset_metrics.items():
@@ -664,6 +811,14 @@ def main() -> None:
             topk_metrics[f"top{args.topk}_acc"],
             summary_metrics["macro_f1"],
         )
+        if video_summary:
+            logger.info(
+                "Fold %d (video-level) | acc=%.3f | macro F1=%.3f | kappa=%.3f",
+                fold_idx,
+                video_acc,
+                video_summary["macro_f1"],
+                video_kappa,
+            )
 
     # Aggregate cross-fold results
     summary_rows = [
@@ -674,6 +829,9 @@ def main() -> None:
             "macro_f1": fr["macro_f1"],
             "micro_f1": fr["micro_f1"],
             "weighted_f1": fr["weighted_f1"],
+            "video_acc": fr.get("video_acc"),
+            "video_macro_f1": fr.get("video_macro_f1"),
+            "video_kappa": fr.get("video_kappa"),
         }
         for fr in fold_results
     ]

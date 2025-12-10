@@ -3,7 +3,7 @@
 #SBATCH -p mit_preemptable
 #SBATCH -c 8
 #SBATCH --mem=48G
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:h100:1
 #SBATCH -t 48:00:00
 #SBATCH --requeue
 #SBATCH --signal=TERM@120
