@@ -7,10 +7,13 @@ Converted from `finetune_sails_vjepa2_cv.ipynb` for batch/Slurm runs.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import logging
+import subprocess
 import sys
 from collections import Counter
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -23,6 +26,10 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from decord import VideoReader, cpu
+try:
+    import h5py  # type: ignore
+except Exception:  # pragma: no cover - optional
+    h5py = None
 from sklearn.metrics import (
     average_precision_score,
     cohen_kappa_score,
@@ -41,6 +48,35 @@ except ImportError:  # pragma: no cover - optional
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
+DEFAULT_MASK_CACHE_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking")
+DEFAULT_MASK_MODEL = "facebook-sam3"
+DEFAULT_MASK_PROMPT = "person"
+DEFAULT_CROP_PADDING = 20
+
+
+@dataclass
+class CropConfig:
+    enabled: bool = False
+    sam3_parsed_csv: Path = DEFAULT_PARSED_CSV
+    mask_cache_base: Path = DEFAULT_MASK_CACHE_BASE
+    mask_model: str = DEFAULT_MASK_MODEL
+    mask_prompt: str = DEFAULT_MASK_PROMPT
+    padding: int = DEFAULT_CROP_PADDING
+    rotation_override: Optional[int] = None
+    fallback: str = "full"  # "full" or "skip"
+    video_meta_json: Optional[Path] = None
+
+
+@dataclass
+class CropMeta:
+    applied: bool
+    reason: str
+    box: Optional[Tuple[int, int, int, int]]
+    matched_ids: List[int]
+    cache_frame: Optional[int]
+    rotation_used: Optional[int]
+    cache_path: Optional[str]
 
 def setup_logging(log_level: str = "INFO") -> None:
     """Configure root logger for job output."""
@@ -53,6 +89,173 @@ def setup_logging(log_level: str = "INFO") -> None:
         force=True,
     )
     logger.setLevel(numeric_level)
+
+
+def load_parsed_sam3_csv(csv_path: Path) -> Dict[str, Dict]:
+    rows: Dict[str, Dict] = {}
+    if not csv_path.exists():
+        logger.warning("Parsed SAM3 CSV not found at %s; cropping will be disabled.", csv_path)
+        return rows
+    with csv_path.open("r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                row["intervals"] = json.loads(row.get("child_sam3_ids", "[]"))
+            except Exception:
+                row["intervals"] = []
+            fname = row.get("FileName") or row.get("filename")
+            if fname:
+                rows[fname] = row
+    return rows
+
+
+def child_ids_for_time(row: Dict, time_sec: float) -> List[int]:
+    ids: List[int] = []
+    for iv in row.get("intervals", []):
+        start = iv.get("start_sec", 0)
+        end = iv.get("end_sec") if iv.get("end_sec") is not None else float("inf")
+        try:
+            start_f = float(start)
+        except Exception:
+            start_f = 0.0
+        try:
+            end_f = float(end)
+        except Exception:
+            end_f = float("inf")
+        if start_f <= time_sec < end_f:
+            try:
+                ids.append(int(iv["id"]))
+            except Exception:
+                pass
+    return ids
+
+
+def get_video_rotation(video_path: Path) -> int:
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream_side_data=rotation",
+        "-of",
+        "csv=p=0",
+        str(video_path),
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        if result.stdout.strip():
+            return int(float(result.stdout.strip()))
+    except Exception:
+        pass
+    return 0
+
+
+def rotate_boxes(boxes: np.ndarray, rotation: int, width: int, height: int) -> np.ndarray:
+    if rotation == 0:
+        return boxes
+    rotated = boxes.copy()
+    for i in range(len(boxes)):
+        x1, y1, x2, y2 = boxes[i]
+        if rotation in [-90, 270]:
+            rotated[i] = [y1, width - x2, y2, width - x1]
+        elif rotation in [90, -270]:
+            rotated[i] = [height - y2, x1, height - y1, x2]
+        elif rotation in [180, -180]:
+            rotated[i] = [width - x2, height - y2, width - x1, height - y1]
+    return rotated
+
+
+def load_mask_cache(
+    base: Path,
+    video_basename: str,
+    prompt: str = DEFAULT_MASK_PROMPT,
+    model_name: str = DEFAULT_MASK_MODEL,
+    cache_path: Optional[Path] = None,
+) -> Optional[Dict]:
+    if h5py is None:
+        return None
+
+    def _slugify(text: str) -> str:
+        slug = "".join(ch.lower() if ch.isalnum() else "-" for ch in text.strip())
+        while "--" in slug:
+            slug = slug.replace("--", "-")
+        return slug.strip("-") or "none"
+
+    prompt_slug = _slugify(prompt)
+    base_dir = base / "masks" / video_basename
+    candidates = []
+    if cache_path:
+        cp = Path(cache_path)
+        if cp.exists() and cp.is_file():
+            candidates.append(cp)
+    candidates.append(base_dir / f"{model_name}__prompt-{prompt_slug}.h5")
+    candidates.extend(sorted(base_dir.glob("*.h5")))
+
+    errors = []
+    for cand in candidates:
+        if not cand.exists() or not cand.is_file():
+            continue
+        try:
+            with h5py.File(cand, "r") as f:
+                frame_indices = []
+                obj_ids = {}
+                boxes = {}
+                scores = {}
+                for key in f.keys():
+                    if not key.startswith("frame_"):
+                        continue
+                    try:
+                        frame_idx = int(key.split("_", 1)[1])
+                    except ValueError:
+                        continue
+                    frame_indices.append(frame_idx)
+                    grp = f[key]
+                    obj_ids[frame_idx] = grp["obj_ids"][:]
+                    boxes[frame_idx] = grp["boxes"][:]
+                    scores[frame_idx] = grp["scores"][:]
+                if not frame_indices:
+                    errors.append((cand, "no frame_* groups"))
+                    continue
+                attrs = {k: (int(v) if isinstance(v, np.integer) else v) for k, v in f.attrs.items()}
+                return {
+                    "path": cand,
+                    "frame_indices": np.array(sorted(frame_indices)),
+                    "obj_ids": obj_ids,
+                    "boxes": boxes,
+                    "scores": scores,
+                    "attrs": attrs,
+                }
+        except Exception as exc:
+            errors.append((cand, str(exc)))
+            continue
+
+    if errors:
+        first = errors[0]
+        logger.warning("Failed to load cache(s) for %s (first: %s -> %s)", video_basename, first[0], first[1])
+    return None
+
+
+def load_video_meta_json(path: Optional[Path]) -> Dict[str, Dict]:
+    if not path:
+        return {}
+    if not path.exists():
+        logger.warning("Video meta JSON not found at %s", path)
+        return {}
+    try:
+        data = json.loads(path.read_text())
+        records = data.get("records") if isinstance(data, dict) else data
+        meta = {}
+        for rec in records or []:
+            fname = rec.get("FileName") or rec.get("filename")
+            if fname:
+                meta[fname] = rec
+        logger.info("Loaded video meta for %d videos from %s", len(meta), path)
+        return meta
+    except Exception as exc:
+        logger.warning("Could not parse video meta JSON %s: %s", path, exc)
+        return {}
 
 
 def parse_args() -> argparse.Namespace:
@@ -121,6 +324,40 @@ def parse_args() -> argparse.Namespace:
         default="INFO",
         help="Logging verbosity.",
     )
+    parser.add_argument("--enable-crop", action="store_true", help="Enable SAM3-based cropping inside the dataloader.")
+    parser.add_argument(
+        "--sam3-parsed-csv",
+        type=Path,
+        default=DEFAULT_PARSED_CSV,
+        help="Path to rmm_sam3_parsed.csv (with child_sam3_ids).",
+    )
+    parser.add_argument(
+        "--mask-cache-base",
+        type=Path,
+        default=DEFAULT_MASK_CACHE_BASE,
+        help="Base dir containing mask caches (MaskCacheManager layout).",
+    )
+    parser.add_argument("--mask-model", default=DEFAULT_MASK_MODEL, help="Mask model name prefix in cache files.")
+    parser.add_argument("--mask-prompt", default=DEFAULT_MASK_PROMPT, help="Mask prompt used when saving caches.")
+    parser.add_argument("--crop-padding", type=int, default=DEFAULT_CROP_PADDING, help="Pixels of padding around boxes.")
+    parser.add_argument(
+        "--rotation-override",
+        type=int,
+        default=None,
+        help="Force rotation correction in degrees (e.g., 90/-90). If unset, use video metadata.",
+    )
+    parser.add_argument(
+        "--crop-fallback",
+        choices=["full", "skip"],
+        default="full",
+        help="When no crop is found: full=keep full frame, skip=drop sample.",
+    )
+    parser.add_argument(
+        "--video-meta-json",
+        type=Path,
+        default=Path("actreg/dataprep/video_meta.json"),
+        help="JSON from save_video_metadata_cache for reuse (rotation/cache info).",
+    )
     return parser.parse_args()
 
 
@@ -159,6 +396,10 @@ def load_split(csv_paths: Sequence[Path], clips_root: Path) -> Tuple[List[Dict],
                 "n_children": pd.to_numeric(row.get("n_children"), errors="coerce"),
                 "n_adults": pd.to_numeric(row.get("n_adults"), errors="coerce"),
                 "quality_rating": row.get("quality_rating"),
+                "start_sec": pd.to_numeric(row.get("start_sec"), errors="coerce"),
+                "end_sec": pd.to_numeric(row.get("end_sec"), errors="coerce"),
+                "filename": row.get("filename"),
+                "video_file": row.get("video_file"),
             }
             records.append(rec)
     return records, missing
@@ -189,11 +430,24 @@ def get_frames_per_clip(processor: VJEPA2VideoProcessor, override: int) -> int:
 
 
 class RMMDataset(Dataset):
-    def __init__(self, records: List[Dict], label2id: Dict[str, int], frames_per_clip: int, video_label_counts: Dict):
+    def __init__(
+        self,
+        records: List[Dict],
+        label2id: Dict[str, int],
+        frames_per_clip: int,
+        video_label_counts: Dict,
+        crop_cfg: Optional[CropConfig] = None,
+        sam3_rows: Optional[Dict[str, Dict]] = None,
+        video_meta: Optional[Dict[str, Dict]] = None,
+    ):
         self.records = records
         self.label2id = label2id
         self.frames_per_clip = frames_per_clip
         self.video_label_counts = video_label_counts
+        self.crop_cfg = crop_cfg or CropConfig(enabled=False)
+        self.sam3_rows = sam3_rows or {}
+        self.video_meta = video_meta or {}
+        self._mask_cache_store: Dict[str, Optional[Dict]] = {}
 
     def __len__(self) -> int:
         return len(self.records)
@@ -203,12 +457,158 @@ class RMMDataset(Dataset):
             return np.zeros(self.frames_per_clip, dtype="int64")
         return np.round(np.linspace(0, total - 1, self.frames_per_clip)).astype("int64")
 
+    def _apply_crop(self, rec: Dict, frames: np.ndarray, indices: np.ndarray, fps: float):
+        cfg = self.crop_cfg
+        meta = {
+            "crop_applied": False,
+            "crop_box": None,
+            "crop_matched_ids": [],
+            "crop_cache_frame": None,
+            "crop_rotation": None,
+            "crop_reason": "",
+            "crop_cache_path": None,
+        }
+        if not cfg.enabled:
+            return frames, meta
+        if h5py is None:
+            meta["crop_reason"] = "h5py_missing"
+            return frames, meta
+        if fps is None or fps <= 0:
+            meta["crop_reason"] = "fps_missing"
+            return frames, meta
+
+        fname = rec.get("filename") or Path(rec.get("clip")).name
+        sam3_row = self.sam3_rows.get(fname)
+        if not sam3_row:
+            meta["crop_reason"] = "no_sam3_row"
+            return frames, meta
+
+        meta_rec = self.video_meta.get(fname, {})
+        cache_path_override = None
+        if meta_rec.get("mask_cache_path"):
+            try:
+                cache_path_override = Path(meta_rec["mask_cache_path"])
+            except Exception:
+                cache_path_override = None
+
+        basename = f"{Path(fname).stem}_segmented"
+        cache_key = (basename, str(cache_path_override) if cache_path_override else None, cfg.mask_prompt, cfg.mask_model)
+        if cache_key not in self._mask_cache_store:
+            self._mask_cache_store[cache_key] = load_mask_cache(
+                cfg.mask_cache_base,
+                basename,
+                prompt=cfg.mask_prompt,
+                model_name=cfg.mask_model,
+                cache_path=cache_path_override,
+            )
+        cache = self._mask_cache_store.get(cache_key)
+        if not cache:
+            meta["crop_reason"] = "no_cache"
+            return frames, meta
+
+        attrs = cache.get("attrs") or {}
+        base_w = attrs.get("width")
+        base_h = attrs.get("height")
+        if base_w is None or base_h is None:
+            base_w, base_h = frames.shape[2], frames.shape[1]
+
+        if cfg.rotation_override is not None:
+            rotation = cfg.rotation_override
+        else:
+            if "rotation_meta" in meta_rec:
+                rot_val = meta_rec.get("rotation_meta")
+                try:
+                    rotation = int(rot_val) if rot_val is not None else 0
+                except Exception:
+                    rotation = 0
+            else:
+                rotation = get_video_rotation(Path(rec["clip"]))
+        rotation *= -1  # align with notebook convention
+
+        frame_w, frame_h = frames.shape[2], frames.shape[1]
+        frame_indices_cache = cache["frame_indices"]
+        xs: List[float] = []
+        ys: List[float] = []
+        matched_ids: List[int] = []
+        cache_frame_used = None
+
+        start_sec = rec.get("start_sec")
+        if start_sec is None or (isinstance(start_sec, float) and np.isnan(start_sec)):
+            start_sec = 0.0
+
+        for pos, frame_idx_clip in enumerate(indices):
+            offset_sec = float(frame_idx_clip) / fps
+            abs_time = float(start_sec) + offset_sec
+            child_ids = child_ids_for_time(sam3_row, abs_time)
+            if not child_ids:
+                continue
+
+            frame_idx_est = int(round(abs_time * fps))
+            closest_pos = int(np.argmin(np.abs(frame_indices_cache - frame_idx_est)))
+            cache_frame_idx = int(frame_indices_cache[closest_pos])
+            cache_frame_used = cache_frame_idx
+
+            boxes = cache["boxes"][cache_frame_idx]
+            obj_ids = cache["obj_ids"][cache_frame_idx]
+            if boxes is None or len(boxes) == 0:
+                continue
+
+            boxes_rotated = boxes.copy()
+            expected_w, expected_h = base_w, base_h
+            if rotation:
+                boxes_rotated = rotate_boxes(boxes_rotated, rotation, base_w, base_h)
+                if rotation in (-90, 90, -270, 270):
+                    expected_w, expected_h = base_h, base_w
+                elif rotation in (-180, 180):
+                    expected_w, expected_h = base_w, base_h
+
+            if expected_w and expected_h and (frame_w != expected_w or frame_h != expected_h):
+                scale_x = frame_w / expected_w
+                scale_y = frame_h / expected_h
+                boxes_rotated[:, [0, 2]] *= scale_x
+                boxes_rotated[:, [1, 3]] *= scale_y
+
+            frame_matches = [i for i, obj in enumerate(obj_ids) if int(obj) in child_ids]
+            if frame_matches:
+                matched_ids.extend([int(obj_ids[i]) for i in frame_matches])
+                for det_idx in frame_matches:
+                    x1, y1, x2, y2 = boxes_rotated[det_idx]
+                    xs.extend([x1, x2])
+                    ys.extend([y1, y2])
+
+        if not xs or not ys:
+            meta["crop_reason"] = "no_matching_ids"
+            return frames, meta
+
+        x1 = max(0, int(np.floor(min(xs) - cfg.padding)))
+        y1 = max(0, int(np.floor(min(ys) - cfg.padding)))
+        x2 = min(int(frame_w), int(np.ceil(max(xs) + cfg.padding)))
+        y2 = min(int(frame_h), int(np.ceil(max(ys) + cfg.padding)))
+        if x2 <= x1 or y2 <= y1:
+            meta["crop_reason"] = "invalid_box"
+            return frames, meta
+
+        frames_cropped = frames[:, y1:y2, x1:x2, :]
+        meta.update(
+            {
+                "crop_applied": True,
+                "crop_box": (x1, y1, x2, y2),
+                "crop_matched_ids": sorted(set(matched_ids)),
+                "crop_cache_frame": cache_frame_used,
+                "crop_rotation": rotation,
+                "crop_reason": "ok",
+                "crop_cache_path": str(cache.get("path")) if cache.get("path") else None,
+            }
+        )
+        return frames_cropped, meta
+
     def __getitem__(self, idx: int):
         rec = self.records[idx]
         try:
             vr = VideoReader(str(rec["clip"]), ctx=cpu(0), fault_tol=1)
             indices = self._sample_indices(len(vr))
             frames = vr.get_batch(indices).asnumpy()
+            fps = float(vr.get_avg_fps()) if hasattr(vr, "get_avg_fps") else 0.0
         except Exception as exc:  # pragma: no cover - I/O heavy
             logger.warning("Bad clip %s: %s", rec["clip"], exc)
             return None
@@ -225,6 +625,11 @@ class RMMDataset(Dataset):
             "quality_bucket": quality_bucket(rec.get("quality_rating")),
             "mixed_video": video_id in self.video_label_counts and self.video_label_counts[video_id] > 1,
         }
+        if self.crop_cfg.enabled:
+            frames, crop_meta = self._apply_crop(rec, frames, indices, fps)
+            if self.crop_cfg.fallback == "skip" and not crop_meta.get("crop_applied"):
+                return None
+            meta.update(crop_meta)
         return frames, label_id, meta
 
 
@@ -522,6 +927,30 @@ def main() -> None:
     if args.wandb_mode != "disabled" and wandb is None:
         logger.warning('wandb not installed; set --wandb-mode disabled or install wandb to log runs.')
 
+    crop_cfg = CropConfig(
+        enabled=args.enable_crop,
+        sam3_parsed_csv=args.sam3_parsed_csv,
+        mask_cache_base=args.mask_cache_base,
+        mask_model=args.mask_model,
+        mask_prompt=args.mask_prompt,
+        padding=args.crop_padding,
+        rotation_override=args.rotation_override,
+        fallback=args.crop_fallback,
+        video_meta_json=args.video_meta_json,
+    )
+    sam3_rows = load_parsed_sam3_csv(args.sam3_parsed_csv) if crop_cfg.enabled else {}
+    video_meta = load_video_meta_json(args.video_meta_json) if crop_cfg.enabled else {}
+    if crop_cfg.enabled:
+        logger.info(
+            "Cropping enabled | parsed_csv=%s | cache_base=%s | model=%s | prompt=%s | padding=%d | fallback=%s",
+            args.sam3_parsed_csv,
+            args.mask_cache_base,
+            args.mask_model,
+            args.mask_prompt,
+            args.crop_padding,
+            args.crop_fallback,
+        )
+
     train_csvs = sorted(args.csv_dir.glob("fold_*_train.csv"))
     val_csvs = sorted(args.csv_dir.glob("fold_*_val.csv"))
     if not train_csvs or not val_csvs or len(train_csvs) != len(val_csvs):
@@ -576,8 +1005,24 @@ def main() -> None:
             example_missing = (miss_train + miss_val)[:5]
             logger.warning("Example missing clips: %s", example_missing)
 
-        train_ds = RMMDataset(train_records, label2id, frames_per_clip_fold, video_label_counts)
-        val_ds = RMMDataset(val_records, label2id, frames_per_clip_fold, video_label_counts)
+        train_ds = RMMDataset(
+            train_records,
+            label2id,
+            frames_per_clip_fold,
+            video_label_counts,
+            crop_cfg=crop_cfg,
+            sam3_rows=sam3_rows,
+            video_meta=video_meta,
+        )
+        val_ds = RMMDataset(
+            val_records,
+            label2id,
+            frames_per_clip_fold,
+            video_label_counts,
+            crop_cfg=crop_cfg,
+            sam3_rows=sam3_rows,
+            video_meta=video_meta,
+        )
 
         collate = partial(collate_fn, processor=fold_processor)
         train_loader = None
@@ -629,7 +1074,8 @@ def main() -> None:
         if not reuse_existing:
             optimizer = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], lr=args.lr)
 
-        run_name = f"{args.run_prefix}-fold{fold_idx}-vjepa2-{frames_per_clip_fold}fr"
+        crop_tag = "-crop" if crop_cfg.enabled else ""
+        run_name = f"{args.run_prefix}-fold{fold_idx}-vjepa2-{frames_per_clip_fold}fr{crop_tag}"
         wb_logger = WandbAdapter(
             mode=args.wandb_mode,
             project=args.wandb_project,
