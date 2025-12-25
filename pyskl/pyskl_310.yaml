@@ -1,0 +1,36 @@
+name: pyskl
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - ffmpeg
+  - numpy
+  - scipy
+  - matplotlib
+  - opencv
+  - cython
+  - setuptools
+  - wheel
+  - ninja
+  - libjpeg-turbo
+  - pip:
+      - torch
+      - torchvision
+      - torchaudio
+      - mmcv-full==1.7.0
+      - mmdet==2.25.1
+      - mmpose==0.29.0
+      - pycocotools==2.0.6
+      - decord==0.6.0
+      - moviepy
+      - tqdm
+      - addict
+      - yapf
+      - xtcocotools
+      - yacs
+      - fvcore
+      - iopath
+      - tabulate
+      - json-tricks
