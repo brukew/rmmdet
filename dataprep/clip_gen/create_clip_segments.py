@@ -44,8 +44,8 @@ except Exception:
 
 
 DEFAULT_VIDEO_ROOT = "/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized"
-DEFAULT_OUTPUT_ROOT = "/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips"
-DEFAULT_CROP_OUTPUT_ROOT = "/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips_cropped"
+DEFAULT_OUTPUT_ROOT = "/orcd/scratch/bcs/001/sensein/sails/rmm/classification_clips"
+DEFAULT_CROP_OUTPUT_ROOT = "/orcd/scratch/bcs/001/sensein/sails/rmm/classification_clips_cropped"
 DEFAULT_PARSED_CSV = "/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv"
 DEFAULT_MASK_CACHE_BASE = "/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking"
 DEFAULT_MASK_MODEL = "facebook-sam3"
@@ -558,8 +558,14 @@ def build_tasks(csv_path: Path, video_root: Path, output_root: Path, min_duratio
     return tasks
 
 
-def clip_is_valid(path: Path) -> bool:
-    """Heuristic check that an mp4 is readable (non-empty and ffprobe succeeds)."""
+def clip_is_valid(path: Path, lenient: bool = False) -> bool:
+    """
+    Heuristic check that an mp4 is readable (non-empty and ffprobe succeeds).
+    
+    Args:
+        path: Path to the clip file to validate
+        lenient: If True, use OpenCV as fallback if decord fails (useful for low FPS videos)
+    """
     try:
         if not path.exists():
             return False
@@ -596,6 +602,18 @@ def clip_is_valid(path: Path) -> bool:
                     return False
                 _ = vr[0]
             except Exception:
+                if lenient and cv2 is not None:
+                    # Fallback to OpenCV validation for low FPS videos that decord can't handle
+                    try:
+                        cap = cv2.VideoCapture(str(path))
+                        if cap.isOpened():
+                            frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                            ret = frame_count > 0
+                            cap.release()
+                            if ret:
+                                return True
+                    except Exception:
+                        pass
                 return False
 
         return True
@@ -612,9 +630,11 @@ def run_ffmpeg(
     target_path: Path,
     crop_box: Optional[Tuple[int, int, int, int]] = None,
     rotation: Optional[int] = None,
+    verbose_ffmpeg: bool = False,
+    lenient_validation: bool = False,
 ) -> bool:
     if target_path.exists() and not overwrite:
-        if clip_is_valid(target_path):
+        if clip_is_valid(target_path, lenient=lenient_validation):
             print(f"[skip] {task.segment_id} -> {target_path} (already exists)")
             return True
         else:
@@ -635,20 +655,26 @@ def run_ffmpeg(
         h = max(1, y2 - y1)
         filters.append(f"crop={w}:{h}:{x1}:{y1}")
 
-    ffmpeg_cmd = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"]
+    loglevel = "info" if verbose_ffmpeg else "error"
+    ffmpeg_cmd = ["ffmpeg", "-y", "-hide_banner", "-loglevel", loglevel]
     if rotation_filter:
         ffmpeg_cmd.append("-noautorotate")
+    
+    # Use accurate seeking: -ss after -i for frame-accurate seeking (slower but more reliable)
+    # This is especially important for low FPS videos where keyframe seeking can fail
     ffmpeg_cmd += [
-        "-ss",
-        f"{task.start:.3f}",
         "-i",
         str(task.source),
+        "-ss",
+        f"{task.start:.3f}",
         "-t",
         f"{duration:.3f}",
+        "-avoid_negative_ts",
+        "make_zero",
     ]
 
     if codec == "copy":
-        ffmpeg_cmd += ["-c", "copy", "-avoid_negative_ts", "make_zero"]
+        ffmpeg_cmd += ["-c", "copy"]
     else:
         ffmpeg_cmd += [
             "-c:v",
@@ -669,21 +695,35 @@ def run_ffmpeg(
     ffmpeg_cmd.append(str(target_path))
 
     try:
-        subprocess.run(ffmpeg_cmd, check=True)
-        if clip_is_valid(target_path):
+        if verbose_ffmpeg:
+            result = subprocess.run(ffmpeg_cmd, check=True, text=True, capture_output=True)
+            if result.stdout:
+                print(f"[ffmpeg] {task.segment_id} stdout:\n{result.stdout}")
+            if result.stderr:
+                print(f"[ffmpeg] {task.segment_id} stderr:\n{result.stderr}")
+        else:
+            subprocess.run(ffmpeg_cmd, check=True, stderr=subprocess.DEVNULL)
+        if clip_is_valid(target_path, lenient=lenient_validation):
             print(f"[ok] {task.segment_id} ({task.duration:.2f}s) -> {target_path}")
             return True
         print(f"[fail] {task.segment_id}: output failed validation (ffprobe/decord)")
         return False
     except subprocess.CalledProcessError as exc:
-        print(f"[fail] {task.segment_id}: ffmpeg error -> {exc}")
+        if verbose_ffmpeg:
+            print(f"[fail] {task.segment_id}: ffmpeg error -> {exc}")
+            if hasattr(exc, 'stdout') and exc.stdout:
+                print(f"[ffmpeg] stdout: {exc.stdout}")
+            if hasattr(exc, 'stderr') and exc.stderr:
+                print(f"[ffmpeg] stderr: {exc.stderr}")
+        else:
+            print(f"[fail] {task.segment_id}: ffmpeg error -> {exc}")
         return False
 
 
-def ensure_link_or_copy(src: Path, dst: Path, overwrite: bool) -> bool:
+def ensure_link_or_copy(src: Path, dst: Path, overwrite: bool, lenient_validation: bool = False) -> bool:
     """Create dst pointing to src via symlink; copy if symlink fails."""
     if dst.exists() or dst.is_symlink():
-        if not overwrite and clip_is_valid(dst):
+        if not overwrite and clip_is_valid(dst, lenient=lenient_validation):
             return True
         try:
             dst.unlink()
@@ -889,6 +929,16 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Directory to store deduplicated canonical clips. Defaults to <output-dir>/canonical_clips when dedup is on.",
     )
+    parser.add_argument(
+        "--verbose-ffmpeg",
+        action="store_true",
+        help="Show ffmpeg output (useful for debugging encoding issues with low FPS videos).",
+    )
+    parser.add_argument(
+        "--lenient-validation",
+        action="store_true",
+        help="Use OpenCV as fallback validation if decord fails (useful for low FPS videos that decord can't handle).",
+    )
     return parser.parse_args()
 
 
@@ -932,7 +982,7 @@ def main() -> None:
         canonical_dir.mkdir(parents=True, exist_ok=True)
         if not args.overwrite:
             for p in canonical_dir.glob("*.mp4"):
-                if clip_is_valid(p):
+                if clip_is_valid(p, lenient=args.lenient_validation):
                     dedup_map[p.stem] = p
 
     for csv_path in csv_paths:
@@ -997,6 +1047,8 @@ def main() -> None:
                 target_path=target_path,
                 crop_box=crop_res.box if crop_res and crop_res.applied else None,
                 rotation=crop_res.rotation_used if crop_res else None,
+                verbose_ffmpeg=args.verbose_ffmpeg,
+                lenient_validation=args.lenient_validation,
             )
             return task, ok, target_path
 
@@ -1009,7 +1061,7 @@ def main() -> None:
                     if ok:
                         if canonical_dir:
                             dedup_map[task.segment_id] = target_path
-                            if not ensure_link_or_copy(target_path, task.output, overwrite=args.overwrite):
+                            if not ensure_link_or_copy(target_path, task.output, overwrite=args.overwrite, lenient_validation=args.lenient_validation):
                                 failures += 1
                                 continue
                         all_successful_tasks.append(task)
@@ -1022,7 +1074,7 @@ def main() -> None:
                 if ok:
                     if canonical_dir:
                         dedup_map[task.segment_id] = target_path
-                        if not ensure_link_or_copy(target_path, task.output, overwrite=args.overwrite):
+                        if not ensure_link_or_copy(target_path, task.output, overwrite=args.overwrite, lenient_validation=args.lenient_validation):
                             failures += 1
                             continue
                     all_successful_tasks.append(task)
@@ -1034,7 +1086,7 @@ def main() -> None:
             for task in link_only_tasks:
                 total += 1
                 existing = dedup_map.get(task.segment_id)
-                if existing and clip_is_valid(existing) and ensure_link_or_copy(existing, task.output, overwrite=args.overwrite):
+                if existing and clip_is_valid(existing, lenient=args.lenient_validation) and ensure_link_or_copy(existing, task.output, overwrite=args.overwrite, lenient_validation=args.lenient_validation):
                     if task.segment_id in crop_meta_cache:
                         task.metadata.update(crop_meta_cache[task.segment_id])
                     all_successful_tasks.append(task)

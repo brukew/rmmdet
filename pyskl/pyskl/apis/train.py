@@ -9,7 +9,7 @@ from mmcv.engine import multi_gpu_test, single_gpu_test
 from mmcv.parallel import MMDistributedDataParallel, MMDataParallel
 from mmcv.runner import DistSamplerSeedHook, EpochBasedRunner, OptimizerHook, build_optimizer, get_dist_info
 
-from ..core import DistEvalHook, EvalHook
+from ..core import DistEvalHook, EvalHook, EarlyStoppingHook
 from ..datasets import build_dataloader, build_dataset
 from ..utils import cache_checkpoint, get_root_logger
 
@@ -147,6 +147,14 @@ def train_model(model,
         else:
             eval_hook = EvalHook(val_dataloader, **eval_cfg)
         runner.register_hook(eval_hook)
+
+    # Register early stopping hook if configured
+    early_stopping_cfg = cfg.get('early_stopping', None)
+    if early_stopping_cfg is not None and validate:
+        early_stopping_hook = EarlyStoppingHook(**early_stopping_cfg)
+        runner.register_hook(early_stopping_hook)
+        logger.info(f'Early stopping enabled: patience={early_stopping_cfg.get("patience", 2)}, '
+                    f'monitor={early_stopping_cfg.get("monitor", "top1_acc")}')
 
     if cfg.get('resume_from', None):
         runner.resume(cfg.resume_from)

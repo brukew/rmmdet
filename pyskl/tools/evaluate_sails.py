@@ -309,8 +309,9 @@ def main():
     print()
     
     # Load annotation file to get segment IDs
-    # cfg-options ann_file=... sets cfg.ann_file, so check that first
-    ann_file = cfg.get('ann_file', cfg.data[args.split].get('ann_file'))
+    # Prefer the ann_file from data.{split} which is set via --cfg-options
+    # over the top-level cfg.ann_file which may be a config default
+    ann_file = cfg.data[args.split].get('ann_file', cfg.get('ann_file'))
     # Also update data config so dataset builder uses the right file
     cfg.data[args.split]['ann_file'] = ann_file
     print(f"Loading annotations from: {ann_file}")

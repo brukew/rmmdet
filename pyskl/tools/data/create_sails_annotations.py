@@ -300,13 +300,19 @@ def find_pose_cache(
     
     # Primary path: matches batch_sam_pose.py output structure
     primary_path = pose_cache_base / "pose_sam3" / filename_stem / POSE_CACHE_FILENAME
-    if primary_path.exists():
+    if primary_path.exists() and filename_stem!= "IMG_5399":
         return primary_path
     
     # Try video_meta lookup if provided (maps FileName to row info)
     if video_meta_lookup and segment.filename in video_meta_lookup:
         meta = video_meta_lookup[segment.filename]
         original_path = meta.get("original_path", "")
+        altered_basename = meta.get("altered_basename", "")
+        if altered_basename:
+            video_basename = altered_basename
+            alt_path = pose_cache_base / "pose_sam3" / video_basename / POSE_CACHE_FILENAME
+            if alt_path.exists():
+                return alt_path
         if original_path:
             video_basename = Path(original_path).stem
             alt_path = pose_cache_base / "pose_sam3" / video_basename / POSE_CACHE_FILENAME

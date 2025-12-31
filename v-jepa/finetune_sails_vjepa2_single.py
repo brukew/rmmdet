@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-"""Fine-tune V-JEPA2 for SAILS RMM type classification with cross-validation.
+"""Fine-tune V-JEPA2 for SAILS RMM type classification with a single train/val/test split.
 
-Converted from `finetune_sails_vjepa2_cv.ipynb` for batch/Slurm runs.
+Similar to `finetune_sails_vjepa2_cv_crop.py` but for a single split instead of cross-validation.
+Includes optional SAM3-based cropping inside the dataloader.
 """
 
 from __future__ import annotations
@@ -48,16 +49,18 @@ except ImportError:  # pragma: no cover - optional
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_SPLIT_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits/single_split")
+DEFAULT_CLIPS_ROOT = Path("/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips")
 DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
 DEFAULT_MASK_CACHE_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking")
 DEFAULT_MASK_MODEL = "facebook-sam3"
 DEFAULT_MASK_PROMPT = "person"
 DEFAULT_CROP_PADDING = 20
-DEFAULT_ISSUE_CLIPS_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/issue_clips.csv")
 
 
 @dataclass
 class CropConfig:
+    """Configuration for SAM3-based cropping."""
     enabled: bool = False
     sam3_parsed_csv: Path = DEFAULT_PARSED_CSV
     mask_cache_base: Path = DEFAULT_MASK_CACHE_BASE
@@ -71,6 +74,7 @@ class CropConfig:
 
 @dataclass
 class CropMeta:
+    """Metadata about a crop operation."""
     applied: bool
     reason: str
     box: Optional[Tuple[int, int, int, int]]
@@ -78,6 +82,7 @@ class CropMeta:
     cache_frame: Optional[int]
     rotation_used: Optional[int]
     cache_path: Optional[str]
+
 
 def setup_logging(log_level: str = "INFO") -> None:
     """Configure root logger for job output."""
@@ -93,6 +98,7 @@ def setup_logging(log_level: str = "INFO") -> None:
 
 
 def load_parsed_sam3_csv(csv_path: Path) -> Dict[str, Dict]:
+    """Load rmm_sam3_parsed.csv rows keyed by FileName."""
     rows: Dict[str, Dict] = {}
     if not csv_path.exists():
         logger.warning("Parsed SAM3 CSV not found at %s; cropping will be disabled.", csv_path)
@@ -111,6 +117,7 @@ def load_parsed_sam3_csv(csv_path: Path) -> Dict[str, Dict]:
 
 
 def child_ids_for_time(row: Dict, time_sec: float) -> List[int]:
+    """Return child IDs active at a given time from parsed SAM3 intervals."""
     ids: List[int] = []
     for iv in row.get("intervals", []):
         start = iv.get("start_sec", 0)
@@ -132,6 +139,7 @@ def child_ids_for_time(row: Dict, time_sec: float) -> List[int]:
 
 
 def get_video_rotation(video_path: Path) -> int:
+    """Read rotation side data from the video using ffprobe."""
     cmd = [
         "ffprobe",
         "-v",
@@ -154,6 +162,7 @@ def get_video_rotation(video_path: Path) -> int:
 
 
 def rotate_boxes(boxes: np.ndarray, rotation: int, width: int, height: int) -> np.ndarray:
+    """Rotate bounding boxes according to video rotation metadata."""
     if rotation == 0:
         return boxes
     rotated = boxes.copy()
@@ -175,6 +184,7 @@ def load_mask_cache(
     model_name: str = DEFAULT_MASK_MODEL,
     cache_path: Optional[Path] = None,
 ) -> Optional[Dict]:
+    """Load SAM3 mask cache from HDF5 file."""
     if h5py is None:
         return None
 
@@ -239,6 +249,7 @@ def load_mask_cache(
 
 
 def load_video_meta_json(path: Optional[Path]) -> Dict[str, Dict]:
+    """Load precomputed video metadata (rotation, cache paths) from JSON."""
     if not path:
         return {}
     if not path.exists():
@@ -260,27 +271,40 @@ def load_video_meta_json(path: Optional[Path]) -> Dict[str, Dict]:
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
-        description="Fine-tune V-JEPA2 for SAILS RMM type classification with cross-validation."
+        description="Fine-tune V-JEPA2 for SAILS RMM type classification with a single train/val/test split."
     )
+    # Split files
     parser.add_argument(
-        "--csv-dir",
+        "--split-dir",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/cv_folds"),
-        help="Directory containing fold_*_train.csv and fold_*_val.csv files.",
+        default=DEFAULT_SPLIT_DIR,
+        help="Directory containing train.csv, val.csv, test.csv files.",
     )
+    parser.add_argument("--train-csv", type=Path, default=None, help="Override path to train.csv.")
+    parser.add_argument("--val-csv", type=Path, default=None, help="Override path to val.csv.")
+    parser.add_argument("--test-csv", type=Path, default=None, help="Override path to test.csv.")
     parser.add_argument(
         "--clips-root",
         type=Path,
-        default=Path("/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips"),
-        help="Root directory containing fold subdirectories with MP4 clips.",
+        default=DEFAULT_CLIPS_ROOT,
+        help="Root directory containing subdirectories with MP4 clips.",
     )
     parser.add_argument(
-        "--output-root",
-        type=Path,
-        default=Path("runs/vjepa2_rmm_type_cv"),
-        help="Where to store per-fold checkpoints and summaries.",
+        "--clip-subdir",
+        type=str,
+        default=None,
+        help="Subdirectory under clips-root to find clips. Use 'canonical_clips' for deduplicated clips, "
+             "or empty string '' to look directly in clips-root. If not specified, uses CSV stem (train/val/test).",
     )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("runs/vjepa2_rmm_single"),
+        help="Where to store checkpoints and evaluation outputs.",
+    )
+    # Model and training
     parser.add_argument("--model-id", default="facebook/vjepa2-vitl-fpc16-256-ssv2")
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--num-workers", type=int, default=8)
@@ -295,18 +319,12 @@ def parse_args() -> argparse.Namespace:
         help="Frames per clip; set <=0 to use the processor default.",
     )
     parser.add_argument("--topk", type=int, default=2, help="k for top-k evaluation.")
-    parser.add_argument("--max-folds", type=int, default=None, help="Optional cap on folds to run.")
     parser.add_argument(
-        "--start-fold",
-        type=int,
-        default=0,
-        help="Skip folds with index < start-fold (useful for resuming).",
-    )
-    parser.add_argument(
-        "--reuse-checkpoints",
+        "--reuse-checkpoint",
         action="store_true",
-        help="If a fold output dir exists, load model/processor and only run evaluation/summary.",
+        help="If output dir exists with a checkpoint, load it and only run evaluation.",
     )
+    # W&B
     parser.add_argument(
         "--wandb-mode",
         choices=["online", "offline", "disabled"],
@@ -315,9 +333,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--wandb-project", default="vjepa-rmm", help="W&B project name.")
     parser.add_argument(
-        "--run-prefix",
-        default="vjepa2-rmm-cv",
-        help="Prefix for W&B run names (fold index is appended).",
+        "--run-name",
+        default=None,
+        help="W&B run name (defaults to auto-generated).",
     )
     parser.add_argument(
         "--log-level",
@@ -325,6 +343,7 @@ def parse_args() -> argparse.Namespace:
         default="INFO",
         help="Logging verbosity.",
     )
+    # Cropping options
     parser.add_argument("--enable-crop", action="store_true", help="Enable SAM3-based cropping inside the dataloader.")
     parser.add_argument(
         "--sam3-parsed-csv",
@@ -359,16 +378,11 @@ def parse_args() -> argparse.Namespace:
         default=Path("actreg/dataprep/video_meta.json"),
         help="JSON from save_video_metadata_cache for reuse (rotation/cache info).",
     )
-    parser.add_argument(
-        "--issue-clips-csv",
-        type=Path,
-        default=DEFAULT_ISSUE_CLIPS_CSV,
-        help="CSV containing segment_id's to exclude from training/evaluation.",
-    )
     return parser.parse_args()
 
 
 def quality_bucket(val: Optional[float]) -> str:
+    """Bin quality ratings into buckets."""
     try:
         x = float(val)
     except (TypeError, ValueError):
@@ -380,69 +394,68 @@ def quality_bucket(val: Optional[float]) -> str:
     return "low"
 
 
-def load_issue_clips(csv_path: Optional[Path] = None) -> set:
-    """Load set of segment IDs to exclude from training/evaluation."""
-    if csv_path is None:
-        csv_path = DEFAULT_ISSUE_CLIPS_CSV
-    if not csv_path.exists():
-        logger.warning("Issue clips CSV not found at %s; no clips will be excluded.", csv_path)
-        return set()
+def load_split(csv_path: Path, clips_root: Path, clip_subdir: Optional[str] = None) -> Tuple[List[Dict], List[Tuple[str, Path]]]:
+    """
+    Load records from a single CSV file.
     
-    df = pd.read_csv(csv_path)
-    issue_clips = set(df["segment_id"].astype(str).tolist())
-    logger.info("Loaded %d issue clips to exclude from %s", len(issue_clips), csv_path)
-    return issue_clips
-
-
-def load_split(
-    csv_paths: Sequence[Path],
-    clips_root: Path,
-    exclude_clips: Optional[set] = None,
-) -> Tuple[List[Dict], List[Tuple[str, Path]]]:
+    Args:
+        csv_path: Path to the CSV file.
+        clips_root: Root directory for clips.
+        clip_subdir: Subdirectory under clips_root to look for clips.
+                     If None, uses the CSV stem (e.g., 'train' for train.csv).
+                     If empty string '', looks directly in clips_root.
+    """
     records: List[Dict] = []
     missing: List[Tuple[str, Path]] = []
-    excluded_count = 0
     
-    for csv_path in csv_paths:
-        stem = csv_path.stem
-        df = pd.read_csv(csv_path)
-        for _, row in df.iterrows():
-            seg = row.get("segment_id") or row.get("segment_global_id")
-            label = row.get("rmm_type")
-            if pd.isna(seg) or pd.isna(label):
-                continue
-            
-            # Skip issue clips
-            if exclude_clips and str(seg) in exclude_clips:
-                excluded_count += 1
-                continue
-            
-            clip_path = clips_root / stem / f"{seg}.mp4"
-            if not clip_path.exists():
-                missing.append((str(seg), clip_path))
-                continue
-            rec = {
-                "segment_id": seg,
-                "label": str(label),
-                "clip": clip_path,
-                "video_id": row.get("video_id"),
-                "n_children": pd.to_numeric(row.get("n_children"), errors="coerce"),
-                "n_adults": pd.to_numeric(row.get("n_adults"), errors="coerce"),
-                "quality_rating": row.get("quality_rating"),
-                "start_sec": pd.to_numeric(row.get("start_sec"), errors="coerce"),
-                "end_sec": pd.to_numeric(row.get("end_sec"), errors="coerce"),
-                "filename": row.get("filename"),
-                "video_file": row.get("video_file"),
-            }
-            records.append(rec)
+    if not csv_path.exists():
+        logger.error("CSV file not found: %s", csv_path)
+        return records, missing
     
-    if excluded_count > 0:
-        logger.info("Excluded %d issue clips from split", excluded_count)
+    # Determine where to look for clips
+    if clip_subdir is None:
+        # Default: use CSV stem (e.g., 'train' for train.csv)
+        clip_dir = clips_root / csv_path.stem
+    elif clip_subdir == "":
+        # Empty string: look directly in clips_root
+        clip_dir = clips_root
+    else:
+        # Explicit subdirectory
+        clip_dir = clips_root / clip_subdir
+    
+    df = pd.read_csv(csv_path)
+    
+    for _, row in df.iterrows():
+        seg = row.get("segment_id") or row.get("segment_global_id")
+        label = row.get("rmm_type")
+        if pd.isna(seg) or pd.isna(label):
+            continue
+        
+        clip_path = clip_dir / f"{seg}.mp4"
+        if not clip_path.exists():
+            missing.append((str(seg), clip_path))
+            continue
+        
+        rec = {
+            "segment_id": seg,
+            "label": str(label),
+            "clip": clip_path,
+            "video_id": row.get("video_id"),
+            "n_children": pd.to_numeric(row.get("n_children"), errors="coerce"),
+            "n_adults": pd.to_numeric(row.get("n_adults"), errors="coerce"),
+            "quality_rating": row.get("quality_rating"),
+            "start_sec": pd.to_numeric(row.get("start_sec"), errors="coerce"),
+            "end_sec": pd.to_numeric(row.get("end_sec"), errors="coerce"),
+            "filename": row.get("filename"),
+            "video_file": row.get("video_file"),
+        }
+        records.append(rec)
     
     return records, missing
 
 
 def build_video_label_counts(records: Sequence[Dict]) -> Dict[str, int]:
+    """Count unique labels per video_id."""
     counts: Dict[str, set] = {}
     for rec in records:
         video_id = rec.get("video_id")
@@ -453,6 +466,7 @@ def build_video_label_counts(records: Sequence[Dict]) -> Dict[str, int]:
 
 
 def get_frames_per_clip(processor: VJEPA2VideoProcessor, override: int) -> int:
+    """Extract frames_per_clip from processor config or use override."""
     if override and override > 0:
         return int(override)
     frames = (
@@ -467,6 +481,8 @@ def get_frames_per_clip(processor: VJEPA2VideoProcessor, override: int) -> int:
 
 
 class RMMDataset(Dataset):
+    """Dataset for RMM type classification with optional SAM3-based cropping."""
+    
     def __init__(
         self,
         records: List[Dict],
@@ -490,11 +506,13 @@ class RMMDataset(Dataset):
         return len(self.records)
 
     def _sample_indices(self, total: int) -> np.ndarray:
+        """Sample frame indices uniformly across the clip."""
         if total <= 0:
             return np.zeros(self.frames_per_clip, dtype="int64")
         return np.round(np.linspace(0, total - 1, self.frames_per_clip)).astype("int64")
 
     def _apply_crop(self, rec: Dict, frames: np.ndarray, indices: np.ndarray, fps: float):
+        """Apply SAM3-based cropping to frames."""
         cfg = self.crop_cfg
         meta = {
             "crop_applied": False,
@@ -671,6 +689,7 @@ class RMMDataset(Dataset):
 
 
 def collate_fn(samples, processor: VJEPA2VideoProcessor):
+    """Collate samples into batches."""
     samples = [s for s in samples if s is not None]
     if not samples:
         return None, None, None
@@ -681,6 +700,7 @@ def collate_fn(samples, processor: VJEPA2VideoProcessor):
 
 
 def aggregate_preds(labels, preds, probs, metas, id2label: Dict[int, str]) -> pd.DataFrame:
+    """Aggregate predictions into a DataFrame with metadata."""
     df = pd.DataFrame(metas)
     df["label_id"] = labels
     df["pred_top1"] = preds
@@ -688,13 +708,11 @@ def aggregate_preds(labels, preds, probs, metas, id2label: Dict[int, str]) -> pd
     df["pred_name"] = df["pred_top1"].map(id2label)
     if probs is not None:
         df["pred_conf"] = probs.max(axis=1)
-        # Add per-class probability scores for late fusion
-        for i in range(probs.shape[1]):
-            df[f"score_class{i}"] = probs[:, i]
     return df
 
 
 def evaluate(loader: DataLoader, model: torch.nn.Module, device: torch.device, collect_probs: bool = False):
+    """Evaluate model on a dataloader."""
     model.eval()
     correct, total = 0, 0
     all_preds: List[int] = []
@@ -723,6 +741,7 @@ def evaluate(loader: DataLoader, model: torch.nn.Module, device: torch.device, c
 
 
 def evaluate_topk(loader: DataLoader, model: torch.nn.Module, device: torch.device, k: int = 2):
+    """Evaluate model with top-k accuracy."""
     model.eval()
     correct_top1 = 0
     correct_topk = 0
@@ -777,6 +796,7 @@ def evaluate_topk(loader: DataLoader, model: torch.nn.Module, device: torch.devi
 
 
 def compute_classification_metrics(labels, preds, probs, id2label: Dict[int, str]):
+    """Compute classification metrics including per-class and aggregate stats."""
     class_names = [id2label[i] for i in range(len(id2label))]
     label_ids = list(range(len(id2label)))
     report = classification_report(
@@ -836,7 +856,7 @@ def compute_classification_metrics(labels, preds, probs, id2label: Dict[int, str
 def aggregate_video_predictions(
     metas_df: pd.DataFrame, labels: np.ndarray, preds: np.ndarray, probs: Optional[np.ndarray], id2label: Dict[int, str]
 ):
-    """Aggregate clip-level predictions into video-level predictions using average probs or majority vote."""
+    """Aggregate clip-level predictions into video-level predictions."""
     if metas_df is None or metas_df.empty or "video_id" not in metas_df:
         logger.warning("No video_id metadata available; skipping video-level aggregation.")
         return None
@@ -900,6 +920,7 @@ def save_confusion_matrix(
     out_path: Path,
     normalize: Optional[str] = "true",
 ) -> None:
+    """Save a confusion matrix plot to disk."""
     if y_true is None or y_pred is None or len(y_true) == 0:
         logger.warning("Empty inputs; skipping confusion matrix.")
         return
@@ -923,6 +944,7 @@ def save_confusion_matrix(
 
 
 def metrics_for_subset(mask, labels, preds, probs, id2label: Dict[int, str]):
+    """Compute metrics for a subset of samples."""
     if mask.sum() == 0:
         return None
     l = labels[mask]
@@ -934,6 +956,8 @@ def metrics_for_subset(mask, labels, preds, probs, id2label: Dict[int, str]):
 
 
 class WandbAdapter:
+    """Wrapper for optional W&B logging."""
+    
     def __init__(self, mode: str, project: str, run_name: str, config: Dict):
         self.run = None
         self.enabled = False
@@ -959,14 +983,153 @@ class WandbAdapter:
             self.run.finish()
 
 
+def run_evaluation(
+    split_name: str,
+    loader: DataLoader,
+    model: torch.nn.Module,
+    device: torch.device,
+    output_dir: Path,
+    id2label: Dict[int, str],
+    topk: int,
+    wb_logger: WandbAdapter,
+) -> Dict:
+    """
+    Run full evaluation on a split and save outputs.
+    
+    Returns a dict with summary metrics.
+    """
+    logger.info("Evaluating on %s set (%d batches)...", split_name, len(loader))
+    
+    topk_metrics = evaluate_topk(loader, model, device, k=topk)
+    labels_arr = np.array(topk_metrics["labels"])
+    preds_arr = np.array(topk_metrics["preds_top1"])
+    probs_arr = (
+        topk_metrics["probs"].cpu().numpy() if isinstance(topk_metrics["probs"], torch.Tensor) else None
+    )
+    
+    metas_df = aggregate_preds(labels_arr, preds_arr, probs_arr, topk_metrics["metas"], id2label)
+    
+    # Save clip-level predictions
+    clip_preds_path = output_dir / f"{split_name}_clip_level_preds.csv"
+    metas_df.to_csv(clip_preds_path, index=False)
+    logger.info("Saved %s clip-level predictions to %s", split_name, clip_preds_path)
+    
+    summary_metrics, per_class_df, pr_curves = compute_classification_metrics(
+        labels_arr, preds_arr, probs_arr, id2label
+    )
+    
+    # Save per-class metrics
+    per_class_path = output_dir / f"{split_name}_per_class.csv"
+    per_class_df.to_csv(per_class_path, index=False)
+    
+    # Save confusion matrix
+    conf_path = output_dir / f"{split_name}_confusion_matrix.png"
+    save_confusion_matrix(
+        labels_arr,
+        preds_arr,
+        list(id2label.keys()),
+        list(id2label.values()),
+        conf_path,
+        normalize="true",
+    )
+    
+    # Video-level aggregation
+    video_metrics = aggregate_video_predictions(metas_df, labels_arr, preds_arr, probs_arr, id2label)
+    video_summary = None
+    video_acc = None
+    video_kappa = None
+    
+    if video_metrics:
+        video_labels = video_metrics["labels"]
+        video_preds = video_metrics["preds"]
+        video_probs = video_metrics["probs"]
+        video_summary, video_per_class_df, _ = compute_classification_metrics(
+            video_labels, video_preds, video_probs, id2label
+        )
+        video_acc = float((video_labels == video_preds).mean()) if len(video_labels) else 0.0
+        video_kappa = float(cohen_kappa_score(video_labels, video_preds)) if len(video_labels) else float("nan")
+        
+        # Save video-level outputs
+        video_conf_path = output_dir / f"{split_name}_confusion_matrix_video.png"
+        save_confusion_matrix(
+            video_labels,
+            video_preds,
+            list(id2label.keys()),
+            list(id2label.values()),
+            video_conf_path,
+            normalize="true",
+        )
+        
+        video_pred_path = output_dir / f"{split_name}_video_level_preds.csv"
+        video_metrics["df"].to_csv(video_pred_path, index=False)
+        logger.info("Saved %s video-level predictions to %s", split_name, video_pred_path)
+        
+        video_per_class_path = output_dir / f"{split_name}_per_class_video.csv"
+        video_per_class_df.to_csv(video_per_class_path, index=False)
+    
+    # Log to W&B
+    wb_logger.log({
+        f"{split_name}/top1_acc": topk_metrics["top1_acc"],
+        f"{split_name}/top{topk}_acc": topk_metrics[f"top{topk}_acc"],
+        f"{split_name}/macro_f1": summary_metrics["macro_f1"],
+        f"{split_name}/micro_f1": summary_metrics["micro_f1"],
+        f"{split_name}/weighted_f1": summary_metrics["weighted_f1"],
+    })
+    if video_summary:
+        wb_logger.log({
+            f"{split_name}/video_acc": video_acc,
+            f"{split_name}/video_macro_f1": video_summary["macro_f1"],
+            f"{split_name}/video_kappa": video_kappa,
+        })
+    wb_logger.log_table(f"{split_name}/per_class", per_class_df)
+    
+    logger.info(
+        "%s | top1=%.3f | top%d=%.3f | macro F1=%.3f",
+        split_name.upper(),
+        topk_metrics["top1_acc"],
+        topk,
+        topk_metrics[f"top{topk}_acc"],
+        summary_metrics["macro_f1"],
+    )
+    if video_summary:
+        logger.info(
+            "%s (video-level) | acc=%.3f | macro F1=%.3f | kappa=%.3f",
+            split_name.upper(),
+            video_acc,
+            video_summary["macro_f1"],
+            video_kappa,
+        )
+    
+    return {
+        "split": split_name,
+        "top1_acc": topk_metrics["top1_acc"],
+        f"top{topk}_acc": topk_metrics[f"top{topk}_acc"],
+        **summary_metrics,
+        "video_acc": video_acc,
+        "video_macro_f1": video_summary["macro_f1"] if video_summary else None,
+        "video_kappa": video_kappa,
+    }
+
+
 def main() -> None:
     args = parse_args()
     setup_logging(args.log_level)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info("Using device: %s", device)
+    
     if args.wandb_mode != "disabled" and wandb is None:
         logger.warning('wandb not installed; set --wandb-mode disabled or install wandb to log runs.')
 
+    # Resolve split file paths
+    train_csv = args.train_csv or args.split_dir / "train.csv"
+    val_csv = args.val_csv or args.split_dir / "val.csv"
+    test_csv = args.test_csv or args.split_dir / "test.csv"
+    
+    logger.info("Train CSV: %s", train_csv)
+    logger.info("Val CSV: %s", val_csv)
+    logger.info("Test CSV: %s", test_csv)
+    
+    # Setup cropping config
     crop_cfg = CropConfig(
         enabled=args.enable_crop,
         sam3_parsed_csv=args.sam3_parsed_csv,
@@ -980,6 +1143,7 @@ def main() -> None:
     )
     sam3_rows = load_parsed_sam3_csv(args.sam3_parsed_csv) if crop_cfg.enabled else {}
     video_meta = load_video_meta_json(args.video_meta_json) if crop_cfg.enabled else {}
+    
     if crop_cfg.enabled:
         logger.info(
             "Cropping enabled | parsed_csv=%s | cache_base=%s | model=%s | prompt=%s | padding=%d | fallback=%s",
@@ -990,356 +1154,212 @@ def main() -> None:
             args.crop_padding,
             args.crop_fallback,
         )
-
-    # Load issue clips to exclude
-    issue_clips = load_issue_clips(args.issue_clips_csv)
-
-    train_csvs = sorted(args.csv_dir.glob("fold_*_train.csv"))
-    val_csvs = sorted(args.csv_dir.glob("fold_*_val.csv"))
-    if not train_csvs or not val_csvs or len(train_csvs) != len(val_csvs):
-        raise RuntimeError(f"Found {len(train_csvs)} train CSVs and {len(val_csvs)} val CSVs in {args.csv_dir}")
-    logger.info("Found %d folds in %s", len(train_csvs), args.csv_dir)
-
-    all_records, _ = load_split(train_csvs + val_csvs, args.clips_root, exclude_clips=issue_clips)
+    
+    # Load all splits to determine labels
+    train_records, miss_train = load_split(train_csv, args.clips_root, args.clip_subdir)
+    val_records, miss_val = load_split(val_csv, args.clips_root, args.clip_subdir)
+    test_records, miss_test = load_split(test_csv, args.clips_root, args.clip_subdir)
+    
+    logger.info("Loaded: train=%d, val=%d, test=%d", len(train_records), len(val_records), len(test_records))
+    logger.info("Missing clips -> train: %d | val: %d | test: %d", len(miss_train), len(miss_val), len(miss_test))
+    
+    if miss_train or miss_val or miss_test:
+        example_missing = (miss_train + miss_val + miss_test)[:5]
+        logger.warning("Example missing clips: %s", example_missing)
+    
+    all_records = train_records + val_records + test_records
     video_label_counts = build_video_label_counts(all_records)
     all_labels = sorted({r["label"] for r in all_records})
     label2id = {lbl: i for i, lbl in enumerate(all_labels)}
     id2label = {i: lbl for lbl, i in label2id.items()}
     logger.info("Labels: %s", label2id)
+    
+    # Load processor
+    processor = VJEPA2VideoProcessor.from_pretrained(args.model_id)
+    frames_per_clip = get_frames_per_clip(processor, args.frames_per_clip)
+    logger.info("Frames per clip: %d", frames_per_clip)
+    
+    # Setup output directory
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    reuse_existing = args.reuse_checkpoint and (args.output_dir / "config.json").exists()
+    
+    if reuse_existing:
+        processor = VJEPA2VideoProcessor.from_pretrained(args.output_dir)
+        frames_per_clip = get_frames_per_clip(processor, args.frames_per_clip)
+        logger.info("Reusing checkpoint from %s (frames_per_clip=%d)", args.output_dir, frames_per_clip)
+    
+    # Create datasets
+    train_ds = RMMDataset(
+        train_records, label2id, frames_per_clip, video_label_counts,
+        crop_cfg=crop_cfg, sam3_rows=sam3_rows, video_meta=video_meta,
+    )
+    val_ds = RMMDataset(
+        val_records, label2id, frames_per_clip, video_label_counts,
+        crop_cfg=crop_cfg, sam3_rows=sam3_rows, video_meta=video_meta,
+    )
+    test_ds = RMMDataset(
+        test_records, label2id, frames_per_clip, video_label_counts,
+        crop_cfg=crop_cfg, sam3_rows=sam3_rows, video_meta=video_meta,
+    )
+    
+    collate = partial(collate_fn, processor=processor)
+    
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=args.batch_size,
+        shuffle=True,
+        collate_fn=collate,
+        num_workers=args.num_workers,
+        pin_memory=True,
+        persistent_workers=args.num_workers > 0,
+        prefetch_factor=2 if args.num_workers > 0 else None,
+    ) if not reuse_existing else None
+    
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=args.batch_size,
+        shuffle=False,
+        collate_fn=collate,
+        num_workers=args.num_workers,
+        pin_memory=True,
+        persistent_workers=args.num_workers > 0,
+        prefetch_factor=2 if args.num_workers > 0 else None,
+    )
+    
+    test_loader = DataLoader(
+        test_ds,
+        batch_size=args.batch_size,
+        shuffle=False,
+        collate_fn=collate,
+        num_workers=args.num_workers,
+        pin_memory=True,
+        persistent_workers=args.num_workers > 0,
+        prefetch_factor=2 if args.num_workers > 0 else None,
+    )
+    
+    # Class weights for loss
+    cls_counts = Counter(rec["label"] for rec in train_records)
+    weights = []
+    total_train = sum(cls_counts.values())
+    for i in range(len(label2id)):
+        cls = id2label[i]
+        count = max(cls_counts.get(cls, 0), 1)
+        weights.append(total_train / (len(label2id) * count))
+    class_weights = torch.tensor(weights, dtype=torch.float32, device=device)
+    logger.info("Class weights: %s", dict(zip(id2label.values(), weights)))
+    
+    # Load or initialize model
+    if reuse_existing:
+        model = VJEPA2ForVideoClassification.from_pretrained(args.output_dir).to(device)
+    else:
+        model = VJEPA2ForVideoClassification.from_pretrained(
+            args.model_id,
+            label2id=label2id,
+            id2label=id2label,
+            ignore_mismatched_sizes=True,
+        ).to(device)
+        for param in model.vjepa2.parameters():
+            param.requires_grad = False
+    
+    # W&B setup
+    crop_tag = "-crop" if crop_cfg.enabled else ""
+    run_name = args.run_name or f"vjepa2-rmm-single-{frames_per_clip}fr{crop_tag}"
+    wb_logger = WandbAdapter(
+        mode=args.wandb_mode,
+        project=args.wandb_project,
+        run_name=run_name,
+        config={
+            "lr": args.lr,
+            "batch_size": args.batch_size,
+            "frames_per_clip": frames_per_clip,
+            "accumulation_steps": args.accumulation_steps,
+            "num_epochs": args.num_epochs,
+            "enable_crop": crop_cfg.enabled,
+        },
+    )
+    
+    # Training loop
+    if reuse_existing:
+        logger.info("Skipping training (reuse-checkpoint).")
+    else:
+        optimizer = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], lr=args.lr)
+        
+        for epoch in range(1, args.num_epochs + 1):
+            model.train()
+            optimizer.zero_grad()
+            running_loss = 0.0
+            num_batches = 0
 
-    base_processor = VJEPA2VideoProcessor.from_pretrained(args.model_id)
-    base_frames_per_clip = get_frames_per_clip(base_processor, args.frames_per_clip)
-    logger.info("Frames per clip: %d", base_frames_per_clip)
+            for step, (inputs, labels, metas) in enumerate(train_loader, start=1):
+                if inputs is None or labels is None:
+                    continue
+                labels = labels.to(device)
+                inputs = {k: v.to(device) for k, v in inputs.items()}
+                outputs = model(**inputs)
+                loss = F.cross_entropy(outputs.logits, labels, weight=class_weights) / args.accumulation_steps
+                loss.backward()
+                running_loss += loss.item()
+                num_batches += 1
 
-    args.output_root.mkdir(parents=True, exist_ok=True)
-
-    fold_results = []
-    fold_pairs = list(zip(train_csvs, val_csvs))
-    if args.max_folds is not None:
-        fold_pairs = fold_pairs[: args.max_folds]
-
-    for fold_idx, (train_csv, val_csv) in enumerate(fold_pairs):
-        if fold_idx < args.start_fold:
-            logger.info("Skipping fold %d (start-fold=%d)", fold_idx, args.start_fold)
-            continue
-        logger.info("=" * 90)
-        logger.info("Fold %d | train=%s | val=%s", fold_idx, train_csv.name, val_csv.name)
-
-        fold_out = args.output_root / f"fold_{fold_idx}"
-        reuse_existing = args.reuse_checkpoints and fold_out.exists()
-        fold_out.mkdir(parents=True, exist_ok=True)
-        if reuse_existing:
-            fold_processor = VJEPA2VideoProcessor.from_pretrained(fold_out)
-            frames_per_clip_fold = get_frames_per_clip(fold_processor, args.frames_per_clip)
-            logger.info(
-                "Reusing checkpoint for fold %d from %s (frames_per_clip=%d)",
-                fold_idx,
-                fold_out,
-                frames_per_clip_fold,
-            )
-        else:
-            fold_processor = base_processor
-            frames_per_clip_fold = base_frames_per_clip
-
-        train_records, miss_train = load_split([train_csv], args.clips_root, exclude_clips=issue_clips)
-        val_records, miss_val = load_split([val_csv], args.clips_root, exclude_clips=issue_clips)
-        logger.info("Missing clips -> train: %d | val: %d", len(miss_train), len(miss_val))
-        if miss_train or miss_val:
-            example_missing = (miss_train + miss_val)[:5]
-            logger.warning("Example missing clips: %s", example_missing)
-
-        train_ds = RMMDataset(
-            train_records,
-            label2id,
-            frames_per_clip_fold,
-            video_label_counts,
-            crop_cfg=crop_cfg,
-            sam3_rows=sam3_rows,
-            video_meta=video_meta,
-        )
-        val_ds = RMMDataset(
-            val_records,
-            label2id,
-            frames_per_clip_fold,
-            video_label_counts,
-            crop_cfg=crop_cfg,
-            sam3_rows=sam3_rows,
-            video_meta=video_meta,
-        )
-
-        collate = partial(collate_fn, processor=fold_processor)
-        train_loader = None
-        if not reuse_existing:
-            train_loader = DataLoader(
-                train_ds,
-                batch_size=args.batch_size,
-                shuffle=True,
-                collate_fn=collate,
-                num_workers=args.num_workers,
-                pin_memory=True,
-                persistent_workers=args.num_workers > 0,
-                prefetch_factor=2 if args.num_workers > 0 else None,
-            )
-        val_loader = DataLoader(
-            val_ds,
-            batch_size=args.batch_size,
-            shuffle=False,
-            collate_fn=collate,
-            num_workers=args.num_workers,
-            pin_memory=True,
-            persistent_workers=args.num_workers > 0,
-            prefetch_factor=2 if args.num_workers > 0 else None,
-        )
-
-        # Class weights to rebalance loss toward underrepresented labels
-        cls_counts = Counter(rec["label"] for rec in train_records)
-        weights = []
-        total_train = sum(cls_counts.values())
-        for i in range(len(label2id)):
-            cls = id2label[i]
-            count = max(cls_counts.get(cls, 0), 1)  # avoid divide-by-zero
-            weights.append(total_train / (len(label2id) * count))
-        class_weights = torch.tensor(weights, dtype=torch.float32, device=device)
-        logger.info("Fold %d class weights: %s", fold_idx, dict(zip(id2label.values(), weights)))
-
-        if reuse_existing:
-            model = VJEPA2ForVideoClassification.from_pretrained(fold_out).to(device)
-        else:
-            model = VJEPA2ForVideoClassification.from_pretrained(
-                args.model_id,
-                label2id=label2id,
-                id2label=id2label,
-                ignore_mismatched_sizes=True,
-            ).to(device)
-            for param in model.vjepa2.parameters():
-                param.requires_grad = False
-
-        if not reuse_existing:
-            optimizer = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], lr=args.lr)
-
-        crop_tag = "-crop" if crop_cfg.enabled else ""
-        run_name = f"{args.run_prefix}-fold{fold_idx}-vjepa2-{frames_per_clip_fold}fr{crop_tag}"
-        wb_logger = WandbAdapter(
-            mode=args.wandb_mode,
-            project=args.wandb_project,
-            run_name=run_name,
-            config={
-                "lr": args.lr,
-                "batch_size": args.batch_size,
-                "frames_per_clip": frames_per_clip_fold,
-                "fold": fold_idx,
-                "accumulation_steps": args.accumulation_steps,
-            },
-        )
-
-        if reuse_existing:
-            logger.info("Skipping training for fold %d (reuse-checkpoints).", fold_idx)
-        else:
-            for epoch in range(1, args.num_epochs + 1):
-                model.train()
-                optimizer.zero_grad()
-                running_loss = 0.0
-                num_batches = 0
-
-                for step, (inputs, labels, metas) in enumerate(train_loader, start=1):
-                    if inputs is None or labels is None:
-                        continue
-                    labels = labels.to(device)
-                    inputs = {k: v.to(device) for k, v in inputs.items()}
-                    outputs = model(**inputs)
-                    loss = F.cross_entropy(outputs.logits, labels, weight=class_weights) / args.accumulation_steps
-                    loss.backward()
-                    running_loss += loss.item()
-                    num_batches += 1
-
-                    if step % args.accumulation_steps == 0:
-                        optimizer.step()
-                        optimizer.zero_grad()
-
-                    if step % args.log_interval == 0:
-                        avg_loss = running_loss / max(num_batches, 1) * args.accumulation_steps
-                        logger.info("  Epoch %d Step %d/%d | Loss: %.4f", epoch, step, len(train_loader), avg_loss)
-
-                    wb_logger.log({"train/loss": loss.item(), "epoch": epoch, "step": step})
-
-                if num_batches and num_batches % args.accumulation_steps != 0:
+                if step % args.accumulation_steps == 0:
                     optimizer.step()
                     optimizer.zero_grad()
 
-                val_acc, _, _, _, _ = evaluate(val_loader, model, device)
-                wb_logger.log({"val/acc": val_acc, "epoch": epoch})
-                logger.info("  Epoch %d complete | val_acc=%.3f", epoch, val_acc)
+                if step % args.log_interval == 0:
+                    avg_loss = running_loss / max(num_batches, 1) * args.accumulation_steps
+                    logger.info("  Epoch %d Step %d/%d | Loss: %.4f", epoch, step, len(train_loader), avg_loss)
 
-            # Save checkpoint per fold
-            fold_out.mkdir(parents=True, exist_ok=True)
-            model.save_pretrained(fold_out)
-            fold_processor.save_pretrained(fold_out)
-            logger.info("Saved fold %d model + processor to %s", fold_idx, fold_out)
+                wb_logger.log({"train/loss": loss.item(), "epoch": epoch, "step": step})
 
-        # Full eval with top-k and metrics
-        topk_metrics = evaluate_topk(val_loader, model, device, k=args.topk)
-        labels_arr = np.array(topk_metrics["labels"])
-        preds_arr = np.array(topk_metrics["preds_top1"])
-        probs_arr = (
-            topk_metrics["probs"].cpu().numpy() if isinstance(topk_metrics["probs"], torch.Tensor) else None
-        )
-        metas_df = aggregate_preds(labels_arr, preds_arr, probs_arr, topk_metrics["metas"], id2label)
-        clip_preds_path = fold_out / "clip_level_preds.csv"
-        metas_df.to_csv(clip_preds_path, index=False)
-        logger.info("Saved clip-level predictions to %s", clip_preds_path)
+            if num_batches and num_batches % args.accumulation_steps != 0:
+                optimizer.step()
+                optimizer.zero_grad()
 
-        summary_metrics, per_class_df, pr_curves = compute_classification_metrics(
-            labels_arr, preds_arr, probs_arr, id2label
-        )
+            val_acc, _, _, _, _ = evaluate(val_loader, model, device)
+            wb_logger.log({"val/acc": val_acc, "epoch": epoch})
+            logger.info("  Epoch %d complete | val_acc=%.3f", epoch, val_acc)
 
-        # Video-level aggregation
-        video_metrics = aggregate_video_predictions(metas_df, labels_arr, preds_arr, probs_arr, id2label)
-        video_summary = None
-        video_per_class_df = None
-        video_acc = None
-        video_kappa = None
-        if video_metrics:
-            video_labels = video_metrics["labels"]
-            video_preds = video_metrics["preds"]
-            video_probs = video_metrics["probs"]
-            video_summary, video_per_class_df, _ = compute_classification_metrics(
-                video_labels, video_preds, video_probs, id2label
-            )
-            video_acc = float((video_labels == video_preds).mean()) if len(video_labels) else 0.0
-            video_kappa = float(cohen_kappa_score(video_labels, video_preds)) if len(video_labels) else float("nan")
-
-            video_conf_path = fold_out / "confusion_matrix_video.png"
-            save_confusion_matrix(
-                video_labels,
-                video_preds,
-                list(id2label.keys()),
-                list(id2label.values()),
-                video_conf_path,
-                normalize="true",
-            )
-
-            video_pred_path = fold_out / "video_level_preds.csv"
-            video_metrics["df"].to_csv(video_pred_path, index=False)
-            logger.info("Saved video-level predictions to %s", video_pred_path)
-        else:
-            logger.warning("Skipping video-level metrics for fold %d; missing video_id metadata.", fold_idx)
-
-        # Persist per-class tables
-        per_class_path = fold_out / "per_class_clip.csv"
-        per_class_df.to_csv(per_class_path, index=False)
-        if video_per_class_df is not None:
-            video_per_class_path = fold_out / "per_class_video.csv"
-            video_per_class_df.to_csv(video_per_class_path, index=False)
-
-        # Subset masks (clip-level)
-        masks = {
-            "n_children_1": metas_df["n_children"] == 1,
-            "n_children_gt1": metas_df["n_children"] > 1,
-            "mixed_video": metas_df["mixed_video"] == True,  # noqa: E712
-        }
-        for qb in metas_df["quality_bucket"].dropna().unique():
-            masks[f"quality_{qb}"] = metas_df["quality_bucket"] == qb
-
-        subset_metrics: Dict[str, Dict] = {}
-        for name, mask in masks.items():
-            res = metrics_for_subset(mask.values, labels_arr, preds_arr, probs_arr, id2label)
-            if res:
-                subset_metrics[name] = res
-
-        fold_results.append(
-            {
-                "fold": fold_idx,
-                "train_csv": train_csv.name,
-                "val_csv": val_csv.name,
-                "top1_acc": topk_metrics["top1_acc"],
-                "topk_acc": topk_metrics[f"top{args.topk}_acc"],
-                "improvement": topk_metrics["improvement"],
-                **summary_metrics,
-                "per_class": per_class_df,
-                "pr_curves": pr_curves,
-                "subset_metrics": subset_metrics,
-                "video_acc": video_acc,
-                "video_macro_f1": video_summary["macro_f1"] if video_summary else None,
-                "video_kappa": video_kappa,
-                "video_per_class": video_per_class_df,
-                "metas": metas_df,
-            }
-        )
-
-        wb_logger.log(
-            {
-                "eval/top1_acc": topk_metrics["top1_acc"],
-                f"eval/top{args.topk}_acc": topk_metrics[f"top{args.topk}_acc"],
-                "eval/topk_improvement": topk_metrics["improvement"],
-                "eval/macro_f1": summary_metrics["macro_f1"],
-                "eval/micro_f1": summary_metrics["micro_f1"],
-                "eval/weighted_f1": summary_metrics["weighted_f1"],
-            }
-        )
-        wb_logger.log_table("eval/per_class", per_class_df)
-        if video_summary and video_per_class_df is not None:
-            wb_logger.log(
-                {
-                    "eval/video_acc": video_acc,
-                    "eval/video_macro_f1": video_summary["macro_f1"],
-                    "eval/video_kappa": video_kappa,
-                }
-            )
-            wb_logger.log_table("eval/per_class_video", video_per_class_df)
-        if subset_metrics:
-            subset_rows = []
-            for name, metrics in subset_metrics.items():
-                row = {"subset": name}
-                row.update(metrics)
-                subset_rows.append(row)
-            wb_logger.log_table("eval/subsets", pd.DataFrame(subset_rows))
-        wb_logger.finish()
-
-        logger.info(
-            "Fold %d | top1=%.3f | top%d=%.3f | macro F1=%.3f",
-            fold_idx,
-            topk_metrics["top1_acc"],
-            args.topk,
-            topk_metrics[f"top{args.topk}_acc"],
-            summary_metrics["macro_f1"],
-        )
-        if video_summary:
-            logger.info(
-                "Fold %d (video-level) | acc=%.3f | macro F1=%.3f | kappa=%.3f",
-                fold_idx,
-                video_acc,
-                video_summary["macro_f1"],
-                video_kappa,
-            )
-
-    # Aggregate cross-fold results
-    summary_rows = [
-        {
-            "fold": fr["fold"],
-            "top1_acc": fr["top1_acc"],
-            f"top{args.topk}_acc": fr["topk_acc"],
-            "macro_f1": fr["macro_f1"],
-            "micro_f1": fr["micro_f1"],
-            "weighted_f1": fr["weighted_f1"],
-            "video_acc": fr.get("video_acc"),
-            "video_macro_f1": fr.get("video_macro_f1"),
-            "video_kappa": fr.get("video_kappa"),
-        }
-        for fr in fold_results
-    ]
-    summary_df = pd.DataFrame(summary_rows)
-    logger.info("Cross-fold summary:\n%s", summary_df)
-    logger.info("Averages:\n%s", summary_df.mean(numeric_only=True))
-
-    summary_path = args.output_root / "cv_summary.csv"
+        # Save checkpoint
+        model.save_pretrained(args.output_dir)
+        processor.save_pretrained(args.output_dir)
+        logger.info("Saved model + processor to %s", args.output_dir)
+    
+    # Full evaluation on all splits
+    logger.info("=" * 90)
+    logger.info("Running full evaluation on all splits...")
+    
+    results = []
+    
+    # Validation set evaluation
+    val_result = run_evaluation(
+        "val", val_loader, model, device, args.output_dir, id2label, args.topk, wb_logger
+    )
+    results.append(val_result)
+    
+    # Test set evaluation
+    test_result = run_evaluation(
+        "test", test_loader, model, device, args.output_dir, id2label, args.topk, wb_logger
+    )
+    results.append(test_result)
+    
+    # Save summary
+    summary_df = pd.DataFrame(results)
+    summary_path = args.output_dir / "evaluation_summary.csv"
     summary_df.to_csv(summary_path, index=False)
-    logger.info("Saved cross-fold summary to %s", summary_path)
-
-    # Save minimal JSON for programmatic use
-    json_path = args.output_root / "cv_summary.json"
-    json_path.write_text(json.dumps(summary_rows, indent=2))
-    logger.info("Saved cross-fold summary JSON to %s", json_path)
+    logger.info("Saved evaluation summary to %s", summary_path)
+    
+    # Save as JSON too
+    json_path = args.output_dir / "evaluation_summary.json"
+    json_path.write_text(json.dumps(results, indent=2))
+    logger.info("Saved evaluation summary JSON to %s", json_path)
+    
+    wb_logger.finish()
+    
+    logger.info("=" * 90)
+    logger.info("Done!")
+    logger.info("Summary:\n%s", summary_df.to_string())
 
 
 if __name__ == "__main__":
     main()
+

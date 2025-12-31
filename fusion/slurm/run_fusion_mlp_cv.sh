@@ -1,0 +1,83 @@
+#!/bin/bash -l
+# Late Fusion Training: V-JEPA2 + PoseC3D with MLP
+#
+# Trains a small MLP to learn non-linear fusion patterns.
+# Architecture: concat(z_rgb, z_pose) -> Linear(8,16) -> ReLU -> Dropout -> Linear(16,4)
+# ~148 parameters total.
+#
+# Usage:
+#   sbatch run_fusion_mlp_cv.sh
+#
+# Logs: /orcd/data/satra/001/users/brukew/fusion_logs
+
+#SBATCH -J fusion_mlp
+#SBATCH -p pi_satra
+#SBATCH -c 4
+#SBATCH --mem=16G
+#SBATCH --gres=gpu:1
+#SBATCH -t 1:00:00
+#SBATCH -o /orcd/data/satra/001/users/brukew/fusion_logs/fusion_mlp_cv_%j.out
+#SBATCH -e /orcd/data/satra/001/users/brukew/fusion_logs/fusion_mlp_cv_%j.err
+
+set -eo pipefail
+
+if [ -f ~/.bashrc ]; then
+  source ~/.bashrc
+fi
+
+cd /orcd/data/satra/001/users/brukew
+
+# Use vjepa2 env (has torch, numpy, pandas, sklearn, matplotlib)
+conda activate vjepa2
+
+LOG_DIR=/orcd/data/satra/001/users/brukew/fusion_logs
+mkdir -p "$LOG_DIR"
+
+# ============================================================================
+# Paths
+# ============================================================================
+VJEPA_ROOT=${VJEPA_ROOT:-/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls}
+# Use non-weighted PoseC3D which has full val set coverage
+POSEC3D_ROOT=${POSEC3D_ROOT:-/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs/posec3d/cv/4class_conf04}
+OUTPUT_DIR=${OUTPUT_DIR:-/orcd/data/satra/001/users/brukew/actreg/fusion/runs/4class_cv_mlp}
+
+# ============================================================================
+# Training config
+# ============================================================================
+NUM_CLASSES=${NUM_CLASSES:-4}
+NUM_FOLDS=${NUM_FOLDS:-3}
+NUM_EPOCHS=${NUM_EPOCHS:-100}
+LR=${LR:-0.01}
+BATCH_SIZE=${BATCH_SIZE:-32}
+FUSION_TYPE="mlp"
+MLP_HIDDEN_DIM=${MLP_HIDDEN_DIM:-16}
+MLP_DROPOUT=${MLP_DROPOUT:-0.1}
+
+echo "============================================================"
+echo "Late Fusion Training: V-JEPA2 + PoseC3D (MLP)"
+echo "============================================================"
+echo "Fusion type: $FUSION_TYPE (hidden=$MLP_HIDDEN_DIM, dropout=$MLP_DROPOUT)"
+echo "V-JEPA2 predictions: $VJEPA_ROOT"
+echo "PoseC3D predictions: $POSEC3D_ROOT"
+echo "Output: $OUTPUT_DIR"
+echo "Config: classes=$NUM_CLASSES, folds=$NUM_FOLDS, epochs=$NUM_EPOCHS, lr=$LR"
+echo "============================================================"
+
+python actreg/fusion/train_fusion_cv.py \
+  --vjepa-root "$VJEPA_ROOT" \
+  --posec3d-root "$POSEC3D_ROOT" \
+  --output-dir "$OUTPUT_DIR" \
+  --fusion-type "$FUSION_TYPE" \
+  --mlp-hidden-dim "$MLP_HIDDEN_DIM" \
+  --mlp-dropout "$MLP_DROPOUT" \
+  --num-classes "$NUM_CLASSES" \
+  --num-folds "$NUM_FOLDS" \
+  --num-epochs "$NUM_EPOCHS" \
+  --lr "$LR" \
+  --batch-size "$BATCH_SIZE" \
+  --log-level INFO
+
+echo "============================================================"
+echo "Done! Results saved to: $OUTPUT_DIR"
+echo "============================================================"
+

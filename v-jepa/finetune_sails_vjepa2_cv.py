@@ -41,6 +41,8 @@ except ImportError:  # pragma: no cover - optional
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_ISSUE_CLIPS_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/issue_clips.csv")
+
 
 def setup_logging(log_level: str = "INFO") -> None:
     """Configure root logger for job output."""
@@ -121,6 +123,12 @@ def parse_args() -> argparse.Namespace:
         default="INFO",
         help="Logging verbosity.",
     )
+    parser.add_argument(
+        "--issue-clips-csv",
+        type=Path,
+        default=DEFAULT_ISSUE_CLIPS_CSV,
+        help="CSV containing segment_id's to exclude from training/evaluation.",
+    )
     return parser.parse_args()
 
 
@@ -136,9 +144,29 @@ def quality_bucket(val: Optional[float]) -> str:
     return "low"
 
 
-def load_split(csv_paths: Sequence[Path], clips_root: Path) -> Tuple[List[Dict], List[Tuple[str, Path]]]:
+def load_issue_clips(csv_path: Optional[Path] = None) -> set:
+    """Load set of segment IDs to exclude from training/evaluation."""
+    if csv_path is None:
+        csv_path = DEFAULT_ISSUE_CLIPS_CSV
+    if not csv_path.exists():
+        logger.warning("Issue clips CSV not found at %s; no clips will be excluded.", csv_path)
+        return set()
+    
+    df = pd.read_csv(csv_path)
+    issue_clips = set(df["segment_id"].astype(str).tolist())
+    logger.info("Loaded %d issue clips to exclude from %s", len(issue_clips), csv_path)
+    return issue_clips
+
+
+def load_split(
+    csv_paths: Sequence[Path],
+    clips_root: Path,
+    exclude_clips: Optional[set] = None,
+) -> Tuple[List[Dict], List[Tuple[str, Path]]]:
     records: List[Dict] = []
     missing: List[Tuple[str, Path]] = []
+    excluded_count = 0
+    
     for csv_path in csv_paths:
         stem = csv_path.stem
         df = pd.read_csv(csv_path)
@@ -147,6 +175,12 @@ def load_split(csv_paths: Sequence[Path], clips_root: Path) -> Tuple[List[Dict],
             label = row.get("rmm_type")
             if pd.isna(seg) or pd.isna(label):
                 continue
+            
+            # Skip issue clips
+            if exclude_clips and str(seg) in exclude_clips:
+                excluded_count += 1
+                continue
+            
             clip_path = clips_root / stem / f"{seg}.mp4"
             if not clip_path.exists():
                 missing.append((str(seg), clip_path))
@@ -161,6 +195,10 @@ def load_split(csv_paths: Sequence[Path], clips_root: Path) -> Tuple[List[Dict],
                 "quality_rating": row.get("quality_rating"),
             }
             records.append(rec)
+    
+    if excluded_count > 0:
+        logger.info("Excluded %d issue clips from split", excluded_count)
+    
     return records, missing
 
 
@@ -246,6 +284,9 @@ def aggregate_preds(labels, preds, probs, metas, id2label: Dict[int, str]) -> pd
     df["pred_name"] = df["pred_top1"].map(id2label)
     if probs is not None:
         df["pred_conf"] = probs.max(axis=1)
+        # Add per-class probability scores for late fusion
+        for i in range(probs.shape[1]):
+            df[f"score_class{i}"] = probs[:, i]
     return df
 
 
@@ -522,13 +563,16 @@ def main() -> None:
     if args.wandb_mode != "disabled" and wandb is None:
         logger.warning('wandb not installed; set --wandb-mode disabled or install wandb to log runs.')
 
+    # Load issue clips to exclude
+    issue_clips = load_issue_clips(args.issue_clips_csv)
+
     train_csvs = sorted(args.csv_dir.glob("fold_*_train.csv"))
     val_csvs = sorted(args.csv_dir.glob("fold_*_val.csv"))
     if not train_csvs or not val_csvs or len(train_csvs) != len(val_csvs):
         raise RuntimeError(f"Found {len(train_csvs)} train CSVs and {len(val_csvs)} val CSVs in {args.csv_dir}")
     logger.info("Found %d folds in %s", len(train_csvs), args.csv_dir)
 
-    all_records, _ = load_split(train_csvs + val_csvs, args.clips_root)
+    all_records, _ = load_split(train_csvs + val_csvs, args.clips_root, exclude_clips=issue_clips)
     video_label_counts = build_video_label_counts(all_records)
     all_labels = sorted({r["label"] for r in all_records})
     label2id = {lbl: i for i, lbl in enumerate(all_labels)}
@@ -569,8 +613,8 @@ def main() -> None:
             fold_processor = base_processor
             frames_per_clip_fold = base_frames_per_clip
 
-        train_records, miss_train = load_split([train_csv], args.clips_root)
-        val_records, miss_val = load_split([val_csv], args.clips_root)
+        train_records, miss_train = load_split([train_csv], args.clips_root, exclude_clips=issue_clips)
+        val_records, miss_val = load_split([val_csv], args.clips_root, exclude_clips=issue_clips)
         logger.info("Missing clips -> train: %d | val: %d", len(miss_train), len(miss_val))
         if miss_train or miss_val:
             example_missing = (miss_train + miss_val)[:5]

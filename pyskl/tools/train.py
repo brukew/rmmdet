@@ -106,9 +106,9 @@ def main():
         cfg.gpu_ids = [0]
     else:
         distributed = True
-    init_dist(args.launcher, **cfg.dist_params)
-    rank, world_size = get_dist_info()
-    cfg.gpu_ids = range(world_size)
+        init_dist(args.launcher, **cfg.dist_params)
+        rank, world_size = get_dist_info()
+        cfg.gpu_ids = range(world_size)
 
     auto_resume = cfg.get('auto_resume', True)
     if auto_resume and cfg.get('resume_from', None) is None:
