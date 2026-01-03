@@ -10,57 +10,63 @@ Comprehensive comparison of all methods evaluated for RMM classification.
 
 | Rank | Method | Clip Top-1 | Clip Top-2 | Clip Macro F1 | Cohen's κ |
 |------|--------|------------|------------|---------------|-----------|
-| 🥇 | **MLP Fusion (V-JEPA2 + STGCN++)** | **86.6% ± 1.5%** | **98.9% ± 0.8%** | **86.3% ± 1.7%** | **0.791 ± 0.02** |
-| 🥈 | MLP Fusion (V-JEPA2 + PoseC3D) | 84.2% ± 4.8% | 97.9% ± 1.1% | 84.9% ± 4.0% | 0.755 ± 0.07 |
-| 🥉 | Late Fusion Scalar (V-JEPA2 + PoseC3D) | 82.6% ± 3.0% | 96.5% ± 0.8% | 81.7% ± 3.2% | 0.717 ± 0.06 |
-| 4 | Late Fusion Per-class (V-JEPA2 + PoseC3D) | 82.6% ± 3.6% | 96.5% ± 0.8% | 81.2% ± 2.7% | 0.717 ± 0.06 |
-| 5 | STGCN++ (4-stream) | 77.9% | 95.1% | 72.7% | 0.635 |
-| 6 | Late Fusion Scalar (V-JEPA2 + STGCN++) | 76.9% ± 3.9% | 94.4% ± 1.3% | 75.8% ± 1.9% | 0.624 ± 0.06 |
-| 7 | V-JEPA2 + SAM3 crop | 76.0% | 93.7% | 75.1% | 0.657 |
-| 8 | PoseC3D (non-weighted) | 74.6% | 91.3% | 70.4% | 0.580 |
-| 9 | Qwen2.5-VL (zero-shot) | — | — | 28.2% | 0.168 |
+| 🥇 | **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** | **84.7% ± 1.9%** | **96.2% ± 1.9%** | **82.1% ± 3.9%** | **0.759 ± 0.02** |
+| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 83.8% ± 2.2% | 96.5% ± 0.4% | 82.2% ± 2.5% | 0.745 ± 0.03 |
+| 🥉 | MLP Fusion (V-JEPA2 + PoseC3D) | 80.3% ± 3.3% | 95.1% ± 2.4% | 78.9% ± 4.4% | 0.690 ± 0.04 |
+| 4 | STGCN++ (4-stream) | 77.9% | 95.1% | 72.7% | 0.635 |
+| 5 | V-JEPA2 + SAM3 crop | 76.0% | 93.7% | 75.1% | 0.657 |
+| 6 | PoseC3D (non-weighted) | 74.6% | 91.3% | 70.4% | 0.580 |
+| 7 | Qwen2.5-VL (zero-shot) | — | — | 28.2% | 0.168 |
+
+*Note: MLP fusion results use nested 5-fold CV within validation set for realistic evaluation.*
 
 ### 4-Class Task (Video-Level Metrics)
 
 | Rank | Method | Video Top-1 | Video Macro F1 | Cohen's κ |
 |------|--------|-------------|----------------|-----------|
-| 🥇 | **MLP Fusion (V-JEPA2 + PoseC3D)** | **88.4% ± 2.5%** | **87.0% ± 2.0%** | **0.817 ± 0.04** |
-| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 88.0% ± 1.5% | 85.8% ± 1.4% | 0.811 ± 0.02 |
-| 🥉 | Late Fusion Scalar (V-JEPA2 + PoseC3D) | 83.7% ± 4.4% | 80.5% ± 5.2% | 0.729 ± 0.07 |
-| 4 | Late Fusion Per-class (V-JEPA2 + PoseC3D) | 83.1% ± 3.4% | 79.4% ± 5.2% | 0.718 ± 0.07 |
-| 5 | STGCN++ (4-stream) | 82.4% | 75.9% | 0.635 |
-| 6 | Late Fusion Scalar (V-JEPA2 + STGCN++) | 79.0% ± 5.2% | 76.5% ± 6.9% | 0.654 ± 0.10 |
-| 7 | V-JEPA2 + SAM3 crop | 78.6% | 76.7% | 0.657 |
-| 8 | PoseC3D (non-weighted) | 74.6% | 70.4% | 0.580 |
+| 🥇 | **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** | **86.4% ± 2.6%** | **83.1% ± 4.9%** | **0.786 ± 0.04** |
+| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 84.2% ± 3.7% | 81.3% ± 4.1% | 0.752 ± 0.06 |
+| 🥉 | STGCN++ (4-stream) | 82.4% | 75.9% | 0.635 |
+| 4 | MLP Fusion (V-JEPA2 + PoseC3D) | 82.5% ± 3.1% | 80.5% ± 3.6% | 0.728 ± 0.04 |
+| 5 | V-JEPA2 + SAM3 crop | 78.6% | 76.7% | 0.657 |
+| 6 | PoseC3D (non-weighted) | 74.6% | 70.4% | 0.580 |
+
+*Note: MLP fusion results use nested 5-fold CV within validation set for realistic evaluation.*
 
 ### 5-Class Task (Clip-Level Metrics)
 
 | Rank | Method | Clip Top-1 | Clip Top-2 | Clip Macro F1 | Cohen's κ |
 |------|--------|------------|------------|---------------|-----------|
-| 🥇 | **MLP Fusion (V-JEPA2 + PoseC3D)** | **75.4% ± 2.0%** | **95.4% ± 1.5%** | **77.1% ± 1.8%** | **0.674 ± 0.02** |
-| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 73.9% ± 0.8% | 92.5% ± 0.8% | 75.8% ± 0.8% | 0.656 ± 0.01 |
-| 🥉 | PoseC3D + Weighted | 67.0% ± 1.6% | 85.5% ± 1.3% | 65.9% ± 2.8% | 0.549 |
-| 4 | STGCN++ 4-stream | 66.5% ± 1.5% | 83.3% ± 1.0% | 64.6% ± 1.4% | 0.541 |
-| 5 | STGCN++ 4-stream + Weighted | 65.8% ± 3.3% | 81.6% ± 1.5% | 63.7% ± 2.2% | 0.534 |
-| 6 | PoseC3D + Weighted Sqrt | 65.3% ± 2.2% | 83.5% ± 1.1% | 63.9% ± 3.2% | 0.526 |
-| 7 | PoseC3D + Focal Loss | 63.9% ± 0.7% | 83.0% ± 1.4% | 61.8% ± 3.5% | 0.502 |
-| 8 | STGCN++ 4-stream + Focal | 63.7% ± 2.8% | 83.5% ± 0.4% | 63.6% ± 2.9% | 0.501 |
-| 9 | V-JEPA2 + SAM3 crop | 62.5% | 84.8% | 63.0% | 0.499 |
-| 10 | Qwen2.5-VL (zero-shot) | — | — | 12.2% | 0.008 |
+| 🥇 | **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** | **69.6% ± 3.0%** | **88.5% ± 0.4%** | **69.8% ± 1.8%** | **0.594 ± 0.04** |
+| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 68.2% ± 1.5% | 88.1% ± 2.1% | 68.5% ± 1.9% | 0.578 ± 0.02 |
+| 🥉 | MLP Fusion (V-JEPA2 + PoseC3D) | 67.6% ± 3.6% | 87.5% ± 1.1% | 67.8% ± 1.0% | 0.569 ± 0.04 |
+| 4 | PoseC3D + Weighted | 67.0% ± 1.6% | 85.5% ± 1.3% | 65.9% ± 2.8% | 0.549 |
+| 5 | STGCN++ 4-stream | 66.5% ± 1.5% | 83.3% ± 1.0% | 64.6% ± 1.4% | 0.541 |
+| 6 | STGCN++ 4-stream + Weighted | 65.8% ± 3.3% | 81.6% ± 1.5% | 63.7% ± 2.2% | 0.534 |
+| 7 | PoseC3D + Weighted Sqrt | 65.3% ± 2.2% | 83.5% ± 1.1% | 63.9% ± 3.2% | 0.526 |
+| 8 | PoseC3D + Focal Loss | 63.9% ± 0.7% | 83.0% ± 1.4% | 61.8% ± 3.5% | 0.502 |
+| 9 | STGCN++ 4-stream + Focal | 63.7% ± 2.8% | 83.5% ± 0.4% | 63.6% ± 2.9% | 0.501 |
+| 10 | V-JEPA2 + SAM3 crop | 62.5% | 84.8% | 63.0% | 0.499 |
+| 11 | Qwen2.5-VL (zero-shot) | — | — | 12.2% | 0.008 |
+
+*Note: MLP fusion results use nested 5-fold CV within validation set for realistic evaluation.*
 
 ### 5-Class Task (Video-Level Metrics)
 
 | Rank | Method | Video Top-1 | Video Macro F1 | Cohen's κ |
 |------|--------|-------------|----------------|-----------|
-| 🥇 | **MLP Fusion (V-JEPA2 + STGCN++)** | **74.0% ± 3.7%** | **74.6% ± 4.6%** | **0.658 ± 0.06** |
-| 🥈 | MLP Fusion (V-JEPA2 + PoseC3D) | 73.5% ± 2.9% | 74.5% ± 2.8% | 0.651 ± 0.04 |
-| 🥉 | STGCN++ 4-stream + Weighted | 70.6% ± 2.0% | 68.3% ± 1.2% | 0.534 |
+| 🥇 | **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** | **70.7% ± 3.1%** | **70.8% ± 2.5%** | **0.611 ± 0.04** |
+| 🥈 | STGCN++ 4-stream + Weighted | 70.6% ± 2.0% | 68.3% ± 1.2% | 0.534 |
+| 🥉 | MLP Fusion (V-JEPA2 + STGCN++) | 69.0% ± 2.0% | 69.6% ± 2.8% | 0.589 ± 0.03 |
 | 4 | STGCN++ 4-stream | 68.8% ± 3.0% | 66.9% ± 4.4% | 0.541 |
 | 5 | STGCN++ 4-stream + Focal | 67.7% ± 1.0% | 67.1% ± 1.5% | 0.501 |
 | 6 | PoseC3D + Weighted | 67.0% ± 1.6% | 65.9% ± 2.8% | 0.549 |
-| 7 | PoseC3D + Weighted Sqrt | 65.3% ± 2.2% | 63.9% ± 3.2% | 0.526 |
-| 8 | PoseC3D + Focal Loss | 63.9% ± 0.7% | 61.8% ± 3.5% | 0.502 |
-| 9 | V-JEPA2 + SAM3 crop | 62.4% | 62.8% | 0.499 |
+| 7 | MLP Fusion (V-JEPA2 + PoseC3D) | 66.9% ± 4.1% | 66.9% ± 3.1% | 0.560 ± 0.05 |
+| 8 | PoseC3D + Weighted Sqrt | 65.3% ± 2.2% | 63.9% ± 3.2% | 0.526 |
+| 9 | PoseC3D + Focal Loss | 63.9% ± 0.7% | 61.8% ± 3.5% | 0.502 |
+| 10 | V-JEPA2 + SAM3 crop | 62.4% | 62.8% | 0.499 |
+
+*Note: MLP fusion results use nested 5-fold CV within validation set for realistic evaluation.*
 
 ---
 
@@ -73,9 +79,10 @@ Comprehensive comparison of all methods evaluated for RMM classification.
 | **PoseC3D** | Skeleton-CNN | 17 COCO keypoints → heatmaps | Finetuning | ~24M | Fast |
 | **STGCN++** | Skeleton-GCN | 17 COCO keypoints → graph | Finetuning | ~1.4M | **Very Fast** |
 | **V-JEPA2** | Video encoder | RGB frames (+ optional crop) | Finetuning | ~300M | Slow |
+| **3-Way MLP Fusion** 🏆 | Ensemble | V-JEPA2 + PoseC3D + STGCN++ | MLP | **412** | **Instant** |
+| **Late Fusion (MLP)** | Ensemble | V-JEPA2 + Skeleton logits | MLP | **212** | **Instant** |
 | **Late Fusion (Scalar)** | Ensemble | V-JEPA2 + Skeleton logits | α only | **1** | **Instant** |
 | **Late Fusion (Per-class)** | Ensemble | V-JEPA2 + Skeleton logits | α per class | **4** | **Instant** |
-| **Late Fusion (MLP)** | Ensemble | V-JEPA2 + Skeleton logits | MLP | **212** | **Instant** |
 | **Qwen2.5-VL** | Zero-shot VLM | RGB frames | None | ~7B | Very Slow |
 
 ---
@@ -176,6 +183,50 @@ Combines RGB-based V-JEPA2 predictions with STGCN++ 4-stream fusion (best skelet
 
 ---
 
+## 3-Way Late Fusion (V-JEPA2 + PoseC3D + STGCN++)
+
+Combines all three models for maximum complementary information.
+
+### Architecture
+
+```
+Input: [z_vjepa; z_posec3d; z_stgcn] → (12 features for 4-class)
+Hidden: Linear(12 → 24) + ReLU + Dropout(0.1)
+Output: Linear(24 → 4)
+
+Parameters: 412
+```
+
+### Evaluation Method
+
+Uses **nested 5-fold CV** within each validation fold to prevent overfitting:
+- Split validation predictions into 80% train / 20% val for fusion
+- Train fusion on inner train, evaluate on inner val
+- Repeat 5x and average metrics
+
+### 4-Class CV Per-Fold Results (with nested CV)
+
+| Fold | Clips | Clip Top-1 | Clip Top-2 | Clip Macro F1 | Video Top-1 | Video Macro F1 | Video κ |
+|------|-------|------------|------------|---------------|-------------|----------------|---------|
+| 0 | 204 | 86.3% | 97.8% | 85.2% | 89.0% | 85.0% | 0.815 |
+| 1 | 217 | 82.9% | 93.6% | 76.5% | 82.7% | 76.4% | 0.730 |
+| 2 | 205 | 83.9% | 97.1% | 85.0% | 87.5% | 87.5% | 0.812 |
+| **Mean** | — | **84.7% ± 1.9%** | **96.2% ± 1.9%** | **82.1% ± 3.9%** | **86.4% ± 2.6%** | **83.1% ± 4.9%** | **0.786 ± 0.04** |
+
+### Key Findings
+
+- **Best overall performance**: +2-4% over standalone skeleton models
+- Combining 3 modalities captures complementary information:
+  - V-JEPA2: RGB appearance + temporal patterns
+  - PoseC3D: 3D convolutional skeleton heatmaps
+  - STGCN++: Graph-based skeletal dynamics
+- 412 parameters still very lightweight
+- Nested CV provides realistic, non-overfitted estimates
+
+**Output Directory**: `fusion/runs/4class_cv_3way/`
+
+---
+
 ## 5-Class Late Fusion (V-JEPA2 + Skeleton)
 
 MLP fusion was evaluated for 5-class task, combining V-JEPA2 with the best skeleton models.
@@ -188,21 +239,23 @@ MLP fusion was evaluated for 5-class task, combining V-JEPA2 with the best skele
 | **PoseC3D** | 5-class weighted | `5class_conf04_weighted` | 67.0% Clip, 67.0% Video |
 | **STGCN++** | 5-class 4-stream | `5class_conf04_4stream` | 66.5% Clip, 68.8% Video |
 
-### 5-Class CV Results Comparison
+### 5-Class CV Results Comparison (with nested CV)
 
 | Fusion | Clip Top-1 | Clip Macro F1 | Video Top-1 | Video Macro F1 | Video κ |
 |--------|------------|---------------|-------------|----------------|---------|
-| **MLP (V-JEPA2 + PoseC3D)** | **75.4% ± 2.0%** | **77.1% ± 1.8%** | 73.5% ± 2.9% | 74.5% ± 2.8% | 0.651 |
-| **MLP (V-JEPA2 + STGCN++)** | 73.9% ± 0.8% | 75.8% ± 0.8% | **74.0% ± 3.7%** | **74.6% ± 4.6%** | **0.658** |
+| **3-Way MLP** | **69.6% ± 3.0%** | **69.8% ± 1.8%** | **70.7% ± 3.1%** | **70.8% ± 2.5%** | **0.611** |
+| MLP (V-JEPA2 + STGCN++) | 68.2% ± 1.5% | 68.5% ± 1.9% | 69.0% ± 2.0% | 69.6% ± 2.8% | 0.589 |
+| MLP (V-JEPA2 + PoseC3D) | 67.6% ± 3.6% | 67.8% ± 1.0% | 66.9% ± 4.1% | 66.9% ± 3.1% | 0.560 |
 
 ### Key Findings for 5-Class Fusion
 
-- 🏆 **MLP Fusion boosts 5-class by +7-8%** over best standalone skeleton models
-- PoseC3D fusion: Better clip-level (75.4% vs 73.9%)
-- STGCN++ fusion: Better video-level (74.0% vs 73.5%)
-- Both have very low variance and similar overall performance
+- **3-Way MLP achieves best 5-class performance**: 70.7% Video Top-1
+- Modest improvement (+2-3%) over standalone skeleton models
+- STGCN++ fusion better than PoseC3D fusion for 5-class
+- Nested CV provides realistic estimates (previously reported ~75% was overfitting)
 
 **Output Directories**:
+- 3-Way MLP: `fusion/runs/5class_cv_3way/`
 - MLP (PoseC3D): `fusion/runs/5class_cv_posec3d_mlp/`
 - MLP (STGCN++): `fusion/runs/5class_cv_stgcn_mlp/`
 
@@ -356,11 +409,12 @@ Zero-shot prompting with no training. Uses multi-window voting (4 windows × 16 
 
 ## Key Observations
 
-### 1. MLP Fusion Achieves Best Performance 🏆
-- **V-JEPA2 + PoseC3D (MLP)**: Best video-level (88.4% Top-1, 87.0% F1)
-- **V-JEPA2 + STGCN++ (MLP)**: Best clip-level (86.6% Top-1, 86.3% F1) with lowest variance
-- Both MLP fusions significantly outperform scalar fusion
-- Non-linear interactions between modalities are crucial
+### 1. 3-Way Fusion Achieves Best Performance
+- **V-JEPA2 + PoseC3D + STGCN++ (3-Way MLP)**: 86.4% Video Top-1, 83.1% F1
+- **+2-4% improvement** over standalone skeleton models
+- Combining all 3 modalities captures complementary information
+- Still only 412 parameters (lightweight)
+- Evaluated with nested 5-fold CV for realistic estimates
 
 ### 2. MLP Unlocks STGCN++ Potential
 - Scalar fusion with STGCN++ gave α ≈ 0.97 (V-JEPA2 dominated, STGCN++ ignored)
@@ -377,12 +431,12 @@ Zero-shot prompting with no training. Uses multi-window voting (4 windows × 16 
 - Reveals patterns: skeleton helps "jumping", RGB helps "rocking"
 - But class-specific weighting doesn't improve overall accuracy
 
-### 5. MLP Fusion Dominates 5-Class Task 🏆
-- **MLP fusion boosts 5-class by +7-8%** over best standalone skeleton models
-- MLP (V-JEPA2 + PoseC3D): Best clip-level (75.4% Top-1)
-- MLP (V-JEPA2 + STGCN++): Best video-level (74.0% Top-1)
+### 5. 5-Class Fusion Provides Modest Improvement
+- **3-Way MLP achieves 70.7% Video Top-1** for 5-class task
+- Modest improvement (+2-3%) over standalone skeleton models
+- STGCN++ fusion better than PoseC3D fusion
 - Class weighting still helps standalone skeleton models
-- Focal Loss underperforms weighted loss for skeleton-only
+- 5-class task remains challenging due to subtle class distinctions
 
 ### 6. Zero-Shot VLM Fails
 - Qwen2.5-VL cannot distinguish fine-grained motor movements
@@ -397,25 +451,23 @@ Zero-shot prompting with no training. Uses multi-window voting (4 windows × 16 
 
 | Use Case | Recommended Method |
 |----------|-------------------|
-| **Best video-level accuracy** | MLP Fusion (V-JEPA2 + PoseC3D) — 88.4% Video Top-1 |
-| **Best clip-level accuracy** | MLP Fusion (V-JEPA2 + STGCN++) — 86.6% Clip Top-1 |
-| **Most stable (low variance)** | MLP Fusion (V-JEPA2 + STGCN++) — ±1.5% std |
-| **Simpler fusion** | Scalar α Fusion — 83.7% Video Top-1 (only 1 param) |
+| **Best overall accuracy** | 3-Way MLP (V-JEPA2 + PoseC3D + STGCN++) — 86.4% Video Top-1 |
+| **Best clip-level accuracy** | 3-Way MLP — 84.7% Clip Top-1 |
+| **2-way fusion (simpler)** | MLP Fusion (V-JEPA2 + STGCN++) — 84.2% Video Top-1 |
 | **Fast training/inference** | STGCN++ (4-stream) — 82.4% Video Top-1 |
-| **Limited compute** | PoseC3D (single modality) — 74.6% Video Top-1 |
 | **No training data** | N/A (zero-shot fails) |
 
 ### 5-Class Task
 
 | Use Case | Recommended Method |
 |----------|-------------------|
-| **Best video-level accuracy** | MLP Fusion (V-JEPA2 + STGCN++) — 74.0% Video Top-1 |
-| **Best clip-level accuracy** | MLP Fusion (V-JEPA2 + PoseC3D) — 75.4% Clip Top-1 |
-| **Most stable (low variance)** | MLP Fusion (V-JEPA2 + STGCN++) — ±0.8% Clip std |
+| **Best overall accuracy** | 3-Way MLP (V-JEPA2 + PoseC3D + STGCN++) — 70.7% Video Top-1 |
+| **Best clip-level accuracy** | 3-Way MLP — 69.6% Clip Top-1 |
+| **2-way fusion (simpler)** | MLP Fusion (V-JEPA2 + STGCN++) — 69.0% Video Top-1 |
 | **Skeleton-only** | STGCN++ 4-stream + Weighted — 70.6% Video Top-1 |
 | **Fast training/inference** | STGCN++ 4-stream — 68.8% Video Top-1 |
 
-**Note**: MLP fusion provides +7-8% improvement over skeleton-only models for 5-class task.
+**Note**: 5-class fusion provides modest improvement (+2-3%) over standalone skeleton models. Standalone STGCN++ with class weighting is competitive.
 
 ---
 
@@ -423,10 +475,12 @@ Zero-shot prompting with no training. Uses multi-window voting (4 windows × 16 
 
 | Method | Output Directory | Logs |
 |--------|------------------|------|
-| **MLP Fusion 4-class (V-JEPA2 + PoseC3D)** | `fusion/runs/4class_cv_mlp/` | `~/fusion_logs/fusion_mlp_cv_*.out` |
-| **MLP Fusion 4-class (V-JEPA2 + STGCN++)** | `fusion/runs/4class_cv_stgcn_mlp/` | `~/fusion_logs/fusion_stgcn_mlp_cv_*.out` |
-| **MLP Fusion 5-class (V-JEPA2 + PoseC3D)** | `fusion/runs/5class_cv_posec3d_mlp/` | `~/fusion_logs/fusion_5class_posec3d_cv_*.out` |
-| **MLP Fusion 5-class (V-JEPA2 + STGCN++)** | `fusion/runs/5class_cv_stgcn_mlp/` | `~/fusion_logs/fusion_5class_stgcn_cv_*.out` |
+| **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** 🏆 | `fusion/runs/4class_cv_3way/` | `~/fusion_logs/fusion_3way_cv_*.out` |
+| MLP Fusion 4-class (V-JEPA2 + PoseC3D) | `fusion/runs/4class_cv_mlp/` | `~/fusion_logs/fusion_mlp_cv_*.out` |
+| MLP Fusion 4-class (V-JEPA2 + STGCN++) | `fusion/runs/4class_cv_stgcn_mlp/` | `~/fusion_logs/fusion_stgcn_mlp_cv_*.out` |
+| **3-Way MLP 5-class** | `fusion/runs/5class_cv_3way/` | `~/fusion_logs/fusion_5class_3way_cv_*.out` |
+| MLP Fusion 5-class (V-JEPA2 + PoseC3D) | `fusion/runs/5class_cv_posec3d_mlp/` | `~/fusion_logs/fusion_5class_posec3d_cv_*.out` |
+| MLP Fusion 5-class (V-JEPA2 + STGCN++) | `fusion/runs/5class_cv_stgcn_mlp/` | `~/fusion_logs/fusion_5class_stgcn_cv_*.out` |
 | Late Fusion Scalar (V-JEPA2 + PoseC3D) | `fusion/runs/4class_cv/` | `~/fusion_logs/fusion_cv_*.out` |
 | Late Fusion Per-class (V-JEPA2 + PoseC3D) | `fusion/runs/4class_cv_perclass/` | `~/fusion_logs/fusion_perclass_cv_*.out` |
 | Late Fusion Scalar (V-JEPA2 + STGCN++) | `fusion/runs/4class_cv_stgcn/` | `~/fusion_logs/fusion_stgcn_cv_*.out` |

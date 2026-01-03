@@ -41,6 +41,7 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay,
     precision_recall_fscore_support,
 )
+from sklearn.model_selection import StratifiedKFold
 from torch.utils.data import DataLoader, Dataset
 
 logger = logging.getLogger(__name__)
@@ -216,6 +217,82 @@ def merge_predictions(
     return merged
 
 
+def merge_three_predictions(
+    vjepa_df: pd.DataFrame,
+    posec3d_df: pd.DataFrame,
+    stgcn_df: pd.DataFrame,
+    num_classes: int,
+    exclude_clips: Optional[set] = None,
+) -> pd.DataFrame:
+    """
+    Merge V-JEPA2, PoseC3D, and STGCN++ predictions on segment_id.
+    
+    Returns DataFrame with columns:
+        - segment_id, label_id
+        - vjepa_score_class0, vjepa_score_class1, ...
+        - posec3d_score_class0, posec3d_score_class1, ...
+        - stgcn_score_class0, stgcn_score_class1, ...
+        - video_id (if available)
+    """
+    # Rename score columns to distinguish modalities
+    vjepa_cols = {f"score_class{i}": f"vjepa_score_class{i}" for i in range(num_classes)}
+    posec3d_cols = {f"score_class{i}": f"posec3d_score_class{i}" for i in range(num_classes)}
+    stgcn_cols = {f"score_class{i}": f"stgcn_score_class{i}" for i in range(num_classes)}
+    
+    vjepa_renamed = vjepa_df.rename(columns=vjepa_cols)
+    posec3d_renamed = posec3d_df.rename(columns=posec3d_cols)
+    stgcn_renamed = stgcn_df.rename(columns=stgcn_cols)
+    
+    # Select columns to merge
+    vjepa_keep = ["segment_id", "label_id", "video_id"] + list(vjepa_cols.values())
+    vjepa_keep = [c for c in vjepa_keep if c in vjepa_renamed.columns]
+    
+    posec3d_keep = ["segment_id", "true_label"] + list(posec3d_cols.values())
+    posec3d_keep = [c for c in posec3d_keep if c in posec3d_renamed.columns]
+    
+    stgcn_keep = ["segment_id"] + list(stgcn_cols.values())
+    stgcn_keep = [c for c in stgcn_keep if c in stgcn_renamed.columns]
+    
+    # Merge all three
+    merged = pd.merge(
+        vjepa_renamed[vjepa_keep],
+        posec3d_renamed[posec3d_keep],
+        on="segment_id",
+        how="inner",
+    )
+    merged = pd.merge(
+        merged,
+        stgcn_renamed[stgcn_keep],
+        on="segment_id",
+        how="inner",
+    )
+    
+    # Use label_id from V-JEPA2 if available, else use true_label from PoseC3D
+    if "label_id" not in merged.columns and "true_label" in merged.columns:
+        merged["label_id"] = merged["true_label"]
+    
+    # Filter out issue clips
+    if exclude_clips:
+        before_count = len(merged)
+        merged = merged[~merged["segment_id"].astype(str).isin(exclude_clips)]
+        excluded = before_count - len(merged)
+        if excluded > 0:
+            logger.info("Excluded %d issue clips from merged predictions", excluded)
+    
+    logger.info(
+        "Merged 3-way predictions: %d clips (V-JEPA: %d, PoseC3D: %d, STGCN++: %d, intersection: %d)",
+        len(merged), len(vjepa_df), len(posec3d_df), len(stgcn_df), len(merged)
+    )
+    
+    if len(merged) < len(vjepa_df) * 0.90:
+        logger.warning(
+            "Significant mismatch in 3-way predictions! Only %.1f%% overlap.",
+            100 * len(merged) / len(vjepa_df)
+        )
+    
+    return merged
+
+
 # =============================================================================
 # Fusion Model
 # =============================================================================
@@ -344,6 +421,61 @@ class MLPLogitFusion(nn.Module):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
 
+class ThreeWayMLPFusion(nn.Module):
+    """
+    Late fusion with a small MLP for 3 modalities.
+    
+    z_fused = MLP(concat(z_rgb, z_posec3d, z_stgcn))
+    
+    Architecture:
+        - Input: concatenated logits [z_rgb; z_posec3d; z_stgcn] (3 * num_classes)
+        - Hidden: Linear -> ReLU (hidden_dim)
+        - Output: Linear (num_classes)
+    
+    Can learn non-linear interactions between all three modalities.
+    """
+    
+    def __init__(self, num_classes: int = 4, hidden_dim: int = 24, dropout: float = 0.1):
+        super().__init__()
+        self.num_classes = num_classes
+        self.hidden_dim = hidden_dim
+        
+        # 3 modalities -> hidden -> output
+        self.fc1 = nn.Linear(num_classes * 3, hidden_dim)
+        self.dropout = nn.Dropout(dropout)
+        self.fc2 = nn.Linear(hidden_dim, num_classes)
+    
+    def forward(
+        self, 
+        z_rgb: torch.Tensor, 
+        z_posec3d: torch.Tensor,
+        z_stgcn: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Args:
+            z_rgb: (batch, num_classes) - V-JEPA2 logits/probs
+            z_posec3d: (batch, num_classes) - PoseC3D logits/probs
+            z_stgcn: (batch, num_classes) - STGCN++ logits/probs
+        
+        Returns:
+            z_fused: (batch, num_classes) - Fused logits/probs
+        """
+        x = torch.cat([z_rgb, z_posec3d, z_stgcn], dim=-1)  # [batch, 3 * num_classes]
+        x = F.relu(self.fc1(x))                              # [batch, hidden_dim]
+        x = self.dropout(x)
+        return self.fc2(x)                                   # [batch, num_classes]
+    
+    @property
+    def alpha_value(self) -> str:
+        """3-way MLP doesn't have α; return placeholder."""
+        return "3-way"
+    
+    @property
+    def num_parameters(self) -> int:
+        """Return total number of trainable parameters."""
+        return sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+
 # Factory function to create fusion model
 def create_fusion_model(
     fusion_type: str,
@@ -356,10 +488,10 @@ def create_fusion_model(
     Create a fusion model based on the specified type.
     
     Args:
-        fusion_type: One of 'scalar', 'per_class', 'mlp'
+        fusion_type: One of 'scalar', 'per_class', 'mlp', 'three_way'
         num_classes: Number of output classes
-        hidden_dim: Hidden dimension for MLP (only used if fusion_type='mlp')
-        dropout: Dropout rate for MLP (only used if fusion_type='mlp')
+        hidden_dim: Hidden dimension for MLP (only used if fusion_type='mlp' or 'three_way')
+        dropout: Dropout rate for MLP (only used if fusion_type='mlp' or 'three_way')
         init_alpha: Initial alpha value (only used for scalar/per_class)
     
     Returns:
@@ -371,8 +503,11 @@ def create_fusion_model(
         return PerClassLogitFusion(num_classes=num_classes, init_alpha=init_alpha)
     elif fusion_type == "mlp":
         return MLPLogitFusion(num_classes=num_classes, hidden_dim=hidden_dim, dropout=dropout)
+    elif fusion_type == "three_way":
+        # Use larger hidden dim for 3-way fusion (3 inputs vs 2)
+        return ThreeWayMLPFusion(num_classes=num_classes, hidden_dim=hidden_dim, dropout=dropout)
     else:
-        raise ValueError(f"Unknown fusion type: {fusion_type}. Choose from: scalar, per_class, mlp")
+        raise ValueError(f"Unknown fusion type: {fusion_type}. Choose from: scalar, per_class, mlp, three_way")
 
 
 # =============================================================================
@@ -407,6 +542,38 @@ class FusionDataset(Dataset):
         segment_id = str(row["segment_id"])
         
         return z_vjepa, z_pose, label, segment_id
+
+
+class ThreeWayFusionDataset(Dataset):
+    """Dataset for 3-way late fusion training from pre-computed predictions."""
+    
+    def __init__(self, df: pd.DataFrame, num_classes: int):
+        self.df = df.reset_index(drop=True)
+        self.num_classes = num_classes
+        
+        # Extract score columns for all 3 modalities
+        self.vjepa_cols = [f"vjepa_score_class{i}" for i in range(num_classes)]
+        self.posec3d_cols = [f"posec3d_score_class{i}" for i in range(num_classes)]
+        self.stgcn_cols = [f"stgcn_score_class{i}" for i in range(num_classes)]
+        
+        # Validate columns exist
+        for col in self.vjepa_cols + self.posec3d_cols + self.stgcn_cols:
+            if col not in self.df.columns:
+                raise ValueError(f"Missing column: {col}")
+    
+    def __len__(self) -> int:
+        return len(self.df)
+    
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, int, str]:
+        row = self.df.iloc[idx]
+        
+        z_vjepa = torch.tensor([row[c] for c in self.vjepa_cols], dtype=torch.float32)
+        z_posec3d = torch.tensor([row[c] for c in self.posec3d_cols], dtype=torch.float32)
+        z_stgcn = torch.tensor([row[c] for c in self.stgcn_cols], dtype=torch.float32)
+        label = int(row["label_id"])
+        segment_id = str(row["segment_id"])
+        
+        return z_vjepa, z_posec3d, z_stgcn, label, segment_id
 
 
 # =============================================================================
@@ -491,6 +658,57 @@ def train_fusion(
     return losses
 
 
+def train_three_way_fusion(
+    model: ThreeWayMLPFusion,
+    train_loader: DataLoader,
+    class_weights: torch.Tensor,
+    device: torch.device,
+    num_epochs: int = 100,
+    lr: float = 0.01,
+    log_interval: int = 10,
+) -> List[float]:
+    """
+    Train the 3-way fusion MLP.
+    
+    Returns list of loss values per epoch.
+    """
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
+    
+    losses = []
+    model.train()
+    
+    for epoch in range(1, num_epochs + 1):
+        epoch_loss = 0.0
+        num_batches = 0
+        
+        for z_vjepa, z_posec3d, z_stgcn, labels, _ in train_loader:
+            z_vjepa = z_vjepa.to(device)
+            z_posec3d = z_posec3d.to(device)
+            z_stgcn = z_stgcn.to(device)
+            labels = labels.to(device)
+            
+            optimizer.zero_grad()
+            z_fused = model(z_vjepa, z_posec3d, z_stgcn)
+            loss = criterion(z_fused, labels)
+            loss.backward()
+            optimizer.step()
+            
+            epoch_loss += loss.item()
+            num_batches += 1
+        
+        avg_loss = epoch_loss / max(num_batches, 1)
+        losses.append(avg_loss)
+        
+        if epoch % log_interval == 0 or epoch == num_epochs:
+            logger.info(
+                "Epoch %3d/%d | Loss: %.4f | (3-way MLP)",
+                epoch, num_epochs, avg_loss
+            )
+    
+    return losses
+
+
 # =============================================================================
 # Evaluation
 # =============================================================================
@@ -514,6 +732,44 @@ def evaluate_fusion(
             z_pose = z_pose.to(device)
             
             z_fused = model(z_vjepa, z_pose)
+            probs = F.softmax(z_fused, dim=-1)
+            preds = probs.argmax(dim=-1)
+            
+            all_preds.extend(preds.cpu().tolist())
+            all_labels.extend(labels.tolist())
+            all_probs.append(probs.cpu())
+            all_segment_ids.extend(segment_ids)
+    
+    all_probs = torch.cat(all_probs, dim=0).numpy()
+    
+    return {
+        "preds": np.array(all_preds),
+        "labels": np.array(all_labels),
+        "probs": all_probs,
+        "segment_ids": all_segment_ids,
+    }
+
+
+def evaluate_three_way_fusion(
+    model: ThreeWayMLPFusion,
+    loader: DataLoader,
+    device: torch.device,
+) -> Dict:
+    """Evaluate 3-way fusion model on a dataset."""
+    model.eval()
+    
+    all_preds = []
+    all_labels = []
+    all_probs = []
+    all_segment_ids = []
+    
+    with torch.no_grad():
+        for z_vjepa, z_posec3d, z_stgcn, labels, segment_ids in loader:
+            z_vjepa = z_vjepa.to(device)
+            z_posec3d = z_posec3d.to(device)
+            z_stgcn = z_stgcn.to(device)
+            
+            z_fused = model(z_vjepa, z_posec3d, z_stgcn)
             probs = F.softmax(z_fused, dim=-1)
             preds = probs.argmax(dim=-1)
             
@@ -586,6 +842,35 @@ def compute_metrics(labels: np.ndarray, preds: np.ndarray, probs: np.ndarray, cl
             for i in range(num_classes)
         },
     }
+
+
+def average_metrics(results_list: List[Dict]) -> Dict:
+    """
+    Average metrics across inner CV folds.
+    
+    Args:
+        results_list: List of metric dictionaries from each inner fold
+    
+    Returns:
+        Dictionary with averaged metrics and their standard deviations
+    """
+    if not results_list:
+        return {}
+    
+    # Get numeric keys from first result (skip nested dicts like "per_class")
+    numeric_keys = [
+        k for k, v in results_list[0].items()
+        if isinstance(v, (int, float)) and k != "alpha"
+    ]
+    
+    averaged = {}
+    for key in numeric_keys:
+        values = [r[key] for r in results_list if key in r and isinstance(r[key], (int, float))]
+        if values:
+            averaged[key] = float(np.mean(values))
+            averaged[f"{key}_inner_std"] = float(np.std(values))
+    
+    return averaged
 
 
 def aggregate_video_predictions(
@@ -741,11 +1026,18 @@ def parse_args() -> argparse.Namespace:
         help="Name of the skeleton model for logging (e.g., 'PoseC3D', 'STGCN++').",
     )
     parser.add_argument(
+        "--stgcn-root",
+        type=Path,
+        default=DEFAULT_STGCN_ROOT,
+        help="Root directory with STGCN++ fold* subdirectories (for 3-way fusion).",
+    )
+    parser.add_argument(
         "--fusion-type",
         type=str,
-        choices=["scalar", "per_class", "mlp"],
+        choices=["scalar", "per_class", "mlp", "three_way"],
         default="scalar",
-        help="Fusion architecture: 'scalar' (1 param), 'per_class' (num_classes params), 'mlp' (~148 params).",
+        help="Fusion architecture: 'scalar' (1 param), 'per_class' (num_classes params), "
+             "'mlp' (~148 params), 'three_way' (V-JEPA2+PoseC3D+STGCN++ MLP fusion).",
     )
     parser.add_argument(
         "--mlp-hidden-dim",
@@ -826,6 +1118,8 @@ def run_fold(
     fusion_type: str = "scalar",
     mlp_hidden_dim: int = 16,
     mlp_dropout: float = 0.1,
+    stgcn_root: Optional[Path] = None,
+    posec3d_root: Optional[Path] = None,
 ) -> Dict:
     """Run fusion training and evaluation for a single fold."""
     logger.info("=" * 80)
@@ -834,112 +1128,212 @@ def run_fold(
     
     # Load predictions
     vjepa_fold_dir = vjepa_root / f"fold_{fold_idx}"
-    
-    # Try both fold naming conventions: fold_0 (V-JEPA style) and fold0 (pyskl style)
-    skeleton_fold_dir = skeleton_root / f"fold{fold_idx}"
-    if not skeleton_fold_dir.exists():
-        skeleton_fold_dir = skeleton_root / f"fold_{fold_idx}"
-    
     vjepa_df = load_vjepa_predictions(vjepa_fold_dir)
-    pose_df = load_skeleton_predictions(skeleton_fold_dir, model_name=skeleton_model_name)
     
-    # Merge predictions
-    merged_df = merge_predictions(vjepa_df, pose_df, num_classes, exclude_clips=exclude_clips)
+    if fusion_type == "three_way":
+        # 3-way fusion: V-JEPA2 + PoseC3D + STGCN++
+        if posec3d_root is None or stgcn_root is None:
+            raise ValueError("3-way fusion requires both --posec3d-root and --stgcn-root")
+        
+        # Load PoseC3D predictions
+        posec3d_fold_dir = posec3d_root / f"fold{fold_idx}"
+        if not posec3d_fold_dir.exists():
+            posec3d_fold_dir = posec3d_root / f"fold_{fold_idx}"
+        posec3d_df = load_skeleton_predictions(posec3d_fold_dir, model_name="PoseC3D")
+        
+        # Load STGCN++ predictions
+        stgcn_fold_dir = stgcn_root / f"fold{fold_idx}"
+        if not stgcn_fold_dir.exists():
+            stgcn_fold_dir = stgcn_root / f"fold_{fold_idx}"
+        stgcn_df = load_skeleton_predictions(stgcn_fold_dir, model_name="STGCN++")
+        
+        # Merge all three predictions
+        merged_df = merge_three_predictions(
+            vjepa_df, posec3d_df, stgcn_df, num_classes, exclude_clips=exclude_clips
+        )
+        
+        # Create 3-way dataset
+        dataset = ThreeWayFusionDataset(merged_df, num_classes)
+    else:
+        # 2-way fusion: V-JEPA2 + skeleton
+        # Try both fold naming conventions: fold_0 (V-JEPA style) and fold0 (pyskl style)
+        skeleton_fold_dir = skeleton_root / f"fold{fold_idx}"
+        if not skeleton_fold_dir.exists():
+            skeleton_fold_dir = skeleton_root / f"fold_{fold_idx}"
+        
+        pose_df = load_skeleton_predictions(skeleton_fold_dir, model_name=skeleton_model_name)
+        
+        # Merge predictions
+        merged_df = merge_predictions(vjepa_df, pose_df, num_classes, exclude_clips=exclude_clips)
+        
+        # Create 2-way dataset
+        dataset = FusionDataset(merged_df, num_classes)
     
-    # Create dataset and dataloader
-    # Note: For CV fusion, we train on the validation set predictions
-    # (which is already held-out from both encoders' training)
-    dataset = FusionDataset(merged_df, num_classes)
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+    # ==========================================================================
+    # Inner CV: Train and evaluate fusion on separate subsets of val predictions
+    # This prevents overfitting by never evaluating on training data
+    # ==========================================================================
     
-    # Compute class weights
-    labels = merged_df["label_id"].values
-    class_weights = compute_class_weights(labels, num_classes)
+    inner_n_splits = 5
+    inner_kfold = StratifiedKFold(n_splits=inner_n_splits, shuffle=True, random_state=42 + fold_idx)
     
-    # Initialize model using factory function
-    model = create_fusion_model(
+    inner_clip_results = []
+    inner_video_results = []
+    all_inner_eval_results = []  # Store for final predictions
+    all_inner_val_dfs = []
+    
+    # Log model info once
+    temp_model = create_fusion_model(
         fusion_type=fusion_type,
         num_classes=num_classes,
         hidden_dim=mlp_hidden_dim,
         dropout=mlp_dropout,
         init_alpha=0.0,
-    ).to(device)
-    
-    # Log model info
-    num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    )
+    num_params = sum(p.numel() for p in temp_model.parameters() if p.requires_grad)
     logger.info("Fusion type: %s (%d trainable parameters)", fusion_type, num_params)
-    logger.info("Initial α = %.4f", model.alpha_value)
+    logger.info("Inner CV: %d-fold split on %d validation predictions", inner_n_splits, len(merged_df))
+    del temp_model
     
-    # Train
-    losses = train_fusion(
-        model=model,
-        train_loader=loader,
-        class_weights=class_weights,
-        device=device,
-        num_epochs=num_epochs,
-        lr=lr,
-        log_interval=max(1, num_epochs // 10),
-    )
+    for inner_idx, (train_idx, val_idx) in enumerate(inner_kfold.split(merged_df, merged_df["label_id"])):
+        train_df = merged_df.iloc[train_idx].reset_index(drop=True)
+        val_df = merged_df.iloc[val_idx].reset_index(drop=True)
+        
+        logger.info(
+            "  Inner fold %d/%d | Train: %d | Val: %d",
+            inner_idx + 1, inner_n_splits, len(train_df), len(val_df)
+        )
+        
+        # Create train/val datasets using the same class as main dataset
+        DatasetClass = ThreeWayFusionDataset if fusion_type == "three_way" else FusionDataset
+        train_dataset = DatasetClass(train_df, num_classes)
+        val_dataset = DatasetClass(val_df, num_classes)
+        
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
+        
+        # Compute class weights on training set only
+        train_labels = train_df["label_id"].values
+        class_weights = compute_class_weights(train_labels, num_classes)
+        
+        # Initialize fresh model for each inner fold
+        model = create_fusion_model(
+            fusion_type=fusion_type,
+            num_classes=num_classes,
+            hidden_dim=mlp_hidden_dim,
+            dropout=mlp_dropout,
+            init_alpha=0.0,
+        ).to(device)
+        
+        # Train (reduced logging for inner folds)
+        if fusion_type == "three_way":
+            losses = train_three_way_fusion(
+                model=model,
+                train_loader=train_loader,
+                class_weights=class_weights,
+                device=device,
+                num_epochs=num_epochs,
+                lr=lr,
+                log_interval=num_epochs + 1,  # Suppress inner fold epoch logs
+            )
+        else:
+            losses = train_fusion(
+                model=model,
+                train_loader=train_loader,
+                class_weights=class_weights,
+                device=device,
+                num_epochs=num_epochs,
+                lr=lr,
+                log_interval=num_epochs + 1,  # Suppress inner fold epoch logs
+            )
+        
+        # Evaluate on held-out inner val set
+        if fusion_type == "three_way":
+            eval_results = evaluate_three_way_fusion(model, val_loader, device)
+        else:
+            eval_results = evaluate_fusion(model, val_loader, device)
+        
+        # Compute clip-level metrics for this inner fold
+        inner_clip_metrics = compute_metrics(
+            eval_results["labels"],
+            eval_results["preds"],
+            eval_results["probs"],
+            class_names,
+        )
+        inner_clip_results.append(inner_clip_metrics)
+        
+        # Compute video-level metrics for this inner fold
+        inner_video_result = aggregate_video_predictions(
+            val_df,
+            eval_results["preds"],
+            eval_results["labels"],
+            eval_results["probs"],
+            eval_results["segment_ids"],
+        )
+        if inner_video_result:
+            inner_video_metrics = compute_metrics(
+                inner_video_result["labels"],
+                inner_video_result["preds"],
+                inner_video_result["probs"],
+                class_names,
+            )
+            inner_video_results.append(inner_video_metrics)
+        
+        # Store for final predictions aggregation
+        all_inner_eval_results.append(eval_results)
+        all_inner_val_dfs.append(val_df)
+        
+        logger.info(
+            "    → Clip Top-1: %.3f | Video Top-1: %.3f",
+            inner_clip_metrics["top1_acc"],
+            inner_video_metrics["top1_acc"] if inner_video_result else 0.0
+        )
     
-    # Evaluate (on same data since we're doing CV)
-    eval_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)
-    eval_results = evaluate_fusion(model, eval_loader, device)
-    
-    # Compute metrics
-    clip_metrics = compute_metrics(
-        eval_results["labels"],
-        eval_results["preds"],
-        eval_results["probs"],
-        class_names,
-    )
-    clip_metrics["alpha"] = model.alpha_value
+    # Aggregate metrics across inner folds
+    clip_metrics = average_metrics(inner_clip_results)
     clip_metrics["fusion_type"] = fusion_type
+    clip_metrics["alpha"] = model.alpha_value  # From last model (just for reference)
     
-    # Store per-class alpha if available
-    if hasattr(model, "alpha_per_class"):
-        clip_metrics["alpha_per_class"] = model.alpha_per_class
+    video_metrics = average_metrics(inner_video_results) if inner_video_results else None
+    
+    logger.info(
+        "Fold %d Clip-Level (inner CV avg) | Top-1: %.3f | Top-2: %.3f | Macro F1: %.3f | (MLP fusion)",
+        fold_idx, clip_metrics["top1_acc"], clip_metrics.get("top2_acc", 0),
+        clip_metrics["macro_f1"]
+    )
+    if video_metrics:
         logger.info(
-            "Fold %d Clip-Level | Top-1: %.3f | Top-2: %.3f | Macro F1: %.3f | α_per_class = %s",
-            fold_idx, clip_metrics["top1_acc"], clip_metrics["top2_acc"],
-            clip_metrics["macro_f1"], 
-            [f"{a:.3f}" for a in clip_metrics["alpha_per_class"]]
-        )
-    elif hasattr(model, "alpha") and model.alpha.numel() == 1:
-        clip_metrics["alpha_raw"] = model.alpha.item()
-        logger.info(
-            "Fold %d Clip-Level | Top-1: %.3f | Top-2: %.3f | Macro F1: %.3f | α = %.4f",
-            fold_idx, clip_metrics["top1_acc"], clip_metrics["top2_acc"],
-            clip_metrics["macro_f1"], clip_metrics["alpha"]
-        )
-    else:
-        # MLP model
-        logger.info(
-            "Fold %d Clip-Level | Top-1: %.3f | Top-2: %.3f | Macro F1: %.3f | (MLP fusion)",
-            fold_idx, clip_metrics["top1_acc"], clip_metrics["top2_acc"],
-            clip_metrics["macro_f1"]
+            "Fold %d Video-Level (inner CV avg) | Top-1: %.3f | Macro F1: %.3f | κ = %.3f",
+            fold_idx, video_metrics["top1_acc"], video_metrics["macro_f1"],
+            video_metrics["cohen_kappa"]
         )
     
-    # Video-level metrics
-    video_metrics = None
+    # Concatenate all inner val predictions for saving (covers full val set)
+    all_segment_ids = []
+    all_labels = []
+    all_preds = []
+    all_probs = []
+    for er in all_inner_eval_results:
+        all_segment_ids.extend(er["segment_ids"])
+        all_labels.extend(er["labels"])
+        all_preds.extend(er["preds"])
+        all_probs.append(er["probs"])
+    
+    eval_results = {
+        "segment_ids": all_segment_ids,
+        "labels": np.array(all_labels),
+        "preds": np.array(all_preds),
+        "probs": np.vstack(all_probs),
+    }
+    
+    # For video results, concatenate all inner val dfs
     video_results = aggregate_video_predictions(
-        merged_df,
+        pd.concat(all_inner_val_dfs, ignore_index=True),
         eval_results["preds"],
         eval_results["labels"],
         eval_results["probs"],
         eval_results["segment_ids"],
     )
-    if video_results:
-        video_metrics = compute_metrics(
-            video_results["labels"],
-            video_results["preds"],
-            video_results["probs"],
-            class_names,
-        )
-        logger.info(
-            "Fold %d Video-Level | Top-1: %.3f | Macro F1: %.3f | κ = %.3f",
-            fold_idx, video_metrics["top1_acc"], video_metrics["macro_f1"],
-            video_metrics["cohen_kappa"]
-        )
     
     # Save outputs
     fold_out = output_dir / f"fold_{fold_idx}"
@@ -1058,6 +1452,8 @@ def main() -> None:
             fusion_type=args.fusion_type,
             mlp_hidden_dim=args.mlp_hidden_dim,
             mlp_dropout=args.mlp_dropout,
+            stgcn_root=args.stgcn_root,
+            posec3d_root=args.posec3d_root,
         )
         fold_results.append(result)
     
@@ -1078,8 +1474,15 @@ def main() -> None:
     for key in clip_metrics_keys:
         values = [r["clip"][key] for r in fold_results if r["clip"].get(key) is not None]
         if values:
-            summary["clip"][f"{key}_mean"] = float(np.mean(values))
-            summary["clip"][f"{key}_std"] = float(np.std(values))
+            # Skip alpha if it's not numeric (e.g., for 3-way fusion)
+            if key == "alpha" and not all(isinstance(v, (int, float)) for v in values):
+                continue
+            try:
+                summary["clip"][f"{key}_mean"] = float(np.mean(values))
+                summary["clip"][f"{key}_std"] = float(np.std(values))
+            except (TypeError, ValueError):
+                # Skip non-numeric values
+                pass
     
     # Compute means and stds for video-level metrics
     video_metrics_keys = ["top1_acc", "top2_acc", "macro_f1", "weighted_f1", "cohen_kappa"]
