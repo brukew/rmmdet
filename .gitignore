@@ -10,10 +10,14 @@
 # Ignore all CSV files
 *.csv
 *.txt
+*.xlsx
+*.json
+
 
 # Ignore cache
 *.pyc
 
 # Model runs
-*/wandb
-*/runs
+wandb/
+runs/
+logs/

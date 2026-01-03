@@ -20,6 +20,15 @@ Usage:
         --output-dir data/sails/cv \
         --min-keypoint-conf 0.6
 
+    # MODE 3: TAL Windows mode (includes background as additional class)
+    # Use --windows flag to process TAL window CSVs (window_id, primary_label)
+    python create_sails_annotations.py \
+        --mode cv \
+        --splits-dir /path/to/tal/splits_cv_4class/ \
+        --output-dir data/sails/tal_cv \
+        --windows \
+        --min-keypoint-conf 0.6
+
     # Legacy: Multiple CSVs with split names (still supported)
     python create_sails_annotations.py \
         --csv train.csv val.csv test.csv \
@@ -75,6 +84,29 @@ DEFAULT_CLASS_MAP_5CLASS = {
 
 # Default to 4-class for backward compatibility
 DEFAULT_CLASS_MAP = DEFAULT_CLASS_MAP_4CLASS
+
+# TAL windows class mappings (includes background)
+# Background gets the highest index in each configuration
+TAL_CLASS_MAP_4CLASS = {
+    "hands flapping": 0,
+    "jumping": 1,
+    "rocking": 2,
+    "spinning": 3,
+    "background": 4,  # Added for TAL windows
+}
+
+TAL_CLASS_MAP_5CLASS = {
+    "hands flapping": 0,
+    "jumping": 1,
+    "one hand flap": 2,
+    "rocking": 3,
+    "spinning": 4,
+    "background": 5,  # Added for TAL windows
+}
+
+# Reverse mapping from integer labels to class names (for TAL windows)
+TAL_ID_TO_CLASS_4CLASS = {v: k for k, v in TAL_CLASS_MAP_4CLASS.items()}
+TAL_ID_TO_CLASS_5CLASS = {v: k for k, v in TAL_CLASS_MAP_5CLASS.items()}
 
 # COCO keypoint indices in wholebody (133 keypoints)
 # The first 17 keypoints in wholebody ARE the COCO body keypoints
@@ -135,6 +167,9 @@ def normalize_fieldnames(fieldnames: List[str]) -> List[str]:
         
         if lowered == "segment_global_id":
             cleaned.append("segment_global_id")
+        elif lowered == "window_id":
+            # TAL window CSVs use window_id instead of segment_id
+            cleaned.append("segment_id")
         elif lowered.endswith("segment_id"):
             cleaned.append("segment_id")
         elif lowered == "video_file":
@@ -147,11 +182,17 @@ def normalize_fieldnames(fieldnames: List[str]) -> List[str]:
             cleaned.append("end_sec")
         elif lowered == "rmm_type":
             cleaned.append("rmm_type")
+        elif lowered == "primary_label":
+            # TAL window CSVs use primary_label (int) instead of rmm_type (str)
+            cleaned.append("primary_label")
         elif lowered == "child_id":
             cleaned.append("child_id")
         elif lowered == "timepoint":
             cleaned.append("timepoint")
         elif lowered == "video_duration":
+            cleaned.append("video_duration")
+        elif lowered == "duration_sec":
+            # TAL windows have duration_sec instead of video_duration
             cleaned.append("video_duration")
         else:
             cleaned.append(cleaned_name)
@@ -199,6 +240,84 @@ def load_csv_segments(csv_path: Path, class_map: Dict[str, int]) -> List[Segment
                 end_sec=end_sec,
                 label=class_map[rmm_type],
                 label_name=rmm_type,
+                child_id=row.get("child_id", ""),
+                timepoint=row.get("timepoint", ""),
+                video_duration=video_duration,
+            ))
+    
+    return segments
+
+
+def load_csv_windows(
+    csv_path: Path,
+    id_to_class: Dict[int, str],
+    background_label: int,
+) -> List[SegmentInfo]:
+    """
+    Load TAL window segments from a CSV file.
+    
+    TAL window CSVs have:
+    - window_id (mapped to segment_id)
+    - primary_label (integer: 0-3 for RMM classes, -1 for background)
+    - start_sec, end_sec (half-open interval [start, end))
+    
+    Args:
+        csv_path: Path to the window CSV file.
+        id_to_class: Mapping from integer label to class name.
+        background_label: Integer label to assign to background windows (primary_label=-1).
+    
+    Returns:
+        List of SegmentInfo objects.
+    """
+    segments = []
+    
+    with open(csv_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        if reader.fieldnames:
+            reader.fieldnames = normalize_fieldnames(reader.fieldnames)
+        
+        for row in reader:
+            segment_id = row.get("segment_id") or row.get("segment_global_id")
+            if not segment_id:
+                continue
+            
+            # Parse primary_label as integer
+            try:
+                primary_label = int(row.get("primary_label", -1))
+            except (ValueError, TypeError):
+                print(f"  [warn] Invalid primary_label for {segment_id}, skipping")
+                continue
+            
+            # Map -1 (background) to the background class
+            if primary_label == -1:
+                label = background_label
+                label_name = "background"
+            else:
+                label = primary_label
+                label_name = id_to_class.get(primary_label, f"class_{primary_label}")
+            
+            try:
+                start_sec = float(row.get("start_sec", 0))
+                end_sec = float(row.get("end_sec", 0))
+            except ValueError:
+                print(f"  [warn] Invalid start/end for {segment_id}, skipping")
+                continue
+            
+            video_duration = None
+            if row.get("video_duration"):
+                try:
+                    video_duration = float(row["video_duration"])
+                except ValueError:
+                    pass
+            
+            segments.append(SegmentInfo(
+                segment_id=segment_id,
+                video_file=row.get("video_file", ""),
+                filename=row.get("filename", ""),
+                start_sec=start_sec,
+                end_sec=end_sec,
+                label=label,
+                label_name=label_name,
                 child_id=row.get("child_id", ""),
                 timepoint=row.get("timepoint", ""),
                 video_duration=video_duration,
@@ -421,14 +540,25 @@ def create_annotation(
         return None
     
     # Get video info for FPS and shape
-    video_path = resolve_video_path(video_root, segment.video_file)
-    video_info = get_video_info(video_path)
-    fps = video_info["fps"] if video_info["fps"] > 0 else default_fps
+    # Prefer video_meta_lookup (from video_meta.json) to avoid slow OpenCV probing
+    fps = default_fps
+    img_shape = default_shape
     
-    if video_info["width"] > 0 and video_info["height"] > 0:
-        img_shape = (video_info["height"], video_info["width"])
+    video_meta = video_meta_lookup.get(segment.video_file) if video_meta_lookup else None
+    if video_meta:
+        # Use cached metadata (fast path)
+        if video_meta.get("fps", 0) > 0:
+            fps = video_meta["fps"]
+        if video_meta.get("width", 0) > 0 and video_meta.get("height", 0) > 0:
+            img_shape = (video_meta["height"], video_meta["width"])
     else:
-        img_shape = default_shape
+        # Fall back to OpenCV probe (slow path, only if metadata missing)
+        video_path = resolve_video_path(video_root, segment.video_file)
+        video_info = get_video_info(video_path)
+        if video_info["fps"] > 0:
+            fps = video_info["fps"]
+        if video_info["width"] > 0 and video_info["height"] > 0:
+            img_shape = (video_info["height"], video_info["width"])
     
     # Calculate frame range for this segment
     start_frame = int(segment.start_sec * fps)
@@ -585,6 +715,13 @@ def parse_args():
         action="store_true",
         help="Only show what would be processed, don't create output.",
     )
+    parser.add_argument(
+        "--windows",
+        action="store_true",
+        help="Enable TAL windows mode. CSVs are expected to have window_id and primary_label "
+             "instead of segment_id and rmm_type. Background windows (primary_label=-1) are "
+             "included as an additional class.",
+    )
     
     args = parser.parse_args()
     
@@ -611,15 +748,25 @@ def process_csvs(
     min_keypoint_conf: float = 0.0,
     dry_run: bool = False,
     label_map_output: Optional[str] = None,
+    windows_mode: bool = False,
+    id_to_class: Optional[Dict[int, str]] = None,
+    background_label: Optional[int] = None,
 ) -> bool:
     """
     Process CSVs and create a single pickle file.
+    
+    Args:
+        windows_mode: If True, use load_csv_windows() for TAL window CSVs.
+        id_to_class: Mapping from integer label to class name (required for windows_mode).
+        background_label: Label index for background class (required for windows_mode).
     
     Returns:
         True if successful, False otherwise.
     """
     print(f"CSVs: {[p.name for p in csv_paths]}")
     print(f"Split names: {split_names}")
+    if windows_mode:
+        print(f"Windows mode: ON (background label={background_label})")
     if min_keypoint_conf > 0:
         print(f"Min keypoint confidence: {min_keypoint_conf} (keypoints below this are zeroed)")
     print()
@@ -630,7 +777,10 @@ def process_csvs(
     for csv_path, split_name in zip(csv_paths, split_names):
         print(f"Processing {csv_path.name} (split: {split_name})...")
         
-        segments = load_csv_segments(csv_path, class_map)
+        if windows_mode:
+            segments = load_csv_windows(csv_path, id_to_class, background_label)
+        else:
+            segments = load_csv_segments(csv_path, class_map)
         print(f"  Loaded {len(segments)} segments")
         
         if dry_run:
@@ -715,16 +865,34 @@ def process_csvs(
 def main():
     args = parse_args()
     
-    # Load class map
+    # Load class map based on mode
     if args.class_map:
         with open(args.class_map, "r") as f:
             class_map = json.load(f)
+        id_to_class = {v: k for k, v in class_map.items()}
+        background_label = max(class_map.values()) + 1 if args.windows else None
+    elif args.windows:
+        # TAL windows mode: use class maps that include background
+        if args.num_classes == 5:
+            class_map = TAL_CLASS_MAP_5CLASS
+            id_to_class = TAL_ID_TO_CLASS_5CLASS
+            background_label = 5
+        else:
+            class_map = TAL_CLASS_MAP_4CLASS
+            id_to_class = TAL_ID_TO_CLASS_4CLASS
+            background_label = 4
     elif args.num_classes == 5:
         class_map = DEFAULT_CLASS_MAP_5CLASS
+        id_to_class = {v: k for k, v in class_map.items()}
+        background_label = None
     else:
         class_map = DEFAULT_CLASS_MAP_4CLASS
+        id_to_class = {v: k for k, v in class_map.items()}
+        background_label = None
     
     print(f"Class mapping: {class_map}")
+    if args.windows:
+        print(f"Windows mode: ON (background class index = {background_label})")
     
     pose_cache_base = Path(args.pose_cache_base)
     video_root = Path(args.video_root)
@@ -741,18 +909,25 @@ def main():
     print(f"Video root: {video_root}")
     print()
     
-    # Determine suffix for output filenames (includes num_classes and confidence)
-    conf_suffix = f"{args.num_classes}class_conf{args.min_keypoint_conf:.1f}".replace(".", "")
+    # Determine suffix for output filenames
+    # For windows mode, add +1 to num_classes to account for background
+    effective_classes = args.num_classes + 1 if args.windows else args.num_classes
+    windows_tag = "_windows" if args.windows else ""
+    conf_suffix = f"{effective_classes}class{windows_tag}_conf{args.min_keypoint_conf:.1f}".replace(".", "")
     
     if args.mode == "single":
         # Single split mode: train.csv, val.csv, test.csv
+        # For windows mode: train_windows.csv, val_windows.csv, test_windows.csv
         splits_dir = Path(args.splits_dir)
         output_dir = Path(args.output_dir)
         
         csv_paths = []
         split_names = []
         for split in ["train", "val", "test"]:
-            csv_path = splits_dir / f"{split}.csv"
+            if args.windows:
+                csv_path = splits_dir / f"{split}_windows.csv"
+            else:
+                csv_path = splits_dir / f"{split}.csv"
             if csv_path.exists():
                 csv_paths.append(csv_path)
                 split_names.append(split)
@@ -764,7 +939,7 @@ def main():
         output_path = output_dir / f"{conf_suffix}.pkl"
         
         print(f"=" * 60)
-        print(f"MODE: Single Split")
+        print(f"MODE: Single Split" + (" (Windows)" if args.windows else ""))
         print(f"Output: {output_path}")
         print(f"=" * 60)
         
@@ -780,15 +955,22 @@ def main():
             min_keypoint_conf=args.min_keypoint_conf,
             dry_run=args.dry_run,
             label_map_output=args.label_map_output,
+            windows_mode=args.windows,
+            id_to_class=id_to_class,
+            background_label=background_label,
         )
     
     elif args.mode == "cv":
         # Cross-validation mode: fold_X_train.csv, fold_X_val.csv
+        # For windows mode: fold_X_train_windows.csv, fold_X_val_windows.csv
         splits_dir = Path(args.splits_dir)
         output_dir = Path(args.output_dir)
         
         # Discover folds
-        fold_files = list(splits_dir.glob("fold_*_train.csv"))
+        if args.windows:
+            fold_files = list(splits_dir.glob("fold_*_train_windows.csv"))
+        else:
+            fold_files = list(splits_dir.glob("fold_*_train.csv"))
         fold_nums = sorted(set(int(f.stem.split("_")[1]) for f in fold_files))
         
         if not fold_nums:
@@ -796,7 +978,7 @@ def main():
             return
         
         print(f"=" * 60)
-        print(f"MODE: Cross-Validation ({len(fold_nums)} folds)")
+        print(f"MODE: Cross-Validation ({len(fold_nums)} folds)" + (" (Windows)" if args.windows else ""))
         print(f"Output directory: {output_dir}/{conf_suffix}/")
         print(f"=" * 60)
         
@@ -806,8 +988,12 @@ def main():
             csv_paths = []
             split_names = []
             
-            train_csv = splits_dir / f"fold_{fold_num}_train.csv"
-            val_csv = splits_dir / f"fold_{fold_num}_val.csv"
+            if args.windows:
+                train_csv = splits_dir / f"fold_{fold_num}_train_windows.csv"
+                val_csv = splits_dir / f"fold_{fold_num}_val_windows.csv"
+            else:
+                train_csv = splits_dir / f"fold_{fold_num}_train.csv"
+                val_csv = splits_dir / f"fold_{fold_num}_val.csv"
             
             if train_csv.exists():
                 csv_paths.append(train_csv)
@@ -833,6 +1019,9 @@ def main():
                 default_fps=args.default_fps,
                 min_keypoint_conf=args.min_keypoint_conf,
                 dry_run=args.dry_run,
+                windows_mode=args.windows,
+                id_to_class=id_to_class,
+                background_label=background_label,
             )
         
         print(f"\n{'=' * 60}")
@@ -854,7 +1043,7 @@ def main():
         output_path = Path(args.output)
         
         print(f"=" * 60)
-        print(f"MODE: Manual (Legacy)")
+        print(f"MODE: Manual (Legacy)" + (" (Windows)" if args.windows else ""))
         print(f"Output: {output_path}")
         print(f"=" * 60)
         
@@ -870,6 +1059,9 @@ def main():
             min_keypoint_conf=args.min_keypoint_conf,
             dry_run=args.dry_run,
             label_map_output=args.label_map_output,
+            windows_mode=args.windows,
+            id_to_class=id_to_class,
+            background_label=background_label,
         )
 
 
