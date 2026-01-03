@@ -99,6 +99,9 @@ def normalize_fieldnames(fieldnames: Sequence[str]) -> List[str]:
 
         if lowered == "segment_global_id":
             cleaned.append("segment_global_id")
+        elif lowered == "window_id":
+            # TAL window CSVs use window_id instead of segment_id
+            cleaned.append("segment_id")
         elif lowered.endswith("segment_id"):
             cleaned.append("segment_id")
         elif lowered == "video_file":
