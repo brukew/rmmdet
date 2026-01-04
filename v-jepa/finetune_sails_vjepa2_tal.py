@@ -11,6 +11,7 @@ import argparse
 import csv
 import json
 import logging
+import random
 import subprocess
 import sys
 from collections import Counter
@@ -354,6 +355,49 @@ def load_tal_split(
         logger.info("Excluded %d background windows (--no-background)", background_excluded)
     
     return records, missing
+
+
+def subsample_background(
+    records: List[Dict],
+    bg_multiplier: float,
+    bg_label_id: int = 4,
+    seed: int = 42,
+) -> List[Dict]:
+    """
+    Subsample background windows to reduce class imbalance.
+    
+    Args:
+        records: All loaded records.
+        bg_multiplier: Keep this many background windows per RMM window.
+                       E.g., 2.0 means if there are 900 RMM windows, keep 1800 background.
+        bg_label_id: Label ID for background class.
+        seed: Random seed for reproducibility.
+    
+    Returns:
+        Records with subsampled background.
+    """
+    rmm_records = [r for r in records if r["label_id"] != bg_label_id]
+    bg_records = [r for r in records if r["label_id"] == bg_label_id]
+    
+    n_rmm = len(rmm_records)
+    n_bg_target = int(n_rmm * bg_multiplier)
+    
+    if len(bg_records) <= n_bg_target:
+        logger.info(
+            "Background subsampling: keeping all %d (target was %d)", 
+            len(bg_records), n_bg_target
+        )
+        return records
+    
+    rng = random.Random(seed)
+    sampled_bg = rng.sample(bg_records, n_bg_target)
+    
+    logger.info(
+        "Background subsampling: %d -> %d (%.1fx RMM count of %d)",
+        len(bg_records), n_bg_target, bg_multiplier, n_rmm
+    )
+    
+    return rmm_records + sampled_bg
 
 
 def build_video_label_counts(records: Sequence[Dict], key_field: str = "video_key") -> Dict[str, int]:
@@ -936,6 +980,13 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Exclude background windows (train on 4 RMM classes only).",
     )
+    parser.add_argument(
+        "--bg-subsample",
+        type=float,
+        default=None,
+        help="Subsample background windows to this multiple of total RMM count (e.g., 2.0 = keep 2x RMM count). "
+             "If None, keep all background windows.",
+    )
     
     # Model
     parser.add_argument("--model-id", default="facebook/vjepa2-vitl-fpc16-256-ssv2")
@@ -1156,6 +1207,16 @@ def main() -> None:
         val_records, miss_val = load_tal_split(
             [val_csv], args.clips_root, include_background=include_background
         )
+        
+        # Subsample background if requested (training only)
+        if args.bg_subsample is not None and include_background:
+            train_records = subsample_background(
+                train_records,
+                args.bg_subsample,
+                bg_label_id=4,
+                seed=42 + fold_idx,  # different seed per fold for variety
+            )
+        
         logger.info("Train: %d windows | Val: %d windows", len(train_records), len(val_records))
         logger.info("Missing clips -> train: %d | val: %d", len(miss_train), len(miss_val))
         if miss_train or miss_val:

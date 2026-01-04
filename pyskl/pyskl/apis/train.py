@@ -149,12 +149,14 @@ def train_model(model,
         runner.register_hook(eval_hook)
 
     # Register early stopping hook if configured
+    # NOTE: Must use priority='LOW' (60) to run AFTER EvalHook (priority=NORMAL=50)
+    # because EvalHook stores metrics in log_buffer.output during after_train_epoch
     early_stopping_cfg = cfg.get('early_stopping', None)
     if early_stopping_cfg is not None and validate:
         early_stopping_hook = EarlyStoppingHook(**early_stopping_cfg)
-        runner.register_hook(early_stopping_hook)
-        logger.info(f'Early stopping enabled: patience={early_stopping_cfg.get("patience", 2)}, '
-                    f'monitor={early_stopping_cfg.get("monitor", "top1_acc")}')
+        runner.register_hook(early_stopping_hook, priority='LOW')
+        logger.info(f'Early stopping enabled: patience={early_stopping_cfg.get("patience", 3)}, '
+                    f'monitor={early_stopping_cfg.get("monitor", "top1_acc")} (priority=LOW)')
 
     if cfg.get('resume_from', None):
         runner.resume(cfg.resume_from)

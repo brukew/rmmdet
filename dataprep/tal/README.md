@@ -68,6 +68,22 @@ Each window CSV contains these columns:
 | `primary_label` | Single-label for compatibility (-1 = background) |
 | `is_background` | 1 if no positive labels, 0 otherwise |
 | `tiou_*` | Per-class max tIoU with GT segments |
+| `mask_severity` | Coverage quality: `full`, `mild` (1-5 frames missing), `moderate` (6-20 frames), `severe` (>20) |
+| `mask_cause` | Why frames missing: `full`, `sparse`, `exceeds_cache`, `no_data` |
+| `mask_frames_missing` | Number of frames (out of ~60) without SAM3 mask data |
+| `pose_severity` | Coverage quality: `full`, `mild` (1-5 frames missing), `moderate` (6-20 frames), `severe` (>20 frames) |
+| `pose_cause` | Why frames missing: `full`, `sparse`, `exceeds_cache`, `no_data` |
+| `pose_frames_missing` | Number of frames (out of ~60) without HRNet pose data |
+
+### Mask/Pose Availability
+
+- **Cause categories**:
+  - `full`: All frames have data
+  - `sparse`: Gaps in coverage (missing mask/pose for some frames)
+  - `exceeds_cache`: Window falls beyond the cache limit
+  - `no_data`: No cache file found for this video
+- **Pyskl requirement**: Windows need ≥33% of frames with pose data for skeleton-based models
+- **Impact**: Windows with `pose_severity='severe'` are skipped during pickle generation (~10% train, ~27% val for fold 0)
 
 ## Class Labels
 
@@ -178,6 +194,17 @@ These TAL splits are derived from the existing classification splits in `actreg/
 
 The classification clips (654 segments) correspond to the **positive windows** with high tIoU, but TAL splits include all windows including background.
 
+## Pose pickle generation (pyskl) notes
+
+- **Why windows get skipped**: PoseC3D/ST-GCN pickle generation skips windows with **too few pose frames** in the window (effectively “no usable pose”).
+- **How to predict skips from the CSV**:
+  - Skipped windows fall almost entirely into `pose_severity=severe` with `pose_cause` in `{exceeds_cache, sparse, no_data}`.
+  - In practice, `pose_cause=exceeds_cache` dominates skips (windows beyond the SAM3/pose cache coverage).
+- **Observed skip rates (CV 4-class, fold 0)**:
+  - `fold_0_train`: **948/9207 (10.3%)** skipped; **RMM lost**: **15/901 (1.7%)**
+  - `fold_0_val`: **1346/4938 (27.3%)** skipped; **RMM lost**: **23/454 (5.1%)**
+  - Skips are **mostly background windows**; RMM coverage remains high.
+
 ## Notes
 
 - Background windows (~90%) dominate; consider class-balanced sampling for training
@@ -185,4 +212,8 @@ The classification clips (654 segments) correspond to the **positive windows** w
 - The `primary_label` column provides a single-label fallback for simpler models
 - Window IDs are deterministic and reproducible based on timestamps
 
+## See Also
 
+- **TAL Evaluation Pipeline**: See `actreg/tal/README.md` for mAP evaluation scripts
+- **V-JEPA Training**: `actreg/v-jepa/finetune_sails_vjepa2_tal.py`
+- **pyskl Training**: `actreg/pyskl/tools/train_weighted.py`

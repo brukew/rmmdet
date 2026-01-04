@@ -1,17 +1,28 @@
 #!/usr/bin/env python
 """
-Training script with class weighting support.
+Training script with class weighting and background subsampling support.
 
 This wrapper computes inverse-frequency class weights from the annotation file
 and properly injects them into the model config before training.
 
+Optionally supports background subsampling via --bg-subsample, which uses
+pyskl's class_prob mechanism to reduce the majority class during training.
+
 Usage:
     python tools/train_weighted.py CONFIG --ann-file ANN_FILE [options]
     
-Example:
+Examples:
+    # Basic training with class weights
     python tools/train_weighted.py configs/stgcn++/stgcnpp_sails_ntu60p/j.py \
         --ann-file data/sails/single/4class_conf04.pkl \
         --work-dir work_dirs/weighted_test \
+        --validate --launcher none
+    
+    # TAL training with background subsampling (keep 20% of background)
+    python tools/train_weighted.py configs/posec3d/slowonly_r50_sails_k400p/joint_tal_5class.py \
+        --ann-file data/sails/tal/cv_4class/5class_windows_conf04/fold0.pkl \
+        --bg-subsample 0.2 \
+        --work-dir work_dirs/posec3d/tal/fold0 \
         --validate --launcher none
 """
 
@@ -99,6 +110,9 @@ def parse_args():
     parser.add_argument('--num-classes', type=int, help='override number of classes')
     parser.add_argument('--weight-scale', default='linear', choices=['linear', 'sqrt', 'log', 'none'],
                         help='Weight scaling: linear (default), sqrt (recommended for 5+ classes), log (milder), none (uniform)')
+    parser.add_argument('--bg-subsample', type=float, default=None,
+                        help='Subsample background class to this fraction (e.g., 0.2 = keep 20%% of background). '
+                             'Assumes last class is background. Uses class_prob for sampling.')
     parser.add_argument('--seed', type=int, default=None, help='random seed')
     parser.add_argument('--deterministic', action='store_true', help='deterministic mode')
     parser.add_argument('--local_rank', type=int, default=0)
@@ -142,6 +156,19 @@ def main():
     if 'loss_cls' not in cfg.model.cls_head:
         cfg.model.cls_head.loss_cls = dict(type='CrossEntropyLoss', loss_weight=1.0)
     cfg.model.cls_head.loss_cls['class_weight'] = class_weights
+    
+    # Handle background subsampling via class_prob
+    if args.bg_subsample is not None:
+        num_classes = len(class_weights)
+        # class_prob: keep all RMM classes (1.0), subsample background (last class)
+        class_prob = [1.0] * (num_classes - 1) + [args.bg_subsample]
+        print(f"Background subsampling: class_prob = {class_prob}")
+        
+        # Inject class_prob into the inner dataset (inside RepeatDataset)
+        if cfg.data.train.type == 'RepeatDataset':
+            cfg.data.train.dataset.class_prob = class_prob
+        else:
+            cfg.data.train.class_prob = class_prob
     
     # Apply other overrides
     if args.work_dir:

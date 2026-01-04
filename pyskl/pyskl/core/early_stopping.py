@@ -4,6 +4,10 @@
 This module implements early stopping functionality to prevent overfitting
 by monitoring validation metrics and stopping training when performance
 stops improving.
+
+IMPORTANT: This hook must run AFTER EvalHook in after_train_epoch, because
+EvalHook stores metrics in runner.log_buffer.output during after_train_epoch.
+Register this hook with priority='LOW' (60) to ensure correct ordering.
 """
 
 from mmcv.runner import HOOKS, Hook
@@ -16,9 +20,14 @@ class EarlyStoppingHook(Hook):
     Stops training when the monitored metric has not improved for a
     specified number of epochs (patience).
     
+    NOTE: This hook checks metrics in after_train_epoch (not after_val_epoch)
+    because MMCV's EvalHook stores metrics in log_buffer.output during
+    after_train_epoch. The hook should be registered with priority='LOW'
+    to ensure it runs after EvalHook.
+    
     Args:
         patience (int): Number of epochs to wait for improvement before
-            stopping. Default: 2.
+            stopping. Default: 3.
         monitor (str): Name of the metric to monitor. Should match the
             metric name in evaluation results. Default: 'top1_acc'.
         min_delta (float): Minimum change to qualify as an improvement.
@@ -32,13 +41,13 @@ class EarlyStoppingHook(Hook):
     Example:
         >>> # In config file:
         >>> early_stopping = dict(
-        ...     patience=2,
+        ...     patience=3,
         ...     monitor='top1_acc',
         ...     min_delta=0.0)
     """
 
     def __init__(self,
-                 patience=2,
+                 patience=3,
                  monitor='top1_acc',
                  min_delta=0.0,
                  mode='max',
@@ -53,6 +62,7 @@ class EarlyStoppingHook(Hook):
         self.best_score = None
         self.counter = 0
         self.should_stop = False
+        self.last_checked_epoch = -1
         
         # Adjust min_delta sign based on mode
         if mode == 'min':
@@ -66,19 +76,36 @@ class EarlyStoppingHook(Hook):
         self.best_score = None
         self.counter = 0
         self.should_stop = False
+        self.last_checked_epoch = -1
         if self.verbose:
             runner.logger.info(
                 f'EarlyStoppingHook: monitoring "{self.monitor}" with '
-                f'patience={self.patience}, mode={self.mode}')
+                f'patience={self.patience}, mode={self.mode}, priority={self.priority}')
 
-    def after_val_epoch(self, runner):
-        """Check if validation metric improved after each validation epoch.
+    def after_train_epoch(self, runner):
+        """Check if validation metric improved after each training epoch.
+        
+        This runs AFTER EvalHook.after_train_epoch(), which stores validation
+        metrics in runner.log_buffer.output. We check for metrics here because
+        that's when they're available.
         
         Args:
             runner: The runner object that manages training.
         """
+        # Avoid checking the same epoch twice
+        if runner.epoch == self.last_checked_epoch:
+            return
+        
+        # Check if we should stop from previous epoch
+        if self.should_stop:
+            runner._max_epochs = runner.epoch + 1
+            if self.verbose:
+                runner.logger.info(
+                    f'EarlyStoppingHook: training will stop after epoch {runner.epoch + 1}')
+            return
+        
         # Get the current metric value from runner.log_buffer
-        # The evaluation hook stores metrics in runner.log_buffer.output
+        # EvalHook stores metrics in runner.log_buffer.output during after_train_epoch
         if not hasattr(runner, 'log_buffer') or not hasattr(runner.log_buffer, 'output'):
             return
         
@@ -88,7 +115,6 @@ class EarlyStoppingHook(Hook):
         current_score = None
         possible_keys = [
             self.monitor,
-            f'{self.monitor}',
             f'val_{self.monitor}',
         ]
         
@@ -98,12 +124,18 @@ class EarlyStoppingHook(Hook):
                 break
         
         if current_score is None:
-            if self.verbose:
+            # Metrics not available - validation might not have run this epoch
+            # Only warn if we have keys in log_output (i.e., something was logged)
+            if self.verbose and len(log_output) > 0:
                 available_keys = list(log_output.keys())
-                runner.logger.warning(
-                    f'EarlyStoppingHook: metric "{self.monitor}" not found. '
-                    f'Available metrics: {available_keys}')
+                # Only warn if this looks like it should have validation metrics
+                if 'eval_iter_num' in log_output or any('acc' in k for k in available_keys):
+                    runner.logger.warning(
+                        f'EarlyStoppingHook: metric "{self.monitor}" not found. '
+                        f'Available metrics: {available_keys}')
             return
+        
+        self.last_checked_epoch = runner.epoch
         
         # Check if this is an improvement
         if self.best_score is None:
@@ -131,20 +163,7 @@ class EarlyStoppingHook(Hook):
             if self.counter >= self.patience:
                 self.should_stop = True
                 runner.logger.info(
-                    f'EarlyStoppingHook: stopping training - no improvement '
-                    f'for {self.patience} epochs')
-
-    def after_train_epoch(self, runner):
-        """Check if we should stop after each training epoch.
-        
-        This is called after validation (if validation runs after training epoch).
-        Sets the runner's stop flag if early stopping criteria met.
-        """
-        if self.should_stop:
-            # Signal the runner to stop
-            # MMCVrunner checks this attribute
-            runner._max_epochs = runner.epoch + 1
-            if self.verbose:
-                runner.logger.info(
-                    f'EarlyStoppingHook: training will stop after epoch {runner.epoch + 1}')
-
+                    f'EarlyStoppingHook: STOPPING - no improvement in {self.monitor} '
+                    f'for {self.patience} epochs (best={self.best_score:.4f})')
+                # Stop immediately by setting max_epochs
+                runner._max_epochs = runner.epoch + 1

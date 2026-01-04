@@ -553,12 +553,12 @@ def create_annotation(
             img_shape = (video_meta["height"], video_meta["width"])
     else:
         # Fall back to OpenCV probe (slow path, only if metadata missing)
-        video_path = resolve_video_path(video_root, segment.video_file)
-        video_info = get_video_info(video_path)
+    video_path = resolve_video_path(video_root, segment.video_file)
+    video_info = get_video_info(video_path)
         if video_info["fps"] > 0:
             fps = video_info["fps"]
-        if video_info["width"] > 0 and video_info["height"] > 0:
-            img_shape = (video_info["height"], video_info["width"])
+    if video_info["width"] > 0 and video_info["height"] > 0:
+        img_shape = (video_info["height"], video_info["width"])
     
     # Calculate frame range for this segment
     start_frame = int(segment.start_sec * fps)
@@ -780,7 +780,7 @@ def process_csvs(
         if windows_mode:
             segments = load_csv_windows(csv_path, id_to_class, background_label)
         else:
-            segments = load_csv_segments(csv_path, class_map)
+        segments = load_csv_segments(csv_path, class_map)
         print(f"  Loaded {len(segments)} segments")
         
         if dry_run:
@@ -927,7 +927,7 @@ def main():
             if args.windows:
                 csv_path = splits_dir / f"{split}_windows.csv"
             else:
-                csv_path = splits_dir / f"{split}.csv"
+            csv_path = splits_dir / f"{split}.csv"
             if csv_path.exists():
                 csv_paths.append(csv_path)
                 split_names.append(split)
@@ -970,7 +970,7 @@ def main():
         if args.windows:
             fold_files = list(splits_dir.glob("fold_*_train_windows.csv"))
         else:
-            fold_files = list(splits_dir.glob("fold_*_train.csv"))
+        fold_files = list(splits_dir.glob("fold_*_train.csv"))
         fold_nums = sorted(set(int(f.stem.split("_")[1]) for f in fold_files))
         
         if not fold_nums:
@@ -992,8 +992,8 @@ def main():
                 train_csv = splits_dir / f"fold_{fold_num}_train_windows.csv"
                 val_csv = splits_dir / f"fold_{fold_num}_val_windows.csv"
             else:
-                train_csv = splits_dir / f"fold_{fold_num}_train.csv"
-                val_csv = splits_dir / f"fold_{fold_num}_val.csv"
+            train_csv = splits_dir / f"fold_{fold_num}_train.csv"
+            val_csv = splits_dir / f"fold_{fold_num}_val.csv"
             
             if train_csv.exists():
                 csv_paths.append(train_csv)
@@ -1007,6 +1007,11 @@ def main():
                 continue
             
             output_path = output_dir / conf_suffix / f"fold{fold_num}.pkl"
+            
+            # Skip if output already exists
+            if output_path.exists():
+                print(f"  Skipping fold {fold_num}: output already exists at {output_path}")
+                continue
             
             process_csvs(
                 csv_paths=csv_paths,

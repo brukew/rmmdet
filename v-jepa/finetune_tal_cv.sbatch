@@ -35,12 +35,12 @@ cd /orcd/data/satra/001/users/brukew/actreg
 # Use vjepa2 env (has torch, numpy, pandas, sklearn, matplotlib)
 conda activate vjepa2
 
-# Run V-JEPA2 TAL fine-tuning
+# Run V-JEPA2 TAL fine-tuning with background subsampling
 python v-jepa/finetune_sails_vjepa2_tal.py \
     --split-mode cv \
     --csv-dir /orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class \
     --clips-root /orcd/scratch/bcs/001/brukew/sails/tal_windows_4class/canonical_clips \
-    --output-root /orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_tal_cv_5class \
+    --output-root /orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_tal_cv_5class_bgsub \
     --num-epochs 20 \
     --batch-size 1 \
     --accumulation-steps 4 \
@@ -48,9 +48,10 @@ python v-jepa/finetune_sails_vjepa2_tal.py \
     --num-workers 8 \
     --frames-per-clip 32 \
     --topk 2 \
+    --bg-subsample 2.0 \
     --enable-crop \
     --wandb-project vjepa-tal \
-    --run-prefix vjepa2-tal-cv \
+    --run-prefix vjepa2-tal-cv-bgsub \
     --log-level INFO
 
 echo "=============================================="
