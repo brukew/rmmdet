@@ -75,11 +75,17 @@ optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005, nestero
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='CosineAnnealing', min_lr=0, by_epoch=False)
 
-total_epochs = 20
+total_epochs = 24  # More epochs since early stopping will cut short if needed
 checkpoint_config = dict(interval=1)
 evaluation = dict(interval=1, metrics=['top_k_accuracy', 'mean_class_accuracy'], topk=(1, 2))
 log_config = dict(interval=20, hooks=[dict(type='TextLoggerHook')])
 log_level = 'INFO'
+
+# Early stopping configuration
+early_stopping = dict(
+    patience=5,  # Stop if no improvement for 5 epochs
+    monitor='top1_acc',
+    min_delta=0.0)
 
 work_dir = './work_dirs/stgcnpp/tal/cv_4class_5class_bgsub/jm'
 

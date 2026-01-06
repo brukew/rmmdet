@@ -33,12 +33,17 @@ try:
 except Exception:  # pragma: no cover - optional
     h5py = None
 from sklearn.metrics import (
+    accuracy_score,
     average_precision_score,
     cohen_kappa_score,
     classification_report,
     ConfusionMatrixDisplay,
+    f1_score,
     precision_recall_curve,
     precision_recall_fscore_support,
+    precision_score,
+    recall_score,
+    roc_auc_score,
 )
 from torch.utils.data import DataLoader, Dataset
 from transformers import VJEPA2ForVideoClassification, VJEPA2VideoProcessor
@@ -63,6 +68,14 @@ TAL_LABEL_MAP = {
 
 TAL_ID2LABEL = TAL_LABEL_MAP.copy()
 TAL_LABEL2ID = {v: k for k, v in TAL_LABEL_MAP.items()}
+
+# Binary classification (RMM vs Background)
+BINARY_LABEL_MAP = {
+    0: "rmm",
+    1: "background",
+}
+BINARY_ID2LABEL = BINARY_LABEL_MAP.copy()
+BINARY_LABEL2ID = {v: k for k, v in BINARY_LABEL_MAP.items()}
 
 DEFAULT_TAL_CSV_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class")
 DEFAULT_TAL_CLIPS_ROOT = Path("/orcd/scratch/bcs/001/brukew/sails/tal_windows_4class/canonical_clips")
@@ -282,6 +295,7 @@ def load_tal_split(
     clips_root: Path,
     include_background: bool = True,
     exclude_windows: Optional[set] = None,
+    binary_mode: bool = False,
 ) -> Tuple[List[Dict], List[Tuple[str, Path]]]:
     """
     Load TAL window records from CSV files.
@@ -291,6 +305,7 @@ def load_tal_split(
         clips_root: Root directory containing window clips (flat structure).
         include_background: Whether to include background windows (primary_label=-1).
         exclude_windows: Optional set of window_ids to exclude.
+        binary_mode: If True, use 2-class labels (0=RMM, 1=background) instead of 5-class.
     
     Returns:
         Tuple of (records list, missing clips list).
@@ -299,6 +314,12 @@ def load_tal_split(
     missing: List[Tuple[str, Path]] = []
     excluded_count = 0
     background_excluded = 0
+    
+    # Select label map based on mode
+    if binary_mode:
+        id2label = BINARY_ID2LABEL
+    else:
+        id2label = TAL_ID2LABEL
     
     for csv_path in csv_paths:
         df = pd.read_csv(csv_path)
@@ -311,8 +332,8 @@ def load_tal_split(
             
             primary_label = int(primary_label)
             
-            # Skip background if not included
-            if primary_label == -1 and not include_background:
+            # Skip background if not included (only relevant for non-binary mode)
+            if primary_label == -1 and not include_background and not binary_mode:
                 background_excluded += 1
                 continue
             
@@ -321,11 +342,19 @@ def load_tal_split(
                 excluded_count += 1
                 continue
             
-            # Map primary_label to class index (including -1 -> 4 for background)
-            if primary_label == -1:
-                label_id = 4  # background class
+            # Map primary_label to class index
+            if binary_mode:
+                # Binary mode: 0=RMM (any of 0-3), 1=background (-1)
+                if primary_label == -1:
+                    label_id = 1  # background
+                else:
+                    label_id = 0  # RMM (any type)
             else:
-                label_id = primary_label  # 0-3 for RMM classes
+                # 5-class mode: 0-3 for RMM types, 4 for background
+                if primary_label == -1:
+                    label_id = 4  # background class
+                else:
+                    label_id = primary_label  # 0-3 for RMM classes
             
             # TAL clips are in flat directory: clips_root/{window_id}.mp4
             clip_path = clips_root / f"{window_id}.mp4"
@@ -336,7 +365,7 @@ def load_tal_split(
             rec = {
                 "window_id": window_id,
                 "label_id": label_id,
-                "label_name": TAL_ID2LABEL[label_id],
+                "label_name": id2label[label_id],
                 "clip": clip_path,
                 "video_key": row.get("video_key"),
                 "filename": row.get("filename"),
@@ -364,17 +393,8 @@ def subsample_background(
     seed: int = 42,
 ) -> List[Dict]:
     """
+    (Deprecated: use balance_classes instead)
     Subsample background windows to reduce class imbalance.
-    
-    Args:
-        records: All loaded records.
-        bg_multiplier: Keep this many background windows per RMM window.
-                       E.g., 2.0 means if there are 900 RMM windows, keep 1800 background.
-        bg_label_id: Label ID for background class.
-        seed: Random seed for reproducibility.
-    
-    Returns:
-        Records with subsampled background.
     """
     rmm_records = [r for r in records if r["label_id"] != bg_label_id]
     bg_records = [r for r in records if r["label_id"] == bg_label_id]
@@ -398,6 +418,95 @@ def subsample_background(
     )
     
     return rmm_records + sampled_bg
+
+
+def balance_classes(
+    records: List[Dict],
+    class_probs: List[float],
+    num_classes: int = 5,
+    seed: int = 42,
+) -> List[Dict]:
+    """
+    Balance classes by sampling with specified probabilities.
+    
+    Args:
+        records: All loaded records.
+        class_probs: List of probabilities for each class.
+                     - prob > 1.0: Upsample (duplicate samples to achieve this multiplier)
+                     - prob < 1.0: Downsample (keep this fraction of samples)
+                     - prob = 1.0: Keep all samples
+        num_classes: Number of classes (5 for TAL: 4 RMM + background).
+        seed: Random seed for reproducibility.
+    
+    Returns:
+        Records with balanced classes.
+    
+    Example:
+        class_probs = [1.0, 1.0, 1.93, 9.12, 0.1]
+        - Classes 0, 1: Keep all
+        - Class 2: Upsample ~2x
+        - Class 3: Upsample ~9x
+        - Class 4 (background): Keep only 10%
+    """
+    if len(class_probs) != num_classes:
+        raise ValueError(f"class_probs length ({len(class_probs)}) != num_classes ({num_classes})")
+    
+    rng = random.Random(seed)
+    
+    # Group records by class
+    class_records: Dict[int, List[Dict]] = {i: [] for i in range(num_classes)}
+    for rec in records:
+        label_id = rec["label_id"]
+        if 0 <= label_id < num_classes:
+            class_records[label_id].append(rec)
+    
+    # Log original distribution
+    orig_counts = {i: len(class_records[i]) for i in range(num_classes)}
+    logger.info("Original class distribution: %s", orig_counts)
+    
+    balanced_records: List[Dict] = []
+    
+    for class_id in range(num_classes):
+        prob = class_probs[class_id]
+        recs = class_records[class_id]
+        n_orig = len(recs)
+        
+        if n_orig == 0:
+            continue
+        
+        if prob == 1.0:
+            # Keep all
+            balanced_records.extend(recs)
+        elif prob < 1.0:
+            # Downsample: keep fraction of samples
+            n_keep = max(1, int(n_orig * prob))
+            sampled = rng.sample(recs, min(n_keep, n_orig))
+            balanced_records.extend(sampled)
+            logger.info("  Class %d: downsampled %d -> %d (prob=%.2f)", class_id, n_orig, len(sampled), prob)
+        else:
+            # Upsample: duplicate samples to achieve multiplier
+            n_target = int(n_orig * prob)
+            # Start with all original samples
+            upsampled = recs.copy()
+            # Add duplicates until we reach target
+            while len(upsampled) < n_target:
+                remaining = n_target - len(upsampled)
+                upsampled.extend(rng.choices(recs, k=min(remaining, n_orig)))
+            balanced_records.extend(upsampled)
+            logger.info("  Class %d: upsampled %d -> %d (prob=%.2f)", class_id, n_orig, len(upsampled), prob)
+    
+    # Log final distribution
+    final_counts: Dict[int, int] = {}
+    for rec in balanced_records:
+        label_id = rec["label_id"]
+        final_counts[label_id] = final_counts.get(label_id, 0) + 1
+    logger.info("Balanced class distribution: %s", final_counts)
+    logger.info("Total records: %d -> %d", len(records), len(balanced_records))
+    
+    # Shuffle to mix classes
+    rng.shuffle(balanced_records)
+    
+    return balanced_records
 
 
 def build_video_label_counts(records: Sequence[Dict], key_field: str = "video_key") -> Dict[str, int]:
@@ -697,6 +806,71 @@ def evaluate(loader: DataLoader, model: torch.nn.Module, device: torch.device, c
     return acc, all_preds, all_labels, all_metas, probs_tensor
 
 
+def evaluate_with_loss(
+    loader: DataLoader,
+    model: torch.nn.Module,
+    device: torch.device,
+    class_weights: Optional[torch.Tensor] = None,
+) -> Tuple[float, float]:
+    """
+    Evaluate model and compute both accuracy and loss.
+    
+    Args:
+        loader: DataLoader for validation set.
+        model: Model to evaluate.
+        device: Device to run on.
+        class_weights: Optional class weights for loss computation.
+    
+    Returns:
+        Tuple of (accuracy, average_loss).
+    """
+    model.eval()
+    correct, total = 0, 0
+    total_loss = 0.0
+    num_batches = 0
+    total_batches = len(loader)
+    
+    # #region agent log
+    import json as _json; _log_path = "/orcd/data/satra/001/users/brukew/.cursor/debug.log"
+    with open(_log_path, "a") as _f: _f.write(_json.dumps({"hypothesisId": "A", "location": "evaluate_with_loss:entry", "message": "Starting validation", "data": {"total_batches": total_batches}, "timestamp": int(__import__('time').time()*1000)}) + "\n")
+    # #endregion
+    
+    logger.info("  Starting validation (%d batches)...", total_batches)
+    
+    with torch.no_grad():
+        for batch_idx, (inputs, labels, metas) in enumerate(loader):
+            # #region agent log
+            if batch_idx % 500 == 0:
+                with open(_log_path, "a") as _f: _f.write(_json.dumps({"hypothesisId": "B", "location": "evaluate_with_loss:loop", "message": "Val batch progress", "data": {"batch_idx": batch_idx, "total": total_batches}, "timestamp": int(__import__('time').time()*1000)}) + "\n")
+                logger.info("    Val progress: %d/%d batches", batch_idx, total_batches)
+            # #endregion
+            
+            if inputs is None or labels is None:
+                continue
+            labels = labels.to(device)
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            logits = model(**inputs).logits
+            
+            # Compute loss
+            loss = F.cross_entropy(logits, labels, weight=class_weights)
+            total_loss += loss.item()
+            num_batches += 1
+            
+            # Compute accuracy
+            preds = logits.argmax(-1)
+            correct += (preds == labels).sum().item()
+            total += labels.size(0)
+    
+    acc = correct / max(total, 1)
+    avg_loss = total_loss / max(num_batches, 1)
+    
+    # #region agent log
+    with open(_log_path, "a") as _f: _f.write(_json.dumps({"hypothesisId": "A", "location": "evaluate_with_loss:exit", "message": "Validation complete", "data": {"acc": acc, "avg_loss": avg_loss, "total_samples": total}, "timestamp": int(__import__('time').time()*1000)}) + "\n")
+    # #endregion
+    
+    return acc, avg_loss
+
+
 def evaluate_topk(loader: DataLoader, model: torch.nn.Module, device: torch.device, k: int = 2):
     """Evaluate with top-k accuracy."""
     model.eval()
@@ -752,10 +926,28 @@ def evaluate_topk(loader: DataLoader, model: torch.nn.Module, device: torch.devi
     }
 
 
-def compute_classification_metrics(labels, preds, probs, id2label: Dict[int, str]):
-    """Compute comprehensive classification metrics."""
+def compute_classification_metrics(labels, preds, probs, id2label: Dict[int, str], task: str = "tal"):
+    """
+    Compute comprehensive classification metrics.
+    
+    Args:
+        labels: Ground truth labels.
+        preds: Predicted labels.
+        probs: Prediction probabilities (N x num_classes).
+        id2label: Label ID to name mapping.
+        task: Task type - 'tal' for 5-class TAL (includes RMM vs BG metrics),
+              'rmm' for 4-class RMM classification.
+    
+    Returns:
+        Tuple of (summary_dict, per_class_df, pr_curves_dict).
+    """
+    labels = np.array(labels)
+    preds = np.array(preds)
+    
     class_names = [id2label[i] for i in range(len(id2label))]
     label_ids = list(range(len(id2label)))
+    num_classes = len(id2label)
+    
     report = classification_report(
         labels,
         preds,
@@ -776,14 +968,13 @@ def compute_classification_metrics(labels, preds, probs, id2label: Dict[int, str
     })
 
     # PR curves for top classes by support
-    y_true = np.array(labels)
     pr_curves = {}
     if probs is not None and len(class_names) > 0:
         supports = per_class.set_index("class")["support"]
         top_classes = supports.sort_values(ascending=False).head(min(5, len(class_names))).index.tolist()
         for cls in top_classes:
             cls_id = class_names.index(cls)
-            y_bin = (y_true == cls_id).astype(int)
+            y_bin = (labels == cls_id).astype(int)
             scores = probs[:, cls_id]
             prec, rec, _ = precision_recall_curve(y_bin, scores)
             ap = average_precision_score(y_bin, scores)
@@ -804,65 +995,107 @@ def compute_classification_metrics(labels, preds, probs, id2label: Dict[int, str
         "micro_precision": micro["precision"],
         "micro_recall": micro["recall"],
         "weighted_f1": weighted["f1-score"],
+        "cohens_kappa": cohen_kappa_score(labels, preds),
     }
-    return summary, per_class, pr_curves
-
-
-def aggregate_video_predictions(
-    metas_df: pd.DataFrame, labels: np.ndarray, preds: np.ndarray, probs: Optional[np.ndarray], id2label: Dict[int, str]
-):
-    """Aggregate window-level predictions into video-level predictions."""
-    if metas_df is None or metas_df.empty or "video_key" not in metas_df:
-        logger.warning("No video_key metadata available; skipping video-level aggregation.")
-        return None
-
-    valid = metas_df["video_key"].notna()
-    if not valid.any():
-        logger.warning("video_key missing for all samples; skipping video-level aggregation.")
-        return None
-
-    probs_available = probs is not None and len(probs) == len(labels)
-    rows = []
-    for vid, grp in metas_df[valid].reset_index().groupby("video_key"):
-        clip_indices = grp["index"].to_numpy()
-        label_ids = labels[clip_indices]
-        pred_ids = preds[clip_indices]
-
-        true_label = Counter(label_ids).most_common(1)[0][0]
-        if probs_available:
-            mean_probs = probs[clip_indices].mean(axis=0)
-            pred_label = int(np.argmax(mean_probs))
-            pred_conf = float(mean_probs.max())
+    
+    # Per-class precision and recall (skip background for TAL)
+    for i, name in enumerate(class_names):
+        if task == "tal" and "background" in name.lower():
+            continue
+        # Create sanitized key name
+        key_name = name.replace(" ", "_").replace("-", "_")
+        summary[f"prec_{key_name}"] = prec_rec_f1[0][i]
+        summary[f"rec_{key_name}"] = prec_rec_f1[1][i]
+        summary[f"f1_{key_name}"] = prec_rec_f1[2][i]
+    
+    # ========== RMM vs Background Binary Metrics ==========
+    # For 5-class TAL: compute derived binary metrics from multi-class predictions
+    # For 2-class binary mode: these are the primary metrics (computed directly from predictions)
+    if task == "tal":
+        if num_classes == 5:
+            # 5-class TAL: Derive binary metrics from multi-class predictions
+            BACKGROUND_CLASS = 4
+            RMM_CLASS = None  # Not used in 5-class mode
+            
+            # Binary labels: 1 = RMM (any of classes 0-3), 0 = Background (class 4)
+            y_true_binary = (labels != BACKGROUND_CLASS).astype(int)
+            y_pred_binary = (preds != BACKGROUND_CLASS).astype(int)
+            
+            # Binary scores: sum of RMM class probabilities
+            if probs is not None and probs.shape[1] > BACKGROUND_CLASS:
+                rmm_scores = probs[:, :BACKGROUND_CLASS].sum(axis=1)  # Sum classes 0-3
+            else:
+                rmm_scores = None
+        elif num_classes == 2:
+            # Binary mode: class 0 = RMM, class 1 = background
+            RMM_CLASS = 0
+            BACKGROUND_CLASS = 1
+            
+            # Binary labels: 1 = RMM (class 0), 0 = Background (class 1)
+            y_true_binary = (labels == RMM_CLASS).astype(int)
+            y_pred_binary = (preds == RMM_CLASS).astype(int)
+            
+            # Binary scores: probability of RMM class
+            if probs is not None and probs.shape[1] >= 2:
+                rmm_scores = probs[:, RMM_CLASS]
+            else:
+                rmm_scores = None
         else:
-            pred_label = Counter(pred_ids).most_common(1)[0][0]
-            pred_conf = None
-            mean_probs = None
-
-        rows.append({
-            "video_key": vid,
-            "true_id": int(true_label),
-            "pred_id": int(pred_label),
-            "true_name": id2label[int(true_label)],
-            "pred_name": id2label[int(pred_label)],
-            "n_windows": len(grp),
-            "pred_conf": pred_conf,
-            "mean_probs": mean_probs,
-        })
-
-    if not rows:
-        return None
-
-    video_df = pd.DataFrame(rows)
-    probs_video = None
-    if probs_available:
-        probs_video = np.stack(video_df["mean_probs"].to_numpy(), axis=0)
-
-    return {
-        "df": video_df,
-        "labels": video_df["true_id"].to_numpy(),
-        "preds": video_df["pred_id"].to_numpy(),
-        "probs": probs_video,
-    }
+            # 4-class RMM only - no binary metrics needed
+            y_true_binary = None
+            y_pred_binary = None
+            rmm_scores = None
+        
+        if y_true_binary is not None:
+            # Binary classification metrics
+            summary["rmm_vs_bg_accuracy"] = accuracy_score(y_true_binary, y_pred_binary)
+            summary["rmm_vs_bg_f1"] = f1_score(y_true_binary, y_pred_binary, pos_label=1, zero_division=0)
+            summary["rmm_vs_bg_precision"] = precision_score(y_true_binary, y_pred_binary, pos_label=1, zero_division=0)
+            summary["rmm_vs_bg_recall"] = recall_score(y_true_binary, y_pred_binary, pos_label=1, zero_division=0)
+            
+            # AUC-ROC for RMM detection
+            if rmm_scores is not None:
+                try:
+                    if len(np.unique(y_true_binary)) > 1:
+                        summary["rmm_vs_bg_auc"] = roc_auc_score(y_true_binary, rmm_scores)
+                    else:
+                        summary["rmm_vs_bg_auc"] = 0.0
+                except Exception:
+                    summary["rmm_vs_bg_auc"] = 0.0
+            else:
+                summary["rmm_vs_bg_auc"] = 0.0
+            
+            # Error rates
+            # False alarm: Background predicted as RMM
+            bg_mask = y_true_binary == 0
+            if bg_mask.sum() > 0:
+                summary["bg_false_alarm_rate"] = (y_pred_binary[bg_mask] == 1).mean()
+            else:
+                summary["bg_false_alarm_rate"] = 0.0
+            
+            # Miss rate: RMM predicted as Background
+            rmm_mask = y_true_binary == 1
+            if rmm_mask.sum() > 0:
+                summary["rmm_miss_rate"] = (y_pred_binary[rmm_mask] == 0).mean()
+            else:
+                summary["rmm_miss_rate"] = 0.0
+        
+        # RMM-only metrics (excluding background) - only for 5-class TAL
+        if num_classes == 5:
+            rmm_indices = list(range(4))  # Classes 0-3 (RMM types)
+            rmm_mask_multiclass = np.isin(labels, rmm_indices)
+            if rmm_mask_multiclass.sum() > 0:
+                y_true_rmm = labels[rmm_mask_multiclass]
+                y_pred_rmm = preds[rmm_mask_multiclass]
+                summary["rmm_only_macro_f1"] = f1_score(y_true_rmm, y_pred_rmm, average='macro', zero_division=0)
+                summary["rmm_only_macro_precision"] = precision_score(y_true_rmm, y_pred_rmm, average='macro', zero_division=0)
+                summary["rmm_only_macro_recall"] = recall_score(y_true_rmm, y_pred_rmm, average='macro', zero_division=0)
+            else:
+                summary["rmm_only_macro_f1"] = 0.0
+                summary["rmm_only_macro_precision"] = 0.0
+                summary["rmm_only_macro_recall"] = 0.0
+    
+    return summary, per_class, pr_curves
 
 
 def save_confusion_matrix(
@@ -974,18 +1207,39 @@ def parse_args() -> argparse.Namespace:
         help="Split mode: 'cv' for cross-validation folds, 'single' for train/val/test split.",
     )
     
-    # Background class
+    # Classification mode
     parser.add_argument(
         "--no-background",
         action="store_true",
         help="Exclude background windows (train on 4 RMM classes only).",
     )
     parser.add_argument(
+        "--binary-classification",
+        action="store_true",
+        help="Use 2-class binary mode (RMM vs Background) instead of 5-class. "
+             "Combines all RMM classes (0-3) into class 0, background becomes class 1.",
+    )
+    parser.add_argument(
         "--bg-subsample",
         type=float,
         default=None,
-        help="Subsample background windows to this multiple of total RMM count (e.g., 2.0 = keep 2x RMM count). "
-             "If None, keep all background windows.",
+        help="(Deprecated: use --class-prob instead) Subsample background windows to this multiple of total RMM count.",
+    )
+    parser.add_argument(
+        "--class-prob",
+        type=str,
+        default=None,
+        help="Class sampling probabilities as JSON list, e.g., '[1.0,1.0,1.93,9.12,0.1]'. "
+             "prob > 1.0: upsample (duplicate), prob < 1.0: downsample, prob = 1.0: keep all. "
+             "Overrides --bg-subsample if provided.",
+    )
+    
+    # Early stopping
+    parser.add_argument(
+        "--early-stopping-patience",
+        type=int,
+        default=5,
+        help="Stop training if validation loss doesn't improve for N epochs (0 to disable).",
     )
     
     # Model
@@ -1095,17 +1349,29 @@ def main() -> None:
         logger.warning('wandb not installed; set --wandb-mode disabled or install wandb to log runs.')
 
     include_background = not args.no_background
-    num_classes = 5 if include_background else 4
+    binary_mode = args.binary_classification
     
-    # Build label mappings based on whether background is included
-    if include_background:
+    # Build label mappings based on classification mode
+    if binary_mode:
+        # Binary classification: RMM vs Background
+        num_classes = 2
+        id2label = BINARY_ID2LABEL.copy()
+        label2id = BINARY_LABEL2ID.copy()
+        # Binary mode always includes background (it's one of the two classes)
+        include_background = True
+        logger.info("Binary classification mode: 2 classes (RMM vs Background)")
+    elif include_background:
+        # 5-class: 4 RMM types + background
+        num_classes = 5
         id2label = TAL_ID2LABEL.copy()
         label2id = TAL_LABEL2ID.copy()
     else:
+        # 4-class: RMM types only (no background)
+        num_classes = 4
         id2label = {i: TAL_ID2LABEL[i] for i in range(4)}
         label2id = {v: k for k, v in id2label.items()}
     
-    logger.info("TAL mode: %d classes | background=%s", num_classes, include_background)
+    logger.info("TAL mode: %d classes | background=%s | binary=%s", num_classes, include_background, binary_mode)
     logger.info("Labels: %s", id2label)
 
     # Cropping config
@@ -1156,6 +1422,7 @@ def main() -> None:
         train_csvs + val_csvs,
         args.clips_root,
         include_background=include_background,
+        binary_mode=binary_mode,
     )
     video_label_counts = build_video_label_counts(all_records, key_field="video_key")
     logger.info("Total records: %d | Unique videos: %d", len(all_records), len(video_label_counts))
@@ -1202,19 +1469,38 @@ def main() -> None:
 
         # Load train/val records
         train_records, miss_train = load_tal_split(
-            [train_csv], args.clips_root, include_background=include_background
+            [train_csv], args.clips_root, include_background=include_background,
+            binary_mode=binary_mode
         )
         val_records, miss_val = load_tal_split(
-            [val_csv], args.clips_root, include_background=include_background
+            [val_csv], args.clips_root, include_background=include_background,
+            binary_mode=binary_mode
         )
         
-        # Subsample background if requested (training only)
-        if args.bg_subsample is not None and include_background:
+        # Class balancing (training only)
+        if args.class_prob is not None:
+            # Parse class_prob JSON string
+            import json as json_module
+            try:
+                class_probs = json_module.loads(args.class_prob)
+                if not isinstance(class_probs, list) or len(class_probs) != num_classes:
+                    raise ValueError(f"class_prob must be a list of {num_classes} floats (got {len(class_probs)})")
+                train_records = balance_classes(
+                    train_records,
+                    class_probs,
+                    num_classes=num_classes,
+                    seed=42 + fold_idx,
+                )
+            except json_module.JSONDecodeError as e:
+                logger.error("Failed to parse --class-prob: %s", e)
+                raise
+        elif args.bg_subsample is not None and include_background and not binary_mode:
+            # Legacy: subsample background only (5-class mode)
             train_records = subsample_background(
                 train_records,
                 args.bg_subsample,
                 bg_label_id=4,
-                seed=42 + fold_idx,  # different seed per fold for variety
+                seed=42 + fold_idx,
             )
         
         logger.info("Train: %d windows | Val: %d windows", len(train_records), len(val_records))
@@ -1323,10 +1609,19 @@ def main() -> None:
             },
         )
 
-        # Training loop
+        # Training loop with early stopping
         if reuse_existing:
             logger.info("Skipping training (reuse-checkpoints).")
         else:
+            # Early stopping tracking
+            best_val_loss = float('inf')
+            epochs_without_improvement = 0
+            best_epoch = 0
+            early_stopping_enabled = args.early_stopping_patience > 0
+            
+            if early_stopping_enabled:
+                logger.info("Early stopping enabled: patience=%d epochs (monitoring val_loss)", args.early_stopping_patience)
+            
             for epoch in range(1, args.num_epochs + 1):
                 model.train()
                 optimizer.zero_grad()
@@ -1358,14 +1653,39 @@ def main() -> None:
                     optimizer.step()
                     optimizer.zero_grad()
 
-                val_acc, _, _, _, _ = evaluate(val_loader, model, device)
-                wb_logger.log({"val/acc": val_acc, "epoch": epoch})
-                logger.info("  Epoch %d complete | val_acc=%.3f", epoch, val_acc)
+                # Validation with loss for early stopping
+                val_acc, val_loss = evaluate_with_loss(val_loader, model, device, class_weights)
+                wb_logger.log({"val/acc": val_acc, "val/loss": val_loss, "epoch": epoch})
+                logger.info("  Epoch %d complete | val_acc=%.3f | val_loss=%.4f", epoch, val_acc, val_loss)
 
-            # Save checkpoint
-            model.save_pretrained(fold_out)
-            fold_processor.save_pretrained(fold_out)
-            logger.info("Saved model + processor to %s", fold_out)
+                # Early stopping check
+                if early_stopping_enabled:
+                    if val_loss < best_val_loss:
+                        best_val_loss = val_loss
+                        best_epoch = epoch
+                        epochs_without_improvement = 0
+                        # Save best checkpoint
+                        model.save_pretrained(fold_out)
+                        fold_processor.save_pretrained(fold_out)
+                        logger.info("  New best model saved (val_loss=%.4f)", val_loss)
+                    else:
+                        epochs_without_improvement += 1
+                        logger.info("  No improvement for %d epoch(s) (best=%.4f at epoch %d)",
+                                   epochs_without_improvement, best_val_loss, best_epoch)
+                        if epochs_without_improvement >= args.early_stopping_patience:
+                            logger.info("Early stopping triggered after %d epochs", epoch)
+                            break
+
+            # Save final checkpoint (if early stopping not enabled or didn't trigger)
+            if not early_stopping_enabled:
+                model.save_pretrained(fold_out)
+                fold_processor.save_pretrained(fold_out)
+                logger.info("Saved model + processor to %s", fold_out)
+            elif epochs_without_improvement < args.early_stopping_patience:
+                # Training completed without early stopping - save final model
+                model.save_pretrained(fold_out)
+                fold_processor.save_pretrained(fold_out)
+                logger.info("Saved final model + processor to %s", fold_out)
 
         # Full evaluation with top-k and metrics
         topk_metrics = evaluate_topk(val_loader, model, device, k=args.topk)
@@ -1376,17 +1696,20 @@ def main() -> None:
         )
         metas_df = aggregate_preds(labels_arr, preds_arr, probs_arr, topk_metrics["metas"], id2label)
         
-        # Save predictions
-        window_preds_path = fold_out / "window_level_preds.csv"
-        metas_df.to_csv(window_preds_path, index=False)
-        logger.info("Saved window-level predictions to %s", window_preds_path)
+        # Save predictions (clip-level)
+        clip_preds_path = fold_out / "predictions_clip.csv"
+        metas_df.to_csv(clip_preds_path, index=False)
+        logger.info("Saved clip-level predictions to %s", clip_preds_path)
+        
+        # Determine task type
+        task_type = "tal" if include_background else "rmm"
 
         summary_metrics, per_class_df, pr_curves = compute_classification_metrics(
-            labels_arr, preds_arr, probs_arr, id2label
+            labels_arr, preds_arr, probs_arr, id2label, task=task_type
         )
 
         # Save confusion matrix
-        conf_path = fold_out / "confusion_matrix_window.png"
+        conf_path = fold_out / "confusion_matrix_clip.png"
         save_confusion_matrix(
             labels_arr,
             preds_arr,
@@ -1396,42 +1719,9 @@ def main() -> None:
             normalize="true",
         )
 
-        # Video-level aggregation
-        video_metrics = aggregate_video_predictions(metas_df, labels_arr, preds_arr, probs_arr, id2label)
-        video_summary = None
-        video_per_class_df = None
-        video_acc = None
-        video_kappa = None
-        if video_metrics:
-            video_labels = video_metrics["labels"]
-            video_preds = video_metrics["preds"]
-            video_probs = video_metrics["probs"]
-            video_summary, video_per_class_df, _ = compute_classification_metrics(
-                video_labels, video_preds, video_probs, id2label
-            )
-            video_acc = float((video_labels == video_preds).mean()) if len(video_labels) else 0.0
-            video_kappa = float(cohen_kappa_score(video_labels, video_preds)) if len(video_labels) else float("nan")
-
-            video_conf_path = fold_out / "confusion_matrix_video.png"
-            save_confusion_matrix(
-                video_labels,
-                video_preds,
-                list(id2label.keys()),
-                list(id2label.values()),
-                video_conf_path,
-                normalize="true",
-            )
-
-            video_pred_path = fold_out / "video_level_preds.csv"
-            video_metrics["df"].to_csv(video_pred_path, index=False)
-            logger.info("Saved video-level predictions to %s", video_pred_path)
-
-        # Persist per-class tables
-        per_class_path = fold_out / "per_class_window.csv"
+        # Persist per-class table
+        per_class_path = fold_out / "per_class_clip.csv"
         per_class_df.to_csv(per_class_path, index=False)
-        if video_per_class_df is not None:
-            video_per_class_path = fold_out / "per_class_video.csv"
-            video_per_class_df.to_csv(video_per_class_path, index=False)
 
         # Subset metrics
         masks = {
@@ -1452,41 +1742,75 @@ def main() -> None:
             if res:
                 subset_metrics[name] = res
 
-        fold_results.append({
+        # Build fold results with clip_ prefix and percentages (like pyskl)
+        fold_result = {
             "fold": fold_idx if args.split_mode == "cv" else -1,
             "train_csv": train_csv.name,
             "val_csv": val_csv.name,
-            "top1_acc": topk_metrics["top1_acc"],
-            "topk_acc": topk_metrics[f"top{args.topk}_acc"],
-            "improvement": topk_metrics["improvement"],
-            **summary_metrics,
-            "per_class": per_class_df,
-            "pr_curves": pr_curves,
-            "subset_metrics": subset_metrics,
-            "video_acc": video_acc,
-            "video_macro_f1": video_summary["macro_f1"] if video_summary else None,
-            "video_kappa": video_kappa,
-            "video_per_class": video_per_class_df,
-            "metas": metas_df,
-        })
+            "split": "val",
+            "task": task_type,
+            "clip_top1_acc": topk_metrics["top1_acc"] * 100,
+            "clip_top2_acc": topk_metrics[f"top{args.topk}_acc"] * 100,
+            "clip_macro_f1": summary_metrics["macro_f1"] * 100,
+            "clip_weighted_f1": summary_metrics["weighted_f1"] * 100,
+            "clip_macro_precision": summary_metrics["macro_precision"] * 100,
+            "clip_macro_recall": summary_metrics["macro_recall"] * 100,
+            "clip_cohens_kappa": summary_metrics["cohens_kappa"],
+        }
+        
+        # Add TAL-specific RMM vs BG metrics
+        if task_type == "tal":
+            fold_result.update({
+                "clip_rmm_vs_bg_accuracy": summary_metrics.get("rmm_vs_bg_accuracy", 0) * 100,
+                "clip_rmm_vs_bg_f1": summary_metrics.get("rmm_vs_bg_f1", 0) * 100,
+                "clip_rmm_vs_bg_precision": summary_metrics.get("rmm_vs_bg_precision", 0) * 100,
+                "clip_rmm_vs_bg_recall": summary_metrics.get("rmm_vs_bg_recall", 0) * 100,
+                "clip_rmm_vs_bg_auc": summary_metrics.get("rmm_vs_bg_auc", 0) * 100,
+                "clip_bg_false_alarm_rate": summary_metrics.get("bg_false_alarm_rate", 0) * 100,
+                "clip_rmm_miss_rate": summary_metrics.get("rmm_miss_rate", 0) * 100,
+                "clip_rmm_only_macro_f1": summary_metrics.get("rmm_only_macro_f1", 0) * 100,
+                "clip_rmm_only_macro_precision": summary_metrics.get("rmm_only_macro_precision", 0) * 100,
+                "clip_rmm_only_macro_recall": summary_metrics.get("rmm_only_macro_recall", 0) * 100,
+            })
+        
+        # Add per-class metrics
+        for key, val in summary_metrics.items():
+            if key.startswith(("prec_", "rec_", "f1_")):
+                fold_result[f"clip_{key}"] = val * 100
+        
+        fold_result["per_class"] = per_class_df
+        fold_result["pr_curves"] = pr_curves
+        fold_result["subset_metrics"] = subset_metrics
+        fold_result["metas"] = metas_df
+        
+        fold_results.append(fold_result)
+        
+        # Save metrics.json (pyskl-compatible format)
+        metrics_json_path = fold_out / "metrics.json"
+        metrics_to_save = {k: v for k, v in fold_result.items() 
+                         if k not in ("per_class", "pr_curves", "subset_metrics", "metas")}
+        with open(metrics_json_path, "w") as f:
+            json.dump(metrics_to_save, f, indent=2)
+        logger.info("Saved metrics to %s", metrics_json_path)
 
         # Log to W&B
-        wb_logger.log({
-            "eval/top1_acc": topk_metrics["top1_acc"],
-            f"eval/top{args.topk}_acc": topk_metrics[f"top{args.topk}_acc"],
-            "eval/topk_improvement": topk_metrics["improvement"],
-            "eval/macro_f1": summary_metrics["macro_f1"],
-            "eval/micro_f1": summary_metrics["micro_f1"],
-            "eval/weighted_f1": summary_metrics["weighted_f1"],
-        })
-        wb_logger.log_table("eval/per_class", per_class_df)
-        if video_summary and video_per_class_df is not None:
-            wb_logger.log({
-                "eval/video_acc": video_acc,
-                "eval/video_macro_f1": video_summary["macro_f1"],
-                "eval/video_kappa": video_kappa,
+        wb_log_data = {
+            "eval/clip_top1_acc": fold_result["clip_top1_acc"],
+            "eval/clip_top2_acc": fold_result["clip_top2_acc"],
+            "eval/clip_macro_f1": fold_result["clip_macro_f1"],
+            "eval/clip_macro_precision": fold_result["clip_macro_precision"],
+            "eval/clip_macro_recall": fold_result["clip_macro_recall"],
+            "eval/clip_weighted_f1": fold_result["clip_weighted_f1"],
+        }
+        if task_type == "tal":
+            wb_log_data.update({
+                "eval/clip_rmm_vs_bg_f1": fold_result["clip_rmm_vs_bg_f1"],
+                "eval/clip_rmm_vs_bg_auc": fold_result["clip_rmm_vs_bg_auc"],
+                "eval/clip_rmm_only_macro_f1": fold_result["clip_rmm_only_macro_f1"],
             })
-            wb_logger.log_table("eval/per_class_video", video_per_class_df)
+        wb_logger.log(wb_log_data)
+        wb_logger.log_table("eval/per_class", per_class_df)
+        
         if subset_metrics:
             subset_rows = []
             for name, metrics in subset_metrics.items():
@@ -1496,37 +1820,34 @@ def main() -> None:
             wb_logger.log_table("eval/subsets", pd.DataFrame(subset_rows))
         wb_logger.finish()
 
+        # Log summary
         logger.info(
-            "Results | top1=%.3f | top%d=%.3f | macro F1=%.3f",
-            topk_metrics["top1_acc"],
+            "Results | top1=%.2f%% | top%d=%.2f%% | macro_f1=%.2f%%",
+            fold_result["clip_top1_acc"],
             args.topk,
-            topk_metrics[f"top{args.topk}_acc"],
-            summary_metrics["macro_f1"],
+            fold_result["clip_top2_acc"],
+            fold_result["clip_macro_f1"],
         )
-        if video_summary:
+        if task_type == "tal":
             logger.info(
-                "Video-level | acc=%.3f | macro F1=%.3f | kappa=%.3f",
-                video_acc,
-                video_summary["macro_f1"],
-                video_kappa,
+                "RMM vs BG | f1=%.2f%% | auc=%.2f%% | rmm_only_f1=%.2f%%",
+                fold_result["clip_rmm_vs_bg_f1"],
+                fold_result["clip_rmm_vs_bg_auc"],
+                fold_result["clip_rmm_only_macro_f1"],
             )
 
     # Aggregate cross-fold results (CV mode only)
     if args.split_mode == "cv" and len(fold_results) > 1:
-        summary_rows = [
-            {
-                "fold": fr["fold"],
-                "top1_acc": fr["top1_acc"],
-                f"top{args.topk}_acc": fr["topk_acc"],
-                "macro_f1": fr["macro_f1"],
-                "micro_f1": fr["micro_f1"],
-                "weighted_f1": fr["weighted_f1"],
-                "video_acc": fr.get("video_acc"),
-                "video_macro_f1": fr.get("video_macro_f1"),
-                "video_kappa": fr.get("video_kappa"),
-            }
-            for fr in fold_results
-        ]
+        # Extract numeric metrics for summary
+        metric_keys = [k for k in fold_results[0].keys() 
+                      if k not in ("per_class", "pr_curves", "subset_metrics", "metas", 
+                                   "train_csv", "val_csv", "split", "task")]
+        
+        summary_rows = []
+        for fr in fold_results:
+            row = {k: fr.get(k) for k in metric_keys if k in fr}
+            summary_rows.append(row)
+        
         summary_df = pd.DataFrame(summary_rows)
         logger.info("Cross-fold summary:\n%s", summary_df)
         logger.info("Averages:\n%s", summary_df.mean(numeric_only=True))
@@ -1535,9 +1856,41 @@ def main() -> None:
         summary_df.to_csv(summary_path, index=False)
         logger.info("Saved cross-fold summary to %s", summary_path)
 
+        # Create comprehensive JSON summary with mean/std
+        json_summary = {
+            "model": "V-JEPA2",
+            "task": "tal" if include_background else "rmm",
+            "per_fold": summary_rows,
+        }
+        
+        # Compute mean/std for numeric metrics
+        numeric_keys = [k for k in summary_rows[0].keys() if k != "fold" and isinstance(summary_rows[0].get(k), (int, float))]
+        for key in numeric_keys:
+            vals = [fr[key] for fr in summary_rows if key in fr and fr[key] is not None]
+            if vals:
+                json_summary[f"{key}_mean"] = float(np.mean(vals))
+                json_summary[f"{key}_std"] = float(np.std(vals))
+        
         json_path = args.output_root / "cv_summary.json"
-        json_path.write_text(json.dumps(summary_rows, indent=2))
+        json_path.write_text(json.dumps(json_summary, indent=2))
         logger.info("Saved cross-fold summary JSON to %s", json_path)
+        
+        # Print key metrics
+        logger.info("=" * 60)
+        logger.info("CV Summary:")
+        logger.info("  Clip Top-1: %.2f ± %.2f%%", 
+                   json_summary.get("clip_top1_acc_mean", 0), 
+                   json_summary.get("clip_top1_acc_std", 0))
+        logger.info("  Macro-F1: %.2f ± %.2f%%", 
+                   json_summary.get("clip_macro_f1_mean", 0), 
+                   json_summary.get("clip_macro_f1_std", 0))
+        if include_background:
+            logger.info("  RMM vs BG F1: %.2f ± %.2f%%", 
+                       json_summary.get("clip_rmm_vs_bg_f1_mean", 0), 
+                       json_summary.get("clip_rmm_vs_bg_f1_std", 0))
+            logger.info("  RMM-Only Macro-F1: %.2f ± %.2f%%", 
+                       json_summary.get("clip_rmm_only_macro_f1_mean", 0), 
+                       json_summary.get("clip_rmm_only_macro_f1_std", 0))
 
 
 if __name__ == "__main__":

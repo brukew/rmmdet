@@ -105,14 +105,20 @@ optimizer = dict(type='SGD', lr=0.00125, momentum=0.9, weight_decay=0.0003)
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 
 # Learning rate schedule - step decay for finetuning
-lr_config = dict(policy='step', step=[12, 16])
+lr_config = dict(policy='step', step=[16, 20])
 
 # Training settings
-total_epochs = 20  # More epochs for TAL with subsampling
+total_epochs = 24  # More epochs since early stopping will cut short if needed
 checkpoint_config = dict(interval=1)
 evaluation = dict(interval=1, metrics=['top_k_accuracy', 'mean_class_accuracy'], topk=(1, 2))
 log_config = dict(interval=20, hooks=[dict(type='TextLoggerHook')])
 log_level = 'INFO'
+
+# Early stopping configuration
+early_stopping = dict(
+    patience=5,  # Stop if no improvement for 5 epochs
+    monitor='top1_acc',
+    min_delta=0.0)
 
 # Output directory (override via --work-dir)
 work_dir = './work_dirs/posec3d/tal/cv_4class_5class_bgsub'

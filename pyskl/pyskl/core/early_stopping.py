@@ -84,7 +84,7 @@ class EarlyStoppingHook(Hook):
 
     def after_train_epoch(self, runner):
         """Check if validation metric improved after each training epoch.
-        
+
         This runs AFTER EvalHook.after_train_epoch(), which stores validation
         metrics in runner.log_buffer.output. We check for metrics here because
         that's when they're available.

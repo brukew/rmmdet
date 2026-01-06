@@ -1,21 +1,29 @@
 #!/bin/bash
-#SBATCH --job-name=posec3d_tal_focal
+#SBATCH --job-name=posec3d_tal_ce_bal
 #SBATCH --partition=pi_satra
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=24:00:00
-#SBATCH --output=/orcd/data/satra/001/users/brukew/pyskl_logs/posec3d/tal/posec3d_tal_5class_cv_focal_%j.out
-#SBATCH --error=/orcd/data/satra/001/users/brukew/pyskl_logs/posec3d/tal/posec3d_tal_5class_cv_focal_%j.err
+#SBATCH --output=/orcd/data/satra/001/users/brukew/pyskl_logs/posec3d/tal/posec3d_tal_5class_cv_ce_balanced_%j.out
+#SBATCH --error=/orcd/data/satra/001/users/brukew/pyskl_logs/posec3d/tal/posec3d_tal_5class_cv_ce_balanced_%j.err
 
 # ============================================================================
-# PoseC3D TAL Training: 5-class CV with Focal Loss + Early Stopping
+# PoseC3D TAL Training: 5-class CV with CE Loss + Balanced Classes
 # 
 # Features:
-#   - Focal loss (gamma=2) for hard example mining
-#   - Inverse-frequency class weights (computed automatically)
-#   - Background subsampling (20%) to reduce class imbalance
-#   - Early stopping (patience=3) to prevent overfitting
+#   - Cross-Entropy loss (not Focal)
+#   - Inverse-frequency class weights
+#   - Background subsampling (10%) - more aggressive
+#   - Upsampling rocking (1.93x) and spinning (9.12x) to match jumping
+#   - Early stopping (patience=5) - more patient than default
+#
+# Class distribution after balancing:
+#   hands_flapping: 500 -> 500 (1.0x)
+#   jumping: 237 -> 237 (1.0x) - reference
+#   rocking: 123 -> ~237 (1.93x) - upsample
+#   spinning: 26 -> ~237 (9.12x) - upsample
+#   background: 7373 -> ~737 (0.1x) - downsample
 #
 # Runs on all 3 folds.
 # ============================================================================
@@ -23,7 +31,7 @@
 set -eo pipefail
 
 echo "=========================================="
-echo "PoseC3D TAL Training: 5-class CV with Focal Loss"
+echo "PoseC3D TAL Training: 5-class CV with CE + Balanced Classes"
 echo "Job ID: $SLURM_JOB_ID"
 echo "Node: $SLURM_NODELIST"
 echo "Started: $(date)"
@@ -45,21 +53,28 @@ conda activate pyskl
 cd /orcd/data/satra/001/users/brukew/actreg/pyskl
 
 # Configuration
-CONFIG="configs/posec3d/slowonly_r50_sails_k400p/joint_tal_5class_focal.py"
+CONFIG="configs/posec3d/slowonly_r50_sails_k400p/joint_tal_5class.py"
 BASE_ANN_DIR="data/sails/tal/cv_4class/5class_windows_conf04"
-BASE_WORK_DIR="work_dirs/posec3d/tal/cv_4class_5class_focal"
+BASE_WORK_DIR="work_dirs/posec3d/tal/cv_4class_5class_ce_balanced"
 EPOCHS=24
 LR=0.00125
-BG_SUBSAMPLE=0.2
+
+# Class balancing via class_prob:
+# [hands_flapping, jumping, rocking, spinning, background]
+# Target: match jumping (237 samples)
+# rocking: 237/123 = 1.93
+# spinning: 237/26 = 9.12
+# background: 0.1 (10% subsample)
+CLASS_PROB="[1.0,1.0,1.93,9.12,0.1]"
 
 echo ""
 echo "Config: $CONFIG"
 echo "Annotation dir: $BASE_ANN_DIR"
 echo "Work dir: $BASE_WORK_DIR"
-echo "Epochs: $EPOCHS (with early stopping patience=3)"
+echo "Epochs: $EPOCHS (with early stopping patience=5)"
 echo "Learning rate: $LR"
-echo "Background subsample: $BG_SUBSAMPLE"
-echo "Loss: Focal Loss (gamma=2) + inverse class weights"
+echo "Class prob: $CLASS_PROB"
+echo "Loss: Cross-Entropy + inverse class weights"
 echo ""
 
 # Process all 3 folds
@@ -80,14 +95,14 @@ for FOLD in 0 1 2; do
         continue
     fi
     
-    # Train with focal loss, class weights, and background subsampling
-    # train_weighted.py computes inverse-frequency weights and injects them
+    # Train with CE loss, class weights, and balanced sampling
+    # Use --class-prob for upsampling minority classes and downsampling background
     python tools/train_weighted.py $CONFIG \
         --ann-file $ANN_FILE \
         --work-dir $WORK_DIR \
         --total-epochs $EPOCHS \
         --lr $LR \
-        --bg-subsample $BG_SUBSAMPLE \
+        --class-prob "$CLASS_PROB" \
         --validate \
         --launcher none
     
@@ -116,8 +131,8 @@ python tools/summarize_cv_results.py \
     --work-dir $BASE_WORK_DIR \
     --model posec3d \
     --task tal \
-    --loss focal \
-    --metadata "bg_subsample=$BG_SUBSAMPLE" "patience=3"
+    --loss ce \
+    --metadata "class_prob=$CLASS_PROB" "patience=5"
 
 echo ""
 echo "=========================================="

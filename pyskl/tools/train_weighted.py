@@ -113,9 +113,16 @@ def parse_args():
     parser.add_argument('--bg-subsample', type=float, default=None,
                         help='Subsample background class to this fraction (e.g., 0.2 = keep 20%% of background). '
                              'Assumes last class is background. Uses class_prob for sampling.')
+    parser.add_argument('--class-prob', type=str, default=None,
+                        help='Class probability list for sampling. Format: "[1.0,1.0,1.93,9.12,0.1]". '
+                             'Values >1 upsample, <1 downsample. Overrides --bg-subsample.')
     parser.add_argument('--seed', type=int, default=None, help='random seed')
     parser.add_argument('--deterministic', action='store_true', help='deterministic mode')
     parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument(
+        '--cfg-options',
+        nargs='+',
+        help='Override config options. Format: key=value key2=value2 ...')
     args = parser.parse_args()
     
     if 'LOCAL_RANK' not in os.environ:
@@ -140,6 +147,21 @@ def main():
     # Load config
     cfg = Config.fromfile(args.config)
     
+    # Apply cfg-options overrides early
+    if args.cfg_options:
+        from mmcv import DictAction
+        cfg_options = {}
+        for opt in args.cfg_options:
+            key, val = opt.split('=', 1)
+            # Try to parse value as Python literal
+            try:
+                import ast
+                val = ast.literal_eval(val)
+            except (ValueError, SyntaxError):
+                pass  # Keep as string
+            cfg_options[key] = val
+        cfg.merge_from_dict(cfg_options)
+    
     # Override ann_file paths
     cfg.data.train.dataset.ann_file = args.ann_file
     cfg.data.val.ann_file = args.ann_file
@@ -157,14 +179,23 @@ def main():
         cfg.model.cls_head.loss_cls = dict(type='CrossEntropyLoss', loss_weight=1.0)
     cfg.model.cls_head.loss_cls['class_weight'] = class_weights
     
-    # Handle background subsampling via class_prob
-    if args.bg_subsample is not None:
+    # Handle class probability for sampling (upsampling/downsampling)
+    class_prob = None
+    
+    # Option 1: Full class_prob list via --class-prob
+    if args.class_prob is not None:
+        import ast
+        class_prob = ast.literal_eval(args.class_prob)
+        print(f"Class prob (custom): {class_prob}")
+    # Option 2: Simple background subsampling via --bg-subsample
+    elif args.bg_subsample is not None:
         num_classes = len(class_weights)
         # class_prob: keep all RMM classes (1.0), subsample background (last class)
         class_prob = [1.0] * (num_classes - 1) + [args.bg_subsample]
         print(f"Background subsampling: class_prob = {class_prob}")
-        
-        # Inject class_prob into the inner dataset (inside RepeatDataset)
+    
+    # Inject class_prob into the inner dataset (inside RepeatDataset)
+    if class_prob is not None:
         if cfg.data.train.type == 'RepeatDataset':
             cfg.data.train.dataset.class_prob = class_prob
         else:

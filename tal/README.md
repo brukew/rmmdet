@@ -9,7 +9,7 @@ The evaluation pipeline:
 2. **Postprocesses** into predicted segments (threshold, smooth, merge)
 3. **Evaluates** against GT segments using **mAP@tIoU {0.3, 0.5, 0.7}**
 
-Supports: **V-JEPA**, **PoseC3D**, **ST-GCN/STGCN++**
+Supports: **V-JEPA**, **PoseC3D**, **ST-GCN/STGCN++**, and **late fusion** models.
 
 ## Directory Structure
 
@@ -21,7 +21,13 @@ actreg/tal/                          # This directory (evaluation)
 ├── eval_tal_from_window_preds.py    # End-to-end CLI
 ├── export_pyskl_window_preds.py     # pyskl → common format
 ├── run_tal_eval_cv.py               # CV fold runner
-└── test_tal_eval.py                 # Unit tests + sanity checks
+├── tal_fusion.py                    # Late fusion (MLP on log-probs)
+├── test_tal_eval.py                 # Unit tests + sanity checks
+├── test_tal_fusion.py               # Fusion module tests
+└── scripts/
+    ├── grid_search_postprocessing.py   # Postprocess param sweep
+    ├── run_tal_fusion_oof.py           # Generate fused predictions
+    └── eval_best_postprocess.py        # Evaluate with best params
 
 actreg/dataprep/tal/                 # Data preparation (separate)
 ├── splits_cv_4class/                # TAL window CSVs
@@ -216,7 +222,94 @@ python run_tal_eval_cv.py \
     --out-dir eval_results/stgcn_cv
 ```
 
-### Run Sanity Checks
+---
+
+## Late Fusion: V-JEPA + Skeleton Models
+
+The pipeline supports **late fusion** of V-JEPA (RGB) with skeleton-based models (PoseC3D, STGCN++) via a lightweight MLP trained on log-probability features.
+
+### How Fusion Works
+
+1. **Feature space**: Log-probabilities from both modalities (PoE-style)
+2. **Training**: Out-of-fold (OOF) inner CV on val windows, grouped by video
+3. **Missing modality**: Filled with uniform distribution + missing indicator flag
+4. **Output**: Fused TAL-format CSV ready for postprocessing
+
+### Step 1: Generate Fused Predictions
+
+```bash
+cd actreg/tal
+
+# Generate fused predictions for both pairs (V-JEPA + PoseC3D, V-JEPA + STGCN++)
+python scripts/run_tal_fusion_oof.py
+
+# Or run a specific pair
+python scripts/run_tal_fusion_oof.py --pairs vjepa_posec3d
+
+# With custom config
+python scripts/run_tal_fusion_oof.py \
+    --hidden-dim 16 \
+    --num-epochs 100 \
+    --n-inner-folds 5
+```
+
+**Output:**
+- `eval_results/vjepa_posec3d_mlp_logp/fold{0,1}/tal_format_preds.csv`
+- `eval_results/vjepa_stgcnpp_mlp_logp/fold{0,1}/tal_format_preds.csv`
+
+### Step 2: Grid Search Postprocessing Parameters
+
+```bash
+# Run grid search on all models (including fusion)
+python scripts/grid_search_postprocessing.py
+
+# Or run only on fusion models
+python scripts/grid_search_postprocessing.py \
+    --models vjepa_posec3d_mlp_logp vjepa_stgcnpp_mlp_logp
+```
+
+**Output:**
+- `eval_results/grid_search_results.csv` — All parameter combinations
+- `eval_results/best_params_per_model.json` — Optimal settings per model
+
+### Step 3: Evaluate with Best Parameters
+
+```bash
+# Evaluate all models with their best postprocessing params
+python scripts/eval_best_postprocess.py
+
+# Or evaluate specific models
+python scripts/eval_best_postprocess.py \
+    --models vjepa_posec3d_mlp_logp vjepa_stgcnpp_mlp_logp
+```
+
+**Output per model:**
+- `{model}/fold{N}/best_eval/metrics.json`
+- `{model}/fold{N}/best_eval/pred_segments.csv`
+- `{model}/cv_summary.json` — Mean ± std across folds
+
+### Full Fusion Pipeline Example
+
+```bash
+cd actreg/tal
+
+# 1. Generate fused predictions
+python scripts/run_tal_fusion_oof.py
+
+# 2. Grid search postprocessing
+python scripts/grid_search_postprocessing.py
+
+# 3. Evaluate with best params
+python scripts/eval_best_postprocess.py
+
+# View results
+cat eval_results/vjepa_posec3d_mlp_logp/cv_summary.json
+cat eval_results/vjepa_stgcnpp_mlp_logp/cv_summary.json
+```
+
+---
+
+### Run Tests
 
 ```bash
 # Unit tests only
@@ -224,6 +317,12 @@ python test_tal_eval.py
 
 # Unit tests + oracle sanity check on real data
 python test_tal_eval.py --oracle --splits-root ../dataprep/splits
+
+# Fusion module tests
+python test_tal_fusion.py
+
+# Fusion pipeline smoke test
+python test_tal_eval.py --fusion
 ```
 
 The oracle check creates "perfect" predictions from GT and verifies mAP ≈ 1.0.

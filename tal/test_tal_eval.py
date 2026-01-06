@@ -401,12 +401,161 @@ def run_all_unit_tests():
     print("=" * 60)
 
 
+# =============================================================================
+# Fusion Pipeline Smoke Test
+# =============================================================================
+
+def run_fusion_smoke_test():
+    """
+    Smoke test for the fusion pipeline.
+    
+    Creates synthetic data, runs fusion, and verifies the output
+    can be processed by the TAL evaluation pipeline.
+    """
+    import tempfile
+    
+    print("\n" + "=" * 60)
+    print("Fusion Pipeline Smoke Test")
+    print("=" * 60)
+    
+    try:
+        from tal_fusion import FusionConfig, run_oof_fusion
+    except ImportError as e:
+        print(f"  Skipping fusion smoke test: {e}")
+        return True
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        
+        # Create synthetic window splits CSV
+        print("\n1. Creating synthetic data...")
+        np.random.seed(42)
+        
+        n_windows = 30
+        n_videos = 3
+        
+        window_rows = []
+        for vid_idx in range(n_videos):
+            video_key = f"test_video_{vid_idx}"
+            for win_idx in range(n_windows // n_videos):
+                window_id = f"{video_key}__t{win_idx * 1000}_{(win_idx + 2) * 1000}"
+                primary_label = np.random.choice([-1, 0, 1, 2, 3], p=[0.6, 0.15, 0.1, 0.1, 0.05])
+                window_rows.append({
+                    "window_id": window_id,
+                    "video_key": video_key,
+                    "start_sec": float(win_idx),
+                    "end_sec": float(win_idx + 2),
+                    "primary_label": primary_label,
+                    "is_background": 1 if primary_label == -1 else 0,
+                })
+        
+        window_df = pd.DataFrame(window_rows)
+        window_csv = tmpdir / "windows.csv"
+        window_df.to_csv(window_csv, index=False)
+        
+        # Create TAL-format predictions for two modalities
+        def create_tal_preds(window_ids, seed):
+            np.random.seed(seed)
+            rows = []
+            for wid in window_ids:
+                video_key = wid.rsplit("__t", 1)[0]
+                start_ms, end_ms = wid.rsplit("__t", 1)[1].split("_")
+                
+                logits = np.random.randn(5)
+                probs = np.exp(logits) / np.exp(logits).sum()
+                
+                row = {
+                    "window_id": wid,
+                    "video_key": video_key,
+                    "start_sec": float(start_ms) / 1000,
+                    "end_sec": float(end_ms) / 1000,
+                }
+                for i in range(5):
+                    row[f"score_class{i}"] = probs[i]
+                rows.append(row)
+            return pd.DataFrame(rows)
+        
+        window_ids = window_df["window_id"].tolist()
+        
+        mod1_df = create_tal_preds(window_ids, seed=100)
+        mod1_csv = tmpdir / "mod1.csv"
+        mod1_df.to_csv(mod1_csv, index=False)
+        
+        # Mod2 missing some windows
+        mod2_df = create_tal_preds(window_ids[:int(len(window_ids) * 0.8)], seed=200)
+        mod2_csv = tmpdir / "mod2.csv"
+        mod2_df.to_csv(mod2_csv, index=False)
+        
+        print(f"   Created {len(window_df)} windows, {n_videos} videos")
+        print(f"   Mod1: {len(mod1_df)} windows, Mod2: {len(mod2_df)} windows")
+        
+        # Run fusion
+        print("\n2. Running OOF fusion...")
+        config = FusionConfig(
+            num_classes=5,
+            hidden_dim=8,
+            num_epochs=3,
+            n_inner_folds=2,
+            random_seed=42,
+        )
+        
+        fused_df, stats = run_oof_fusion(
+            window_splits_csv=window_csv,
+            modality1_csv=mod1_csv,
+            modality2_csv=mod2_csv,
+            config=config,
+        )
+        
+        print(f"   OOF accuracy: {stats['oof_accuracy']:.4f}")
+        
+        # Verify output format
+        print("\n3. Verifying fused output format...")
+        assert len(fused_df) == n_windows, f"Expected {n_windows} rows, got {len(fused_df)}"
+        assert "window_id" in fused_df.columns
+        assert "video_key" in fused_df.columns
+        for i in range(5):
+            assert f"score_class{i}" in fused_df.columns
+        
+        # Verify probabilities sum to 1
+        prob_cols = [f"score_class{i}" for i in range(5)]
+        prob_sums = fused_df[prob_cols].sum(axis=1)
+        assert np.allclose(prob_sums, 1.0, atol=1e-5), "Probabilities don't sum to 1"
+        
+        print("   ✓ Output format valid")
+        
+        # Run through postprocessing
+        print("\n4. Running postprocessing on fused output...")
+        params = PostprocessParams(
+            smooth_k=1,
+            threshold=0.3,
+            merge_gap_sec=1.0,
+            class_ids=[0, 1, 2, 3],
+        )
+        
+        segments_df = window_scores_to_segments(fused_df, params)
+        print(f"   Generated {len(segments_df)} segments")
+        print("   ✓ Postprocessing successful")
+        
+        print("\n" + "=" * 60)
+        print("✓ Fusion pipeline smoke test PASSED!")
+        print("=" * 60)
+        
+        return True
+    
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="Test TAL evaluation pipeline.")
     parser.add_argument(
         "--oracle",
         action="store_true",
         help="Run oracle sanity check on real data.",
+    )
+    parser.add_argument(
+        "--fusion",
+        action="store_true",
+        help="Run fusion pipeline smoke test.",
     )
     parser.add_argument(
         "--splits-root",
@@ -433,6 +582,12 @@ def main():
     # Optionally run oracle check
     if args.oracle:
         success = run_oracle_sanity_check(args.splits_root, args.task)
+        if not success:
+            sys.exit(1)
+    
+    # Optionally run fusion smoke test
+    if args.fusion:
+        success = run_fusion_smoke_test()
         if not success:
             sys.exit(1)
 

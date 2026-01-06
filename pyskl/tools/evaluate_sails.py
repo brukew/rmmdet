@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 """
-Comprehensive evaluation script for SAILS PoseC3D models.
+Comprehensive evaluation script for SAILS models.
 
-Computes metrics at both clip-level and video-level:
+Supports two task types:
+- RMM Classification (4-class): Predicting which RMM type a clip contains
+- TAL (5-class): Predicting RMM type or background for temporal action localization
+
+Computes metrics:
 - Top-1 and Top-2 accuracy
-- Macro and Weighted F1
-- Macro Precision and Recall
+- Macro and Weighted F1, Precision, Recall
 - Cohen's Kappa
+- Per-class F1, Precision, Recall
+- For TAL: RMM vs Background binary metrics (F1, Precision, Recall, AUC)
 - Confusion matrices (saved as PNG)
 - Prediction CSVs
 
 Usage:
-    # Evaluate a trained model on test set
-    python tools/evaluate_sails.py \
-        configs/posec3d/slowonly_r50_sails_k400p/joint.py \
-        -C work_dirs/posec3d/slowonly_r50_sails_k400p/joint/best_top1_acc_epoch_6.pth \
-        --split test \
-        --output-dir work_dirs/posec3d/slowonly_r50_sails_k400p/joint/eval_test
+    # Evaluate RMM classification (4-class)
+    python tools/evaluate_sails.py config.py -C checkpoint.pth --split val --output-dir eval_val --task rmm
 
-    # Evaluate on validation set
-    python tools/evaluate_sails.py config.py -C checkpoint.pth --split val --output-dir eval_val
+    # Evaluate TAL (5-class with background)
+    python tools/evaluate_sails.py config.py -C checkpoint.pth --split val --output-dir eval_val --task tal
 """
 
 import argparse
@@ -55,6 +56,7 @@ try:
         recall_score,
         confusion_matrix,
         cohen_kappa_score,
+        roc_auc_score,
     )
     HAS_SKLEARN = True
 except ImportError:
@@ -72,8 +74,10 @@ except ImportError:
     print("Warning: matplotlib/seaborn not installed. Confusion matrix plots will be skipped.")
 
 
-# Default class names for SAILS 4-class
-DEFAULT_CLASS_NAMES = ["hands flapping", "jumping", "rocking", "spinning"]
+# Default class names for SAILS 4-class RMM classification
+DEFAULT_CLASS_NAMES_4 = ["hands flapping", "jumping", "rocking", "spinning"]
+# Default class names for SAILS 5-class TAL (includes background)
+DEFAULT_CLASS_NAMES_5 = ["hands flapping", "jumping", "rocking", "spinning", "background"]
 
 
 def parse_args():
@@ -83,12 +87,14 @@ def parse_args():
     parser.add_argument('--split', default='test', choices=['train', 'val', 'test'],
                         help='Which split to evaluate on (default: test)')
     parser.add_argument('--output-dir', required=True, help='Directory to save evaluation results')
+    parser.add_argument('--task', default='auto', choices=['rmm', 'tal', 'auto'],
+                        help='Task type: rmm (4-class), tal (5-class with background), auto (detect from num_classes)')
     parser.add_argument('--launcher', choices=['pytorch', 'none'], default='none',
                         help='Job launcher (default: none for single GPU)')
     parser.add_argument('--num-clips', type=int, default=10,
                         help='Number of clips per video for testing (default: 10)')
     parser.add_argument('--class-names', nargs='+', default=None,
-                        help='Class names in order. Default: hands_flapping jumping rocking spinning')
+                        help='Class names in order. Default depends on --task')
     parser.add_argument('--device', default='cuda:0', help='Device to use (default: cuda:0)')
     parser.add_argument(
         '--cfg-options',
@@ -119,7 +125,7 @@ def top_k_accuracy(scores, labels, topk=(1, 2)):
     return results
 
 
-def compute_all_metrics(y_true, y_pred, y_scores, class_names, prefix=''):
+def compute_all_metrics(y_true, y_pred, y_scores, class_names, prefix='', task='rmm'):
     """
     Compute comprehensive metrics.
     
@@ -128,33 +134,100 @@ def compute_all_metrics(y_true, y_pred, y_scores, class_names, prefix=''):
         y_pred: Predicted labels
         y_scores: Prediction scores (N x num_classes)
         class_names: List of class names
-        prefix: Prefix for metric keys (e.g., 'clip_' or 'video_')
+        prefix: Prefix for metric keys (e.g., 'clip_')
+        task: 'rmm' for 4-class RMM classification, 'tal' for 5-class TAL with background
     
     Returns:
         Dictionary of metrics
     """
     metrics = {}
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    y_scores = np.array(y_scores)
     
     # Top-k accuracy
     topk_results = top_k_accuracy(y_scores, y_true, topk=(1, 2))
     metrics[f'{prefix}top1_acc'] = topk_results['top1_acc']
     metrics[f'{prefix}top2_acc'] = topk_results['top2_acc']
     
-    # F1, Precision, Recall
-    metrics[f'{prefix}macro_f1'] = f1_score(y_true, y_pred, average='macro') * 100
-    metrics[f'{prefix}weighted_f1'] = f1_score(y_true, y_pred, average='weighted') * 100
+    # F1, Precision, Recall (all classes)
+    metrics[f'{prefix}macro_f1'] = f1_score(y_true, y_pred, average='macro', zero_division=0) * 100
+    metrics[f'{prefix}weighted_f1'] = f1_score(y_true, y_pred, average='weighted', zero_division=0) * 100
     metrics[f'{prefix}macro_precision'] = precision_score(y_true, y_pred, average='macro', zero_division=0) * 100
     metrics[f'{prefix}macro_recall'] = recall_score(y_true, y_pred, average='macro', zero_division=0) * 100
     
     # Cohen's Kappa
     metrics[f'{prefix}cohens_kappa'] = cohen_kappa_score(y_true, y_pred)
     
-    # Per-class metrics
+    # ========== RMM vs Background Binary Metrics (TAL only) ==========
+    if task == 'tal':
+        # Assumes class 4 = background, classes 0-3 = RMM
+        BACKGROUND_CLASS = 4
+        
+        # Binary labels: 1 = RMM (any of classes 0-3), 0 = Background (class 4)
+        y_true_binary = (y_true != BACKGROUND_CLASS).astype(int)
+        y_pred_binary = (y_pred != BACKGROUND_CLASS).astype(int)
+        
+        # Binary scores: sum of RMM class probabilities
+        if y_scores.shape[1] > BACKGROUND_CLASS:
+            rmm_scores = y_scores[:, :BACKGROUND_CLASS].sum(axis=1)  # Sum classes 0-3
+        else:
+            rmm_scores = 1 - y_scores[:, -1]  # Fallback
+        
+        # Binary classification metrics
+        metrics[f'{prefix}rmm_vs_bg_accuracy'] = (y_true_binary == y_pred_binary).mean() * 100
+        metrics[f'{prefix}rmm_vs_bg_f1'] = f1_score(y_true_binary, y_pred_binary, pos_label=1, zero_division=0) * 100
+        metrics[f'{prefix}rmm_vs_bg_precision'] = precision_score(y_true_binary, y_pred_binary, pos_label=1, zero_division=0) * 100
+        metrics[f'{prefix}rmm_vs_bg_recall'] = recall_score(y_true_binary, y_pred_binary, pos_label=1, zero_division=0) * 100
+        
+        # AUC-ROC for RMM detection
+        try:
+            # Need both classes present for AUC
+            if len(np.unique(y_true_binary)) > 1:
+                metrics[f'{prefix}rmm_vs_bg_auc'] = roc_auc_score(y_true_binary, rmm_scores) * 100
+            else:
+                metrics[f'{prefix}rmm_vs_bg_auc'] = 0.0
+        except Exception:
+            metrics[f'{prefix}rmm_vs_bg_auc'] = 0.0
+        
+        # Error rates
+        # False alarm: Background predicted as RMM
+        bg_mask = y_true_binary == 0
+        if bg_mask.sum() > 0:
+            metrics[f'{prefix}bg_false_alarm_rate'] = (y_pred_binary[bg_mask] == 1).mean() * 100
+        else:
+            metrics[f'{prefix}bg_false_alarm_rate'] = 0.0
+        
+        # Miss rate: RMM predicted as Background
+        rmm_mask = y_true_binary == 1
+        if rmm_mask.sum() > 0:
+            metrics[f'{prefix}rmm_miss_rate'] = (y_pred_binary[rmm_mask] == 0).mean() * 100
+        else:
+            metrics[f'{prefix}rmm_miss_rate'] = 0.0
+        
+        # RMM-only Macro F1 (excluding background)
+        rmm_indices = list(range(BACKGROUND_CLASS))  # Classes 0-3
+        rmm_mask_multiclass = np.isin(y_true, rmm_indices)
+        if rmm_mask_multiclass.sum() > 0:
+            y_true_rmm = y_true[rmm_mask_multiclass]
+            y_pred_rmm = y_pred[rmm_mask_multiclass]
+            metrics[f'{prefix}rmm_only_macro_f1'] = f1_score(y_true_rmm, y_pred_rmm, average='macro', zero_division=0) * 100
+            metrics[f'{prefix}rmm_only_macro_precision'] = precision_score(y_true_rmm, y_pred_rmm, average='macro', zero_division=0) * 100
+            metrics[f'{prefix}rmm_only_macro_recall'] = recall_score(y_true_rmm, y_pred_rmm, average='macro', zero_division=0) * 100
+        else:
+            metrics[f'{prefix}rmm_only_macro_f1'] = 0.0
+            metrics[f'{prefix}rmm_only_macro_precision'] = 0.0
+            metrics[f'{prefix}rmm_only_macro_recall'] = 0.0
+    
+    # ========== Per-class metrics ==========
     per_class_f1 = f1_score(y_true, y_pred, average=None, zero_division=0)
     per_class_prec = precision_score(y_true, y_pred, average=None, zero_division=0)
     per_class_rec = recall_score(y_true, y_pred, average=None, zero_division=0)
     
     for i, name in enumerate(class_names):
+        # For TAL, skip background class in per-class metrics
+        if task == 'tal' and 'background' in name.lower():
+            continue
         if i < len(per_class_f1):
             metrics[f'{prefix}f1_{name}'] = per_class_f1[i] * 100
             metrics[f'{prefix}prec_{name}'] = per_class_prec[i] * 100
@@ -290,8 +363,31 @@ def main():
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
     
+    # Determine task type and class names
+    # First check if model has num_classes defined
+    num_classes_from_model = cfg.model.get('cls_head', {}).get('num_classes', None)
+    
+    # Auto-detect task if not specified
+    if args.task == 'auto':
+        if num_classes_from_model == 5:
+            task = 'tal'
+        elif num_classes_from_model == 4:
+            task = 'rmm'
+        else:
+            # Default to rmm if can't determine
+            task = 'rmm'
+        print(f"Auto-detected task: {task} (num_classes={num_classes_from_model})")
+    else:
+        task = args.task
+    
     # Get class names
-    class_names = args.class_names or DEFAULT_CLASS_NAMES
+    if args.class_names:
+        class_names = args.class_names
+    elif task == 'tal':
+        class_names = DEFAULT_CLASS_NAMES_5
+    else:
+        class_names = DEFAULT_CLASS_NAMES_4
+    
     num_classes = len(class_names)
     
     # Create output directory
@@ -299,13 +395,14 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"=" * 60)
-    print(f"SAILS PoseC3D Evaluation")
+    print(f"SAILS Model Evaluation")
     print(f"=" * 60)
     print(f"Config: {args.config}")
     print(f"Checkpoint: {args.checkpoint}")
     print(f"Split: {args.split}")
+    print(f"Task: {task}")
     print(f"Output: {output_dir}")
-    print(f"Classes: {class_names}")
+    print(f"Classes ({num_classes}): {class_names}")
     print()
     
     # Load annotation file to get segment IDs
@@ -381,7 +478,7 @@ def main():
     
     # Compute clip-level metrics
     print("\n--- Clip-Level Metrics ---")
-    clip_metrics = compute_all_metrics(clip_labels, clip_preds, clip_scores, class_names, prefix='clip_')
+    clip_metrics = compute_all_metrics(clip_labels, clip_preds, clip_scores, class_names, prefix='clip_', task=task)
     
     for key, value in clip_metrics.items():
         if 'kappa' in key:
@@ -389,47 +486,11 @@ def main():
         else:
             print(f"  {key}: {value:.2f}%")
     
-    # Video-level aggregation
-    # Group by segment_id and average scores
-    video_scores_dict = defaultdict(list)
-    video_labels_dict = {}
-    
-    for pred in predictions_clip:
-        seg_id = pred['segment_id']
-        video_scores_dict[seg_id].append(pred['scores'])
-        video_labels_dict[seg_id] = pred['true_label']
-    
-    video_ids = list(video_scores_dict.keys())
-    video_scores = np.array([np.mean(video_scores_dict[vid], axis=0) for vid in video_ids])
-    video_labels = np.array([video_labels_dict[vid] for vid in video_ids])
-    video_preds = np.argmax(video_scores, axis=1)
-    
-    predictions_video = []
-    for i, vid in enumerate(video_ids):
-        predictions_video.append({
-            'segment_id': vid,
-            'true_label': int(video_labels[i]),
-            'pred_label': int(video_preds[i]),
-            'true_class': class_names[video_labels[i]] if video_labels[i] < len(class_names) else f"class_{video_labels[i]}",
-            'pred_class': class_names[video_preds[i]] if video_preds[i] < len(class_names) else f"class_{video_preds[i]}",
-            'scores': video_scores[i].tolist(),
-        })
-    
-    # Compute video-level metrics
-    print("\n--- Video-Level Metrics ---")
-    video_metrics = compute_all_metrics(video_labels, video_preds, video_scores, class_names, prefix='video_')
-    
-    for key, value in video_metrics.items():
-        if 'kappa' in key:
-            print(f"  {key}: {value:.4f}")
-        else:
-            print(f"  {key}: {value:.2f}%")
-    
-    # Combine all metrics
-    all_metrics = {**clip_metrics, **video_metrics}
+    # Combine all metrics (clip-level only, no video-level)
+    all_metrics = clip_metrics.copy()
     all_metrics['num_clips'] = len(clip_labels)
-    all_metrics['num_videos'] = len(video_labels)
     all_metrics['split'] = args.split
+    all_metrics['task'] = task
     all_metrics['checkpoint'] = args.checkpoint
     
     # Save metrics JSON
@@ -438,52 +499,51 @@ def main():
         json.dump(all_metrics, f, indent=2)
     print(f"\n  Saved metrics: {metrics_path}")
     
-    # Save predictions CSVs
+    # Save predictions CSV
     save_predictions_csv(predictions_clip, output_dir / 'predictions_clip.csv')
-    save_predictions_csv(predictions_video, output_dir / 'predictions_video.csv')
     
-    # Confusion matrices
-    print("\nGenerating confusion matrices...")
+    # Confusion matrix
+    print("\nGenerating confusion matrix...")
     
     cm_clip = confusion_matrix(clip_labels, clip_preds, labels=range(num_classes))
-    cm_video = confusion_matrix(video_labels, video_preds, labels=range(num_classes))
     
     plot_confusion_matrix(
         cm_clip, class_names,
         output_dir / 'confusion_matrix_clip.png',
-        title=f'Clip-Level Confusion Matrix ({args.split})'
+        title=f'Confusion Matrix ({args.split}, {task})'
     )
     
-    plot_confusion_matrix(
-        cm_video, class_names,
-        output_dir / 'confusion_matrix_video.png',
-        title=f'Video-Level Confusion Matrix ({args.split})'
-    )
-    
-    # Save raw confusion matrices
+    # Save raw confusion matrix
     np.save(output_dir / 'confusion_matrix_clip.npy', cm_clip)
-    np.save(output_dir / 'confusion_matrix_video.npy', cm_video)
     
     # Summary
     print(f"\n{'=' * 60}")
     print("EVALUATION SUMMARY")
     print(f"{'=' * 60}")
     print(f"Split: {args.split}")
-    print(f"Samples: {len(clip_labels)} clips, {len(video_labels)} videos")
+    print(f"Task: {task}")
+    print(f"Samples: {len(clip_labels)} clips")
     print()
-    print("Clip-Level:")
+    print("Overall Metrics:")
     print(f"  Top-1: {clip_metrics['clip_top1_acc']:.2f}%  Top-2: {clip_metrics['clip_top2_acc']:.2f}%")
     print(f"  Macro F1: {clip_metrics['clip_macro_f1']:.2f}%  Weighted F1: {clip_metrics['clip_weighted_f1']:.2f}%")
+    print(f"  Macro Precision: {clip_metrics['clip_macro_precision']:.2f}%  Macro Recall: {clip_metrics['clip_macro_recall']:.2f}%")
     print(f"  Cohen's Kappa: {clip_metrics['clip_cohens_kappa']:.4f}")
-    print()
-    print("Video-Level:")
-    print(f"  Top-1: {video_metrics['video_top1_acc']:.2f}%  Top-2: {video_metrics['video_top2_acc']:.2f}%")
-    print(f"  Macro F1: {video_metrics['video_macro_f1']:.2f}%  Weighted F1: {video_metrics['video_weighted_f1']:.2f}%")
-    print(f"  Cohen's Kappa: {video_metrics['video_cohens_kappa']:.4f}")
+    
+    if task == 'tal':
+        print()
+        print("RMM vs Background (Binary):")
+        print(f"  Accuracy: {clip_metrics['clip_rmm_vs_bg_accuracy']:.2f}%")
+        print(f"  F1: {clip_metrics['clip_rmm_vs_bg_f1']:.2f}%  Precision: {clip_metrics['clip_rmm_vs_bg_precision']:.2f}%  Recall: {clip_metrics['clip_rmm_vs_bg_recall']:.2f}%")
+        print(f"  AUC-ROC: {clip_metrics['clip_rmm_vs_bg_auc']:.2f}%")
+        print(f"  BG False Alarm Rate: {clip_metrics['clip_bg_false_alarm_rate']:.2f}%  RMM Miss Rate: {clip_metrics['clip_rmm_miss_rate']:.2f}%")
+        print()
+        print("RMM-Only Metrics (excluding background):")
+        print(f"  Macro F1: {clip_metrics['clip_rmm_only_macro_f1']:.2f}%")
+        print(f"  Macro Precision: {clip_metrics['clip_rmm_only_macro_precision']:.2f}%  Macro Recall: {clip_metrics['clip_rmm_only_macro_recall']:.2f}%")
+    
     print(f"\nResults saved to: {output_dir}")
 
 
 if __name__ == '__main__':
     main()
-
-
