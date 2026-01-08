@@ -88,6 +88,12 @@ MODELS = {
         pred_csv_pattern="vjepa_posec3d_bal_mlp_logp/fold{fold}/tal_format_preds.csv",
         folds=[0, 1],
     ),
+    # Fusion: V-JEPA Balanced + PoseC3D CE
+    "vjepa_balanced_posec3d_mlp_logp": ModelConfig(
+        name="V-JEPA Balanced + PoseC3D (CE)",
+        pred_csv_pattern="vjepa_balanced_posec3d_mlp_logp/fold{fold}/tal_format_preds.csv",
+        folds=[0, 1],
+    ),
 }
 
 # Parameter grid

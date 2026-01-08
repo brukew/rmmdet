@@ -56,6 +56,10 @@ PRED_PATHS = {
         "pattern": EVAL_RESULTS_DIR / "vjepa" / "fold{fold}" / "tal_format_preds.csv",
         "folds": [0, 1],
     },
+    "vjepa_balanced": {
+        "pattern": EVAL_RESULTS_DIR / "vjepa_balanced" / "fold{fold}" / "tal_format_preds.csv",
+        "folds": [0, 1, 2],
+    },
     "posec3d_ce": {
         "pattern": EVAL_RESULTS_DIR / "posec3d_ce" / "fold{fold}" / "tal_format_preds.csv",
         "folds": [0, 1],
@@ -79,6 +83,12 @@ FUSION_PAIRS = {
         "mod2": "stgcnpp_ce_4stream",
         "output_name": "vjepa_stgcnpp_mlp_logp",
         "description": "V-JEPA + STGCN++ 4-stream (CE)",
+    },
+    "vjepa_balanced_posec3d": {
+        "mod1": "vjepa_balanced",
+        "mod2": "posec3d_ce",
+        "output_name": "vjepa_balanced_posec3d_mlp_logp",
+        "description": "V-JEPA Balanced + PoseC3D (CE)",
     },
 }
 
@@ -323,6 +333,13 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
 
 
 

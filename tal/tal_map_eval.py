@@ -337,7 +337,7 @@ def compute_map(
     tiou_thresholds: List[float] = [0.3, 0.5, 0.7],
 ) -> Dict[str, Any]:
     """
-    Compute mAP at multiple tIoU thresholds.
+    Compute mAP and Recall at multiple tIoU thresholds.
     
     Args:
         pred_df: Predicted segments DataFrame with columns:
@@ -349,7 +349,9 @@ def compute_map(
     Returns:
         Dictionary with:
             - mAP@{threshold} for each threshold
+            - Recall@{threshold} for each threshold (average recall across classes)
             - avg_mAP (mean across thresholds)
+            - avg_Recall (mean across thresholds)
             - per_class_ap[threshold][class_id] = AP
             - details[threshold][class_id] = details dict
     """
@@ -370,6 +372,7 @@ def compute_map(
     }
     
     all_maps = []
+    all_recalls = []
     
     for tiou_thr in tiou_thresholds:
         thr_key = f"tIoU={tiou_thr}"
@@ -377,6 +380,7 @@ def compute_map(
         results["details"][thr_key] = {}
         
         aps = []
+        recalls = []
         for class_id in class_ids:
             ap, details = compute_ap_for_class(preds, gt_by_video, class_id, tiou_thr)
             results["per_class_ap"][thr_key][class_id] = ap
@@ -385,6 +389,11 @@ def compute_map(
             if not np.isnan(ap):
                 aps.append(ap)
         
+            # Collect recall for classes that have GT segments
+            if details.get("n_gt", 0) > 0:
+                recalls.append(details.get("recall_at_threshold", 0.0))
+        
+        # Compute mAP for this threshold
         if aps:
             map_val = np.mean(aps)
         else:
@@ -393,12 +402,28 @@ def compute_map(
         results[f"mAP@{tiou_thr}"] = map_val
         if not np.isnan(map_val):
             all_maps.append(map_val)
+        
+        # Compute average recall for this threshold
+        if recalls:
+            recall_val = np.mean(recalls)
+        else:
+            recall_val = float("nan")
+        
+        results[f"Recall@{tiou_thr}"] = recall_val
+        if not np.isnan(recall_val):
+            all_recalls.append(recall_val)
     
     # Average mAP across thresholds
     if all_maps:
         results["avg_mAP"] = np.mean(all_maps)
     else:
         results["avg_mAP"] = float("nan")
+    
+    # Average Recall across thresholds
+    if all_recalls:
+        results["avg_Recall"] = np.mean(all_recalls)
+    else:
+        results["avg_Recall"] = float("nan")
     
     return results
 
@@ -407,6 +432,7 @@ def format_metrics_report(
     metrics: Dict[str, Any],
     class_ids: List[int] = [0, 1, 2, 3],
     id2label: Dict[int, str] = None,
+    detail_tiou: float = 0.5,
 ) -> str:
     """
     Format metrics as a human-readable report.
@@ -415,6 +441,7 @@ def format_metrics_report(
         metrics: Output from compute_map().
         class_ids: Class IDs to include.
         id2label: Optional mapping from class ID to label name.
+        detail_tiou: tIoU threshold to use for detailed per-class table.
     
     Returns:
         Formatted string report.
@@ -424,22 +451,29 @@ def format_metrics_report(
     
     lines = ["=" * 60, "TAL Evaluation Results", "=" * 60, ""]
     
-    # Summary mAP
+    # Summary mAP and Recall side by side
     lines.append("Summary:")
-    for key in sorted(metrics.keys()):
-        if key.startswith("mAP@"):
-            val = metrics[key]
-            if np.isnan(val):
-                lines.append(f"  {key}: N/A")
-            else:
-                lines.append(f"  {key}: {val:.4f}")
+    
+    # Collect mAP and Recall keys
+    tiou_thresholds = sorted([float(k.replace("mAP@", "")) for k in metrics.keys() if k.startswith("mAP@")])
+    
+    for tiou_thr in tiou_thresholds:
+        map_val = metrics.get(f"mAP@{tiou_thr}", float("nan"))
+        recall_val = metrics.get(f"Recall@{tiou_thr}", float("nan"))
+        
+        map_str = f"{map_val:.4f}" if not np.isnan(map_val) else "N/A"
+        recall_str = f"{recall_val:.4f}" if not np.isnan(recall_val) else "N/A"
+        
+        lines.append(f"  mAP@{tiou_thr}: {map_str:>8}    Recall@{tiou_thr}: {recall_str:>8}")
     
     avg_map = metrics.get("avg_mAP", float("nan"))
-    if not np.isnan(avg_map):
-        lines.append(f"  avg_mAP: {avg_map:.4f}")
+    avg_recall = metrics.get("avg_Recall", float("nan"))
+    avg_map_str = f"{avg_map:.4f}" if not np.isnan(avg_map) else "N/A"
+    avg_recall_str = f"{avg_recall:.4f}" if not np.isnan(avg_recall) else "N/A"
+    lines.append(f"  avg_mAP:  {avg_map_str:>8}    avg_Recall:  {avg_recall_str:>8}")
     lines.append("")
     
-    # Per-class breakdown
+    # Per-class AP breakdown
     lines.append("Per-class AP:")
     per_class_ap = metrics.get("per_class_ap", {})
     
@@ -452,6 +486,59 @@ def format_metrics_report(
                 lines.append(f"    {label}: N/A")
             else:
                 lines.append(f"    {label}: {ap:.4f}")
+    
+    lines.append("")
+    
+    # Per-class Detection Metrics table (at the specified detail_tiou)
+    details = metrics.get("details", {})
+    detail_key = f"tIoU={detail_tiou}"
+    
+    if detail_key in details:
+        lines.append(f"Per-class Detection Metrics ({detail_key}):")
+        lines.append("")
+        
+        # Find max label length for alignment
+        max_label_len = max(len(id2label.get(cid, f"class_{cid}")) for cid in class_ids)
+        max_label_len = max(max_label_len, 5)  # Minimum for "TOTAL"
+        
+        # Header
+        header = f"  {'Class':<{max_label_len}}  {'n_GT':>6}  {'n_Pred':>7}  {'n_TP':>6}  {'n_FP':>6}  {'Prec':>7}  {'Recall':>7}"
+        lines.append(header)
+        lines.append("  " + "-" * (len(header) - 2))
+        
+        # Per-class rows
+        total_n_gt = 0
+        total_n_pred = 0
+        total_n_tp = 0
+        total_n_fp = 0
+        
+        for class_id in class_ids:
+            d = details[detail_key].get(class_id, {})
+            label = id2label.get(class_id, f"class_{class_id}")
+            
+            n_gt = d.get("n_gt", 0)
+            n_pred = d.get("n_pred", 0)
+            n_tp = d.get("n_tp", 0)
+            n_fp = d.get("n_fp", 0)
+            precision = d.get("precision_at_threshold", 0.0)
+            recall = d.get("recall_at_threshold", 0.0)
+            
+            total_n_gt += n_gt
+            total_n_pred += n_pred
+            total_n_tp += n_tp
+            total_n_fp += n_fp
+            
+            lines.append(
+                f"  {label:<{max_label_len}}  {n_gt:>6}  {n_pred:>7}  {n_tp:>6}  {n_fp:>6}  {precision:>7.3f}  {recall:>7.3f}"
+            )
+        
+        # Total row
+        lines.append("  " + "-" * (len(header) - 2))
+        total_precision = total_n_tp / total_n_pred if total_n_pred > 0 else 0.0
+        total_recall = total_n_tp / total_n_gt if total_n_gt > 0 else 0.0
+        lines.append(
+            f"  {'TOTAL':<{max_label_len}}  {total_n_gt:>6}  {total_n_pred:>7}  {total_n_tp:>6}  {total_n_fp:>6}  {total_precision:>7.3f}  {total_recall:>7.3f}"
+        )
     
     lines.append("")
     lines.append("=" * 60)
@@ -473,6 +560,11 @@ def save_metrics(
         out_dir: Output directory.
         class_ids: Class IDs.
         id2label: Optional mapping from class ID to label name.
+    
+    Outputs:
+        - metrics.json: Full metrics dictionary
+        - per_class_metrics.csv: Comprehensive per-class metrics (AP, n_gt, n_pred, n_tp, n_fp, precision, recall)
+        - report.txt: Human-readable report
     """
     if id2label is None:
         id2label = ID2LABEL_4CLASS
@@ -499,22 +591,40 @@ def save_metrics(
     with json_path.open("w", encoding="utf-8") as f:
         json.dump(convert_for_json(metrics), f, indent=2)
     
-    # Save per-class AP as CSV
+    # Save comprehensive per-class metrics as CSV
     per_class_ap = metrics.get("per_class_ap", {})
+    details = metrics.get("details", {})
     rows = []
+    
     for thr_key in sorted(per_class_ap.keys()):
         for class_id in class_ids:
             ap = per_class_ap[thr_key].get(class_id, float("nan"))
             label = id2label.get(class_id, f"class_{class_id}")
+            
+            # Get detailed metrics from the details dict
+            d = details.get(thr_key, {}).get(class_id, {})
+            n_gt = d.get("n_gt", 0)
+            n_pred = d.get("n_pred", 0)
+            n_tp = d.get("n_tp", 0)
+            n_fp = d.get("n_fp", 0)
+            precision = d.get("precision_at_threshold", 0.0)
+            recall = d.get("recall_at_threshold", 0.0)
+            
             rows.append({
                 "tiou_threshold": thr_key,
                 "class_id": class_id,
                 "class_name": label,
                 "AP": ap if not np.isnan(ap) else None,
+                "n_gt": n_gt,
+                "n_pred": n_pred,
+                "n_tp": n_tp,
+                "n_fp": n_fp,
+                "precision": precision,
+                "recall": recall,
             })
     
     if rows:
-        csv_path = out_dir / "per_class_ap.csv"
+        csv_path = out_dir / "per_class_metrics.csv"
         pd.DataFrame(rows).to_csv(csv_path, index=False)
     
     # Save human-readable report
