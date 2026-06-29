@@ -1,26 +1,44 @@
-y# Reproducibility TODO
+# Reproducibility / Handoff TODO
 
-## 1. Git Hygiene
+Status as of the handoff cleanup. See `docs/INDEX.md` for the full doc catalog and
+`REPRODUCE.md` for the end-to-end pipeline.
 
-- [ ] Fix broken OpenTAD submodule (remove from git index, add `.gitmodules` or track as regular directory)
-- [ ] Fix `.gitignore` to stop ignoring all `.json` and `.csv` — scope exclusions to large data files and specific directories only
-- [ ] Commit currently untracked files (`updates_1/2/3.md`, `RESOURCES.md`, `tal/tools/`, `scripts/extract_precision_recall.py`, `insights/` subdirs, `writeup/`)
+## 1. Git Hygiene — DONE
 
-## 2. Path Configuration
+- [x] OpenTAD: registered as a git submodule (`.gitmodules`) pinned to upstream
+      `1aa8ca4`; SAILS fork delta captured as a verified patch in `opentad_sails/`.
+- [x] `.gitignore`: scoped to artifacts (no longer ignores all `.json`/`.csv`/`.txt`);
+      splits/annotations/metrics are tracked, the ~166 GB of run artifacts are not.
+- [x] Committed the previously-untracked work (two-stg, tal, dataprep, insights,
+      fusion export, docs).
 
-- [ ] Create a central `config.yaml` (or `paths.py`) for all dataset and output paths, replacing hardcoded `/orcd/` paths
-- [ ] Update V-JEPA2 scripts to read paths from config instead of hardcoded defaults
-- [ ] Update pyskl SLURM scripts to read paths from config instead of hardcoded defaults
-- [ ] Update fusion training scripts to read paths from config instead of hardcoded defaults
-- [ ] Update TAL scripts (`dataprep/tal/`, `tal/`) to read paths from config instead of hardcoded defaults
-- [ ] Update clip generation and pose estimation scripts (`dataprep/`) to read paths from config
+## 2. Path Configuration — PARTIAL
 
-## 3. Environment Files
+- [x] Central `config.yaml` + `paths.py` loader (auto-detects repo root, env-overridable).
+- [ ] Migrate scripts to read from `paths.py` instead of hardcoded `/orcd/...` paths
+      (~280 references). **Untested-in-this-env risk** — do this where the running
+      environment is available, starting with the top-level entry-point scripts:
+  - [ ] `two-stg/run_*` SLURM wrappers + `eval_two_stage_tal.py`
+  - [ ] `v-jepa/slurm/*` + `finetune_sails_vjepa2_*.py`
+  - [ ] `fusion/` training/export scripts
+  - [ ] `tal/` and `dataprep/` scripts
+  - [ ] `OpenTAD/configs/_base_/datasets/sails_rmm/*` feature paths
 
-- [ ] Create `environment.yml` for `pyskl` (PoseC3D + STGCN++) with pinned versions
-- [ ] Create `environment.yml` for `vjepa2` with pinned versions
-- [ ] Create `environment.yml` for `OpenTAD` with pinned versions
+## 3. Environment Files — DONE
 
-## 4. Documentation
+- [x] `envs/pyskl.yml`
+- [x] `envs/vjepa2.yml`
+- [x] `envs/opentad.yml`
 
-- [ ] Write `REPRODUCE.md` with full step-by-step pipeline: data prep → pose → splits → train each model → eval → fusion → TAL
+## 4. Documentation — DONE
+
+- [x] `REPRODUCE.md`: full pipeline (data prep → pose → splits → train → eval → fusion → TAL).
+- [x] `docs/ARTIFACTS.md`: data/artifact retention policy.
+- [x] `docs/INDEX.md`: catalog of all docs + entry points.
+- [x] README updated to cover the TAL / two-stage work.
+- [x] Consolidated scattered docs under `docs/` (writeup, retraining notes, archived updates).
+
+## 5. Data preservation (action for the maintainer)
+
+- [ ] Back up Tier-B inputs (V-JEPA TAL features + clips + final `best.pth` per fold)
+      off scratch — see `docs/ARTIFACTS.md`. This is the key data-loss risk.

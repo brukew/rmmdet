@@ -1,8 +1,23 @@
-General:
-- `@actreg/README.md`: Main project README (task definitions, methods, training commands, directory overview, and high-level results).
-- `@actreg/updates_1.md`: Progress update (initial classification + location classification results and next steps).
-- `@actreg/updates_2.md`: Progress update (fusion classification results summary + next steps).
-- `@actreg/updates_3.md`: Progress update focused on TAL (window-level detection, window→segment TAL, segment-level TAL, and binary broad-localization + recall metrics).
+# Documentation Index
+
+Catalog of all documentation and key entry points in the repo. Component READMEs
+live in their own directories; cross-cutting/handoff docs live under `docs/`.
+
+## Start here (handoff / reproducibility)
+
+- `@actreg/README.md`: Main project README (two tasks: classification + TAL; methods, commands, directory overview, results).
+- `@actreg/REPRODUCE.md`: End-to-end pipeline map (setup → data prep → classifiers → window TAL → OpenTAD E2E/binary → two-stage → analysis).
+- `@actreg/REPRODUCIBILITY_TODO.md`: Remaining handoff tasks (path config migration, etc.).
+- `@actreg/docs/ARTIFACTS.md`: Data/artifact retention policy and where inputs/checkpoints live.
+- `@actreg/config.yaml` + `@actreg/paths.py`: Central path configuration (single source of truth; env-overridable).
+- `@actreg/envs/`: Pinned conda environments (`pyskl`, `vjepa2`, `opentad`).
+- `@actreg/opentad_sails/`: OpenTAD fork delta — pinned upstream commit + verified-applicable SAILS patch (OpenTAD is a git submodule).
+
+## Progress logs (archived)
+
+- `@actreg/docs/archive/updates_1.md`: Progress update (initial classification + location classification results and next steps).
+- `@actreg/docs/archive/updates_2.md`: Progress update (fusion classification results summary + next steps).
+- `@actreg/docs/archive/updates_3.md`: Progress update focused on TAL (window-level detection, window→segment TAL, segment-level TAL, and binary broad-localization + recall metrics).
 
 ---
 
@@ -46,6 +61,15 @@ General:
 - `@actreg/dataprep/tal/create_tal_pose_pickles_4class_only.sbatch`: Variant of pose-pickle generation restricted to 4-class.
 - `@actreg/dataprep/tal/splits_cv_4class/`: (Directory) CV window splits (may be populated by generation jobs).
 - `@actreg/dataprep/tal/label_maps/`: (Directory) Label maps for TAL tasks.
+
+### Two-stage TAL pipeline (binary detector → Stage-2 classifier)
+
+- `@actreg/two-stg/README.md`: Pipeline overview + usage (4-class V-JEPA2, 3-way fusion MLP, 5-class Stage-2 variants).
+- `@actreg/two-stg/eval_two_stage_tal.py`: Main driver (load Stage-1 detections, run Stage-2 classifier, OpenTAD mAP eval).
+- `@actreg/two-stg/RUNS.md`: Run log / leaderboard for two-stage experiments.
+- `@actreg/two-stg/ANALYSIS_NOTES.md`: Two-stage vs E2E analysis (mAP tables, balanced accuracy, NMS caveat).
+- `@actreg/two-stg/analyze_classifier_effect.py`: Classifier-effect analysis (per-class accuracy, AUROC, error taxonomy).
+- `@actreg/OpenTAD/`: (submodule, pinned upstream + SAILS patch) ActionFormer/TriDet E2E and binary detectors; see `@actreg/opentad_sails/README.md`.
 
 ---
 
@@ -121,10 +145,16 @@ General:
 
 ## Writeup scaffolding
 
-- `@actreg/writeup/GENERAL_OUTLINE.md`: High-level structure for the final project writeup.
-- `@actreg/writeup/DATA.md`: Data section outline (class definitions, annotations, splits, tracking/pose).
-- `@actreg/writeup/TASKS.md`: Task definitions outline (action recognition + TAL).
-- `@actreg/writeup/METRICS.md`: Metrics definitions outline (classification + TAL).
-- `@actreg/writeup/METHODS.md`: Methods outline (models, imbalance strategies, fusion, TAL variants).
-- `@actreg/writeup/RESULTS.md`: Results section outline (tables + analysis per task).
+- `@actreg/docs/writeup/GENERAL_OUTLINE.md`: High-level structure for the final project writeup.
+- `@actreg/docs/writeup/DATA.md`: Data section outline (class definitions, annotations, splits, tracking/pose).
+- `@actreg/docs/writeup/TASKS.md`: Task definitions outline (action recognition + TAL).
+- `@actreg/docs/writeup/METRICS.md`: Metrics definitions outline (classification + TAL).
+- `@actreg/docs/writeup/METHODS.md`: Methods outline (models, imbalance strategies, fusion, TAL variants).
+- `@actreg/docs/writeup/RESULTS.md`: Results section outline (tables + analysis per task).
+
+## Retraining / planning notes
+
+- `@actreg/docs/notes/retraining/1_E2E_Plan_Initial.md`: Initial end-to-end TAL plan.
+- `@actreg/docs/notes/retraining/2_Data_Splits_Review.md`: Data-splits review for paper-ready retraining.
+- `@actreg/docs/notes/retraining/3_Binary_VJEPA_TAL_Feature_Model.md`: Binary V-JEPA TAL feature-model notes.
 

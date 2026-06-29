@@ -5,7 +5,7 @@ Automated classification **and temporal localization** of **Repetitive Motor Mov
 1. **Clip classification** — given a trimmed clip, predict the RMM class. Approaches: skeleton-based CNN (PoseC3D), skeleton-based GCN (STGCN++), video encoder finetuning (V-JEPA2), late fusion, and zero-shot VLM (Qwen2.5-VL).
 2. **Temporal Action Localization (TAL)** — given an untrimmed video, find *when* RMMs occur and classify them. Approaches: window-based scoring + postprocessing, OpenTAD end-to-end detectors (ActionFormer/TriDet), and a two-stage (binary detector → classifier) pipeline.
 
-> **New here / picking this up?** Start with [`REPRODUCE.md`](REPRODUCE.md) for the end-to-end pipeline, [`docs/ARTIFACTS.md`](docs/ARTIFACTS.md) for where data/checkpoints live, and [`REPRODUCIBILITY_TODO.md`](REPRODUCIBILITY_TODO.md) for the remaining handoff tasks.
+> **New here / picking this up?** Start with [`REPRODUCE.md`](REPRODUCE.md) for the end-to-end pipeline, [`docs/INDEX.md`](docs/INDEX.md) for a catalog of all docs and entry points, [`docs/ARTIFACTS.md`](docs/ARTIFACTS.md) for where data/checkpoints live, and [`REPRODUCIBILITY_TODO.md`](REPRODUCIBILITY_TODO.md) for the remaining handoff tasks.
 
 ---
 
@@ -497,8 +497,9 @@ actreg/
 ├── README.md                 # This file
 ├── REPRODUCE.md              # End-to-end pipeline (start here to run things)
 ├── ANALYSIS.md               # Detailed results analysis and conclusions
+├── config.yaml  paths.py     # Central path config (single source of truth)
 ├── envs/                     # Pinned conda environments (pyskl, vjepa2, opentad)
-├── docs/                     # ARTIFACTS.md (data/artifact retention policy), etc.
+├── docs/                     # INDEX.md, ARTIFACTS.md, writeup/, notes/, archive/
 ├── opentad_sails/            # OpenTAD fork delta (UPSTREAM_COMMIT + patch)
 ├── pyskl/                    # Skeleton-based classification (PoseC3D + STGCN++)
 │   ├── configs/{posec3d,stgcn++}/...  # SAILS configs
@@ -516,7 +517,6 @@ actreg/
 ├── tal/                      # Window-based TAL evaluation (window→segment→mAP)
 ├── two-stg/                  # Two-stage TAL (binary detector → Stage-2 classifier)
 ├── insights/                 # Analysis notebooks, failure review, paper figs/tables
-├── writeup/                  # Paper-section drafts
 ├── clip_validation/          # Clip integrity validation results
 ├── scripts/                  # Shared utility scripts
 └── rendered_videos/          # Demo/visualization outputs (git-ignored *.mp4)
