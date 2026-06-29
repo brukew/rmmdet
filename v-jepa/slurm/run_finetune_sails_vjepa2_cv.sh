@@ -23,8 +23,11 @@ conda activate vjepa2
 
 cd /orcd/data/satra/001/users/brukew
 
+# Canonical filesystem paths from the repo's single source of truth (config.yaml).
+eval "$(python actreg/paths.py --export)"
+
 CSV_DIR=${CSV_DIR:-/orcd/data/satra/001/users/brukew/actreg/dataprep/cv_folds}
-CLIPS_ROOT=${CLIPS_ROOT:-/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips}
+CLIPS_ROOT=${CLIPS_ROOT:-$VJEPA2_FINETUNE_CLIPS}
 OUTPUT_ROOT=${OUTPUT_ROOT:-/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_type_cv}
 MODEL_ID=${MODEL_ID:-facebook/vjepa2-vitl-fpc16-256-ssv2}
 WANDB_MODE=${WANDB_MODE:-offline}

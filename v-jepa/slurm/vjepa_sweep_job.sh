@@ -26,6 +26,9 @@ fi
 cd /orcd/data/satra/001/users/brukew
 conda activate vjepa2
 
+# Canonical filesystem paths from the repo's single source of truth (config.yaml).
+eval "$(python actreg/paths.py --export)"
+
 LOG_DIR=/orcd/data/satra/001/users/brukew/vjepa_rmm_logs
 mkdir -p "$LOG_DIR"
 
@@ -58,10 +61,10 @@ fi
 eval "${CONFIGS[$idx]}"
 
 CSV_DIR=${CSV_DIR:-/orcd/data/satra/001/users/brukew/actreg/dataprep/cv_folds}
-CLIPS_ROOT=${CLIPS_ROOT:-/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips}
+CLIPS_ROOT=${CLIPS_ROOT:-$VJEPA2_FINETUNE_CLIPS}
 OUTPUT_ROOT=${OUTPUT_ROOT:-/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_type_cv_sweep}
 MODEL_ID=${MODEL_ID:-facebook/vjepa2-vitl-fpc16-256-ssv2}
-MASK_CACHE_BASE=${MASK_CACHE_BASE:-/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking}
+MASK_CACHE_BASE=${MASK_CACHE_BASE:-$CACHE_FOR_TRACKING}
 SAM3_PARSED_CSV=${SAM3_PARSED_CSV:-/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv}
 VIDEO_META_JSON=${VIDEO_META_JSON:-/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json}
 

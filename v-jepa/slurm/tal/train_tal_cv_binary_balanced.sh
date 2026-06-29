@@ -53,9 +53,12 @@ cd /orcd/data/satra/001/users/brukew/actreg
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate vjepa2
 
+# Canonical filesystem paths from the repo's single source of truth (config.yaml).
+eval "$(python paths.py --export)"
+
 # Configuration
 CSV_DIR="/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class"
-CLIPS_ROOT="/orcd/scratch/bcs/001/brukew/sails/tal_windows_4class/canonical_clips"
+CLIPS_ROOT="$TAL_CLIPS_ROOT"
 OUTPUT_ROOT="/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_tal_cv_binary_balanced"
 
 # Class probabilities for binary balanced sampling:

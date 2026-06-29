@@ -30,6 +30,9 @@ fi
 cd /orcd/data/satra/001/users/brukew
 conda activate vjepa2
 
+# Canonical filesystem paths from the repo's single source of truth (config.yaml).
+eval "$(python actreg/paths.py --export)"
+
 LOG_DIR=/orcd/data/satra/001/users/brukew/vjepa_rmm_logs
 mkdir -p "$LOG_DIR"
 
@@ -37,12 +40,12 @@ mkdir -p "$LOG_DIR"
 # Paths - same hyperparams as existing 5-class crop run
 # ============================================================================
 CSV_DIR=/orcd/data/satra/001/users/brukew/actreg/dataprep/splits/cv_splits
-CLIPS_ROOT=/orcd/scratch/bcs/001/sensein/sails/rmm/classification_clips
+CLIPS_ROOT="$CLASSIFICATION_CLIPS"
 OUTPUT_ROOT=/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop
 MODEL_ID=facebook/vjepa2-vitl-fpc16-256-ssv2
 
 # Cropping paths
-MASK_CACHE_BASE=/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking
+MASK_CACHE_BASE="$CACHE_FOR_TRACKING"
 SAM3_PARSED_CSV=/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv
 VIDEO_META_JSON=/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json
 
