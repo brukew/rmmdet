@@ -8,15 +8,15 @@ Comprehensive comparison of all methods evaluated for RMM classification.
 
 ### 4-Class Task (Clip-Level Metrics)
 
-| Rank | Method | Clip Top-1 | Clip Top-2 | Clip Macro F1 | Cohen's κ |
-|------|--------|------------|------------|---------------|-----------|
-| 🥇 | **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** | **84.7% ± 1.9%** | **96.2% ± 1.9%** | **82.1% ± 3.9%** | **0.759 ± 0.02** |
-| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 83.8% ± 2.2% | 96.5% ± 0.4% | 82.2% ± 2.5% | 0.745 ± 0.03 |
-| 🥉 | MLP Fusion (V-JEPA2 + PoseC3D) | 80.3% ± 3.3% | 95.1% ± 2.4% | 78.9% ± 4.4% | 0.690 ± 0.04 |
-| 4 | STGCN++ (4-stream) | 77.9% | 95.1% | 72.7% | 0.635 |
-| 5 | V-JEPA2 + SAM3 crop | 76.0% | 93.7% | 75.1% | 0.657 |
-| 6 | PoseC3D (non-weighted) | 74.6% | 91.3% | 70.4% | 0.580 |
-| 7 | Qwen2.5-VL (zero-shot) | — | — | 28.2% | 0.168 |
+| Rank | Method | Clip Top-1 | Clip Top-2 | Clip Macro F1 | Macro Prec | Macro Rec | Cohen's κ |
+|------|--------|------------|------------|---------------|------------|-----------|-----------|
+| 🥇 | **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** | **84.7% ± 1.9%** | **96.2% ± 1.9%** | **82.1% ± 3.9%** | **83.2% ± 4.1%** | **83.3% ± 3.5%** | **0.759 ± 0.02** |
+| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 83.8% ± 2.2% | 96.5% ± 0.4% | 82.2% ± 2.5% | 83.8% ± 1.5% | 83.6% ± 2.5% | 0.745 ± 0.03 |
+| 🥉 | MLP Fusion (V-JEPA2 + PoseC3D) | 80.3% ± 3.3% | 95.1% ± 2.4% | 78.9% ± 4.4% | 80.3% ± 4.1% | 80.6% ± 4.1% | 0.690 ± 0.04 |
+| 4 | STGCN++ (4-stream) | 77.9% ± 2.2% | 95.1% ± 0.7% | 72.7% ± 4.5% | 77.6% ± 0.7% | 71.0% ± 6.5% | 0.635 ± 0.03 |
+| 5 | V-JEPA2 + SAM3 crop | 76.0% ± 3.0% | 93.7% ± 1.3% | 75.1% ± 1.8% | 78.4% ± 0.7% | 73.0% ± 3.3% | 0.657 ± 0.09 |
+| 6 | PoseC3D (non-weighted) | 74.6% ± 3.0% | 91.3% ± 0.4% | 70.4% ± 7.3% | 75.3% ± 6.2% | 68.4% ± 8.0% | 0.580 ± 0.05 |
+| 7 | Qwen2.5-VL (zero-shot) | 56.8% ± 3.4% | 78.9% ± 2.2% | 28.2% ± 0.6% | 51.2% ± 10.0% | 31.2% ± 0.7% | 0.168 ± 0.02 |
 
 *Note: MLP fusion results use nested 5-fold CV within validation set for realistic evaluation.*
 
@@ -35,19 +35,19 @@ Comprehensive comparison of all methods evaluated for RMM classification.
 
 ### 5-Class Task (Clip-Level Metrics)
 
-| Rank | Method | Clip Top-1 | Clip Top-2 | Clip Macro F1 | Cohen's κ |
-|------|--------|------------|------------|---------------|-----------|
-| 🥇 | **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** | **69.6% ± 3.0%** | **88.5% ± 0.4%** | **69.8% ± 1.8%** | **0.594 ± 0.04** |
-| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 68.2% ± 1.5% | 88.1% ± 2.1% | 68.5% ± 1.9% | 0.578 ± 0.02 |
-| 🥉 | MLP Fusion (V-JEPA2 + PoseC3D) | 67.6% ± 3.6% | 87.5% ± 1.1% | 67.8% ± 1.0% | 0.569 ± 0.04 |
-| 4 | PoseC3D + Weighted | 67.0% ± 1.6% | 85.5% ± 1.3% | 65.9% ± 2.8% | 0.549 |
-| 5 | STGCN++ 4-stream | 66.5% ± 1.5% | 83.3% ± 1.0% | 64.6% ± 1.4% | 0.541 |
-| 6 | STGCN++ 4-stream + Weighted | 65.8% ± 3.3% | 81.6% ± 1.5% | 63.7% ± 2.2% | 0.534 |
-| 7 | PoseC3D + Weighted Sqrt | 65.3% ± 2.2% | 83.5% ± 1.1% | 63.9% ± 3.2% | 0.526 |
-| 8 | PoseC3D + Focal Loss | 63.9% ± 0.7% | 83.0% ± 1.4% | 61.8% ± 3.5% | 0.502 |
-| 9 | STGCN++ 4-stream + Focal | 63.7% ± 2.8% | 83.5% ± 0.4% | 63.6% ± 2.9% | 0.501 |
-| 10 | V-JEPA2 + SAM3 crop | 62.5% | 84.8% | 63.0% | 0.499 |
-| 11 | Qwen2.5-VL (zero-shot) | — | — | 12.2% | 0.008 |
+| Rank | Method | Clip Top-1 | Clip Top-2 | Clip Macro F1 | Macro Prec | Macro Rec | Cohen's κ |
+|------|--------|------------|------------|---------------|------------|-----------|-----------|
+| 🥇 | **3-Way MLP (V-JEPA2 + PoseC3D + STGCN++)** | **69.6% ± 3.0%** | **88.5% ± 0.4%** | **69.8% ± 1.8%** | **71.7% ± 2.6%** | **71.0% ± 1.5%** | **0.594 ± 0.04** |
+| 🥈 | MLP Fusion (V-JEPA2 + STGCN++) | 68.2% ± 1.5% | 88.1% ± 2.1% | 68.5% ± 1.9% | 70.0% ± 2.2% | 70.3% ± 1.7% | 0.578 ± 0.02 |
+| 🥉 | MLP Fusion (V-JEPA2 + PoseC3D) | 67.6% ± 3.6% | 87.5% ± 1.1% | 67.8% ± 1.0% | 69.2% ± 1.8% | 69.2% ± 2.0% | 0.569 ± 0.04 |
+| 4 | PoseC3D + Weighted | 67.0% ± 1.6% | 85.5% ± 1.3% | 65.9% ± 2.8% | 67.8% ± 3.1% | 65.4% ± 3.0% | 0.549 ± 0.02 |
+| 5 | STGCN++ 4-stream | 66.5% ± 1.5% | 83.3% ± 1.0% | 64.6% ± 1.4% | 67.4% ± 3.7% | 65.0% ± 3.3% | 0.541 ± 0.02 |
+| 6 | STGCN++ 4-stream + Weighted | 65.8% ± 3.3% | 81.6% ± 1.5% | 63.7% ± 2.2% | 65.0% ± 2.8% | 63.7% ± 3.0% | 0.534 ± 0.04 |
+| 7 | PoseC3D + Weighted Sqrt | 65.3% ± 2.2% | 83.5% ± 1.1% | 63.9% ± 3.2% | 66.1% ± 3.8% | 63.6% ± 3.6% | 0.526 ± 0.03 |
+| 8 | PoseC3D + Focal Loss | 63.9% ± 0.7% | 83.0% ± 1.4% | 61.8% ± 3.5% | 65.2% ± 1.8% | 60.6% ± 4.5% | 0.502 ± 0.02 |
+| 9 | STGCN++ 4-stream + Focal | 63.7% ± 2.8% | 83.5% ± 0.4% | 63.6% ± 2.9% | 67.6% ± 1.9% | 62.6% ± 3.1% | 0.501 ± 0.03 |
+| 10 | V-JEPA2 + SAM3 crop | 62.5% ± 2.0% | 84.8% ± 2.9% | 63.0% ± 1.3% | 64.4% ± 2.1% | 61.5% ± 0.8% | 0.499 ± 0.05 |
+| 11 | Qwen2.5-VL (zero-shot) | 37.7% ± 6.0% | 63.6% ± 2.2% | 12.2% ± 1.9% | 20.8% ± 6.3% | 20.3% ± 1.0% | 0.008 ± 0.02 |
 
 *Note: MLP fusion results use nested 5-fold CV within validation set for realistic evaluation.*
 
@@ -389,21 +389,58 @@ MLP fusion was evaluated for 5-class task, combining V-JEPA2 with the best skele
 
 Zero-shot prompting with no training. Uses multi-window voting (4 windows × 16 frames).
 
+**Output Directory**: `/orcd/data/satra/001/users/brukew/qwen_rmm_outputs/`
+
 ### 4-Class Results
 
 | Metric | Value |
 |--------|-------|
-| Macro F1 | 28.2% |
-| Cohen's κ | 0.168 |
+| Clip Top-1 Accuracy | 56.8% ± 3.4% |
+| Clip Top-2 Accuracy | 78.9% ± 2.2% |
+| Macro F1 | 28.2% ± 0.6% |
+| Macro Precision | 51.2% ± 10.0% |
+| Macro Recall | 31.2% ± 0.7% |
+| Cohen's κ | 0.168 ± 0.02 |
+
+**Per-Class Precision/Recall (4-class):**
+
+| Class | Precision | Recall | F1 |
+|-------|-----------|--------|-----|
+| hands_flapping | 58.6% | **93.9%** | 72.4% |
+| jumping | 46.1% | 27.6% | 34.5% |
+| rocking | **100.0%** | 3.1% | 6.0% |
+| spinning | 0.0% | 0.0% | 0.0% |
 
 ### 5-Class Results
 
 | Metric | Value |
 |--------|-------|
-| Macro F1 | 12.2% |
-| Cohen's κ | 0.008 |
+| Clip Top-1 Accuracy | 37.7% ± 6.0% |
+| Clip Top-2 Accuracy | 63.6% ± 2.2% |
+| Macro F1 | 12.2% ± 1.9% |
+| Macro Precision | 20.8% ± 6.3% |
+| Macro Recall | 20.3% ± 1.0% |
+| Cohen's κ | 0.008 ± 0.02 |
 
-**Note**: Zero-shot VLM struggles with fine-grained motor movement classification.
+**Per-Class Precision/Recall (5-class):**
+
+| Class | Precision | Recall | F1 |
+|-------|-----------|--------|-----|
+| hands_flapping | 37.6% | **98.0%** | 54.4% |
+| jumping | **66.7%** | 3.5% | 6.7% |
+| one_hand_flap | 0.0% | 0.0% | 0.0% |
+| rocking | 0.0% | 0.0% | 0.0% |
+| spinning | 0.0% | 0.0% | 0.0% |
+
+### Analysis
+
+**Why Qwen Fails:**
+- **Over-predicts hands_flapping**: ~94-98% recall but only ~37-59% precision
+- **Ignores rare classes**: 0% recall for spinning, rocking (5-class), one_hand_flap
+- **Visual similarity confusion**: Cannot distinguish subtle motor patterns
+- **Temporal blindness**: RMM detection requires understanding motion dynamics, not static frames
+
+**Note**: Zero-shot VLM struggles with fine-grained motor movement classification. The task requires understanding temporal motion patterns rather than static visual appearance.
 
 ---
 
@@ -442,6 +479,46 @@ Zero-shot prompting with no training. Uses multi-window voting (4 windows × 16 
 - Qwen2.5-VL cannot distinguish fine-grained motor movements
 - Near-chance performance despite sophisticated prompting
 - Task requires temporal motion patterns, not scene understanding
+
+---
+
+## Per-Class Precision/Recall (Best Models)
+
+Comparison of precision (P) and recall (R) for each class across the best model from each family.
+
+### 4-Class Task
+
+| Model Family | Model | hands_flapping P/R | jumping P/R | rocking P/R | spinning P/R |
+|--------------|-------|-------------------|-------------|-------------|--------------|
+| **Fusion** | 3-Way MLP | **92.3% / 87.0%** | 74.7% / **83.6%** | 76.7% / **76.7%** | 86.7% / **86.7%** |
+| **V-JEPA** | V-JEPA2 + SAM3 | 80.5% / 84.0% | 64.8% / 68.4% | **80.0%** / 61.3% | **88.3%** / 78.3% |
+| **PoseC3D** | PoseC3D (non-weighted) | 77.4% / **86.7%** | 69.3% / 65.2% | 64.8% / 47.1% | **89.6%** / 74.4% |
+| **STGCN++** | STGCN++ 4-stream | 81.6% / 85.7% | **74.8%** / 62.9% | 74.5% / 56.0% | 79.7% / 79.4% |
+| **VLM** | Qwen2.5-VL (zero-shot) | 58.6% / **93.9%** | 46.1% / 27.6% | **100.0%** / 3.1% | 0.0% / 0.0% |
+
+**Key Observations:**
+- **Fusion** achieves the most balanced precision/recall across classes
+- **V-JEPA2** excels at rare class precision (rocking: 80%, spinning: 88%)
+- **PoseC3D** has highest recall for hands_flapping (86.7%)
+- **Qwen** over-predicts hands_flapping (high recall: 93.9%, low precision: 58.6%)
+- **Rocking** is the hardest class for most models (lowest F1)
+
+### 5-Class Task
+
+| Model Family | Model | hands_flapping P/R | jumping P/R | one_hand_flap P/R | rocking P/R | spinning P/R |
+|--------------|-------|-------------------|-------------|-------------------|-------------|--------------|
+| **Fusion** | 3-Way MLP | **76.2%** / 66.8% | 69.4% / **78.6%** | **50.5% / 53.6%** | 68.1% / **68.9%** | 87.0% / **88.9%** |
+| **PoseC3D** | PoseC3D + Weighted | 65.8% / **73.3%** | **70.2%** / 77.1% | 57.3% / 41.1% | 61.2% / 52.5% | 84.3% / 82.9% |
+| **STGCN++** | STGCN++ 4-stream | 66.5% / 71.7% | 65.9% / 74.1% | 39.2% / 37.3% | **72.8%** / 53.9% | **87.1%** / 84.4% |
+| **V-JEPA** | V-JEPA2 + SAM3 | 62.6% / 68.8% | 55.7% / 69.1% | 45.6% / 29.4% | 72.7% / 53.2% | 85.4% / 86.8% |
+| **VLM** | Qwen2.5-VL (zero-shot) | 37.6% / **98.0%** | 66.7% / 3.5% | 0.0% / 0.0% | 0.0% / 0.0% | 0.0% / 0.0% |
+
+**Key Observations:**
+- **one_hand_flap** is challenging for all models (best: Fusion at 50.5% precision, 53.6% recall)
+- **Fusion** achieves most consistent performance across rare classes
+- **STGCN++** has highest precision for rocking (72.8%) and spinning (87.1%)
+- **Qwen** completely fails on one_hand_flap, rocking, and spinning (0% recall)
+- Class imbalance impacts one_hand_flap and rocking the most
 
 ---
 
