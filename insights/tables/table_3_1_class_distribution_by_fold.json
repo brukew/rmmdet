@@ -1,0 +1,230 @@
+{
+  "4class": {
+    "fold_0": {
+      "train": {
+        "background": 8306,
+        "hands_flapping": 503,
+        "jumping": 241,
+        "rocking": 131,
+        "spinning": 26
+      },
+      "val": {
+        "background": 4484,
+        "hands_flapping": 292,
+        "jumping": 90,
+        "rocking": 47,
+        "spinning": 25
+      }
+    },
+    "fold_1": {
+      "train": {
+        "background": 9327,
+        "hands_flapping": 534,
+        "jumping": 216,
+        "rocking": 122,
+        "spinning": 30
+      },
+      "val": {
+        "background": 3463,
+        "hands_flapping": 261,
+        "jumping": 115,
+        "rocking": 56,
+        "spinning": 21
+      }
+    },
+    "fold_2": {
+      "train": {
+        "background": 7947,
+        "hands_flapping": 553,
+        "jumping": 205,
+        "rocking": 103,
+        "spinning": 46
+      },
+      "val": {
+        "background": 4843,
+        "hands_flapping": 242,
+        "jumping": 126,
+        "rocking": 75,
+        "spinning": 5
+      }
+    },
+    "summary": {
+      "train": {
+        "background": {
+          "mean": 8526.7,
+          "std": 584.6,
+          "total": 25580
+        },
+        "hands_flapping": {
+          "mean": 530.0,
+          "std": 20.6,
+          "total": 1590
+        },
+        "jumping": {
+          "mean": 220.7,
+          "std": 15.1,
+          "total": 662
+        },
+        "rocking": {
+          "mean": 118.7,
+          "std": 11.7,
+          "total": 356
+        },
+        "spinning": {
+          "mean": 34.0,
+          "std": 8.6,
+          "total": 102
+        }
+      },
+      "val": {
+        "background": {
+          "mean": 4263.3,
+          "std": 584.6,
+          "total": 12790
+        },
+        "hands_flapping": {
+          "mean": 265.0,
+          "std": 20.6,
+          "total": 795
+        },
+        "jumping": {
+          "mean": 110.3,
+          "std": 15.1,
+          "total": 331
+        },
+        "rocking": {
+          "mean": 59.3,
+          "std": 11.7,
+          "total": 178
+        },
+        "spinning": {
+          "mean": 17.0,
+          "std": 8.6,
+          "total": 51
+        }
+      }
+    }
+  },
+  "5class": {
+    "fold_0": {
+      "train": {
+        "background": 8306,
+        "hands_flapping": 342,
+        "jumping": 241,
+        "one_hand_flap": 161,
+        "rocking": 131,
+        "spinning": 26
+      },
+      "val": {
+        "background": 4484,
+        "hands_flapping": 227,
+        "jumping": 90,
+        "one_hand_flap": 65,
+        "rocking": 47,
+        "spinning": 25
+      }
+    },
+    "fold_1": {
+      "train": {
+        "background": 9327,
+        "hands_flapping": 386,
+        "jumping": 216,
+        "one_hand_flap": 148,
+        "rocking": 122,
+        "spinning": 30
+      },
+      "val": {
+        "background": 3463,
+        "hands_flapping": 183,
+        "jumping": 115,
+        "one_hand_flap": 78,
+        "rocking": 56,
+        "spinning": 21
+      }
+    },
+    "fold_2": {
+      "train": {
+        "background": 7947,
+        "hands_flapping": 410,
+        "jumping": 205,
+        "one_hand_flap": 143,
+        "rocking": 103,
+        "spinning": 46
+      },
+      "val": {
+        "background": 4843,
+        "hands_flapping": 159,
+        "jumping": 126,
+        "one_hand_flap": 83,
+        "rocking": 75,
+        "spinning": 5
+      }
+    },
+    "summary": {
+      "train": {
+        "background": {
+          "mean": 8526.7,
+          "std": 584.6,
+          "total": 25580
+        },
+        "hands_flapping": {
+          "mean": 379.3,
+          "std": 28.2,
+          "total": 1138
+        },
+        "jumping": {
+          "mean": 220.7,
+          "std": 15.1,
+          "total": 662
+        },
+        "one_hand_flap": {
+          "mean": 150.7,
+          "std": 7.6,
+          "total": 452
+        },
+        "rocking": {
+          "mean": 118.7,
+          "std": 11.7,
+          "total": 356
+        },
+        "spinning": {
+          "mean": 34.0,
+          "std": 8.6,
+          "total": 102
+        }
+      },
+      "val": {
+        "background": {
+          "mean": 4263.3,
+          "std": 584.6,
+          "total": 12790
+        },
+        "hands_flapping": {
+          "mean": 189.7,
+          "std": 28.2,
+          "total": 569
+        },
+        "jumping": {
+          "mean": 110.3,
+          "std": 15.1,
+          "total": 331
+        },
+        "one_hand_flap": {
+          "mean": 75.3,
+          "std": 7.6,
+          "total": 226
+        },
+        "rocking": {
+          "mean": 59.3,
+          "std": 11.7,
+          "total": 178
+        },
+        "spinning": {
+          "mean": 17.0,
+          "std": 8.6,
+          "total": 51
+        }
+      }
+    }
+  }
+}

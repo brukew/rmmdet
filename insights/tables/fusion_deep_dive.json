@@ -1,0 +1,1406 @@
+{
+  "clip_level": {
+    "4class_per_class_pr": {
+      "hands flapping": {
+        "precision": {
+          "fusion": 92.3,
+          "vjepa": 80.5,
+          "posec3d": 77.4,
+          "stgcnpp": 80.4,
+          "fusion_minus_vjepa": 11.799999999999997,
+          "fusion_minus_posec3d": 14.899999999999991,
+          "fusion_minus_stgcnpp": 11.899999999999991
+        },
+        "recall": {
+          "fusion": 86.9,
+          "vjepa": 84.0,
+          "posec3d": 86.7,
+          "stgcnpp": 89.1,
+          "fusion_minus_vjepa": 2.9000000000000057,
+          "fusion_minus_posec3d": 0.20000000000000284,
+          "fusion_minus_stgcnpp": -2.1999999999999886
+        }
+      },
+      "jumping": {
+        "precision": {
+          "fusion": 74.3,
+          "vjepa": 64.8,
+          "posec3d": 69.3,
+          "stgcnpp": 73.6,
+          "fusion_minus_vjepa": 9.5,
+          "fusion_minus_posec3d": 5.0,
+          "fusion_minus_stgcnpp": 0.7000000000000028
+        },
+        "recall": {
+          "fusion": 83.7,
+          "vjepa": 68.4,
+          "posec3d": 65.2,
+          "stgcnpp": 72.1,
+          "fusion_minus_vjepa": 15.299999999999997,
+          "fusion_minus_posec3d": 18.5,
+          "fusion_minus_stgcnpp": 11.600000000000009
+        }
+      },
+      "rocking": {
+        "precision": {
+          "fusion": 77.6,
+          "vjepa": 80.0,
+          "posec3d": 64.8,
+          "stgcnpp": 67.7,
+          "fusion_minus_vjepa": -2.4000000000000057,
+          "fusion_minus_posec3d": 12.799999999999997,
+          "fusion_minus_stgcnpp": 9.899999999999991
+        },
+        "recall": {
+          "fusion": 76.7,
+          "vjepa": 61.3,
+          "posec3d": 47.1,
+          "stgcnpp": 48.7,
+          "fusion_minus_vjepa": 15.400000000000006,
+          "fusion_minus_posec3d": 29.6,
+          "fusion_minus_stgcnpp": 28.0
+        }
+      },
+      "spinning": {
+        "precision": {
+          "fusion": 87.1,
+          "vjepa": 88.3,
+          "posec3d": 89.6,
+          "stgcnpp": 88.7,
+          "fusion_minus_vjepa": -1.2000000000000028,
+          "fusion_minus_posec3d": -2.5,
+          "fusion_minus_stgcnpp": -1.6000000000000085
+        },
+        "recall": {
+          "fusion": 87.2,
+          "vjepa": 78.3,
+          "posec3d": 74.4,
+          "stgcnpp": 74.0,
+          "fusion_minus_vjepa": 8.900000000000006,
+          "fusion_minus_posec3d": 12.799999999999997,
+          "fusion_minus_stgcnpp": 13.200000000000003
+        }
+      }
+    },
+    "5class_per_class_pr": {
+      "hands flapping": {
+        "precision": {
+          "fusion": 75.8,
+          "vjepa": 57.6,
+          "posec3d": 65.8,
+          "stgcnpp": 67.6,
+          "fusion_minus_vjepa": 18.199999999999996,
+          "fusion_minus_posec3d": 10.0,
+          "fusion_minus_stgcnpp": 8.200000000000003
+        },
+        "recall": {
+          "fusion": 66.5,
+          "vjepa": 68.4,
+          "posec3d": 73.3,
+          "stgcnpp": 78.1,
+          "fusion_minus_vjepa": -1.9000000000000057,
+          "fusion_minus_posec3d": -6.799999999999997,
+          "fusion_minus_stgcnpp": -11.599999999999994
+        }
+      },
+      "jumping": {
+        "precision": {
+          "fusion": 68.9,
+          "vjepa": 53.6,
+          "posec3d": 70.2,
+          "stgcnpp": 66.7,
+          "fusion_minus_vjepa": 15.300000000000004,
+          "fusion_minus_posec3d": -1.2999999999999972,
+          "fusion_minus_stgcnpp": 2.200000000000003
+        },
+        "recall": {
+          "fusion": 78.3,
+          "vjepa": 60.6,
+          "posec3d": 77.1,
+          "stgcnpp": 71.2,
+          "fusion_minus_vjepa": 17.699999999999996,
+          "fusion_minus_posec3d": 1.2000000000000028,
+          "fusion_minus_stgcnpp": 7.099999999999994
+        }
+      },
+      "one hand flap": {
+        "precision": {
+          "fusion": 49.7,
+          "vjepa": 35.0,
+          "posec3d": 57.3,
+          "stgcnpp": 52.0,
+          "fusion_minus_vjepa": 14.700000000000003,
+          "fusion_minus_posec3d": -7.599999999999994,
+          "fusion_minus_stgcnpp": -2.299999999999997
+        },
+        "recall": {
+          "fusion": 52.8,
+          "vjepa": 22.9,
+          "posec3d": 41.1,
+          "stgcnpp": 33.5,
+          "fusion_minus_vjepa": 29.9,
+          "fusion_minus_posec3d": 11.699999999999996,
+          "fusion_minus_stgcnpp": 19.299999999999997
+        }
+      },
+      "rocking": {
+        "precision": {
+          "fusion": 68.3,
+          "vjepa": 61.9,
+          "posec3d": 61.2,
+          "stgcnpp": 60.5,
+          "fusion_minus_vjepa": 6.399999999999999,
+          "fusion_minus_posec3d": 7.099999999999994,
+          "fusion_minus_stgcnpp": 7.799999999999997
+        },
+        "recall": {
+          "fusion": 68.9,
+          "vjepa": 52.9,
+          "posec3d": 52.5,
+          "stgcnpp": 55.4,
+          "fusion_minus_vjepa": 16.000000000000007,
+          "fusion_minus_posec3d": 16.400000000000006,
+          "fusion_minus_stgcnpp": 13.500000000000007
+        }
+      },
+      "spinning": {
+        "precision": {
+          "fusion": 87.1,
+          "vjepa": 93.3,
+          "posec3d": 84.3,
+          "stgcnpp": 85.1,
+          "fusion_minus_vjepa": -6.200000000000003,
+          "fusion_minus_posec3d": 2.799999999999997,
+          "fusion_minus_stgcnpp": 2.0
+        },
+        "recall": {
+          "fusion": 89.1,
+          "vjepa": 45.0,
+          "posec3d": 82.9,
+          "stgcnpp": 78.3,
+          "fusion_minus_vjepa": 44.099999999999994,
+          "fusion_minus_posec3d": 6.199999999999989,
+          "fusion_minus_stgcnpp": 10.799999999999997
+        }
+      }
+    }
+  },
+  "window_level": {
+    "V-JEPA": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa",
+      "folds": [
+        0,
+        1
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.8175367922814918,
+            "std": 0.032807476653299694
+          },
+          "macro_f1_rmm": {
+            "mean": 0.22645340515730156,
+            "std": 0.03575806924536089
+          },
+          "macro_f1_all": {
+            "mean": 0.3609636947202006,
+            "std": 0.03233380635874625
+          },
+          "bg_pred_rate": {
+            "mean": 0.8104311129093714,
+            "std": 0.02978759911979023
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.3194122532180741,
+              "std": 0.000926729832773393
+            },
+            "recall": {
+              "mean": 0.5975764971395581,
+              "std": 0.0496837768330447
+            },
+            "f1": {
+              "mean": 0.4156941649899396,
+              "std": 0.012877263581488968
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.24379436847872696,
+              "std": 0.058363904902568015
+            },
+            "recall": {
+              "mean": 0.47681159420289854,
+              "std": 0.01014492753623189
+            },
+            "f1": {
+              "mean": 0.3176986794843601,
+              "std": 0.049113547589875683
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.052568218298555375,
+              "std": 0.01886035313001605
+            },
+            "recall": {
+              "mean": 0.058700607902735555,
+              "std": 0.00512917933130699
+            },
+            "f1": {
+              "mean": 0.05439752034095312,
+              "std": 0.013018209996125536
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.13742690058479531,
+              "std": 0.0847953216374269
+            },
+            "recall": {
+              "mean": 0.10380952380952381,
+              "std": 0.05619047619047619
+            },
+            "f1": {
+              "mean": 0.11802325581395348,
+              "std": 0.06802325581395348
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.9467583969179468,
+              "std": 0.007929479678823514
+            },
+            "recall": {
+              "mean": 0.8560621292042835,
+              "std": 0.027300939484387388
+            },
+            "f1": {
+              "mean": 0.8990048529717969,
+              "std": 0.018636754812287604
+            }
+          }
+        }
+      }
+    },
+    "V-JEPA (Balanced)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced",
+      "folds": [
+        0,
+        1,
+        2
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.8093685930764583,
+            "std": 0.017253576542154193
+          },
+          "macro_f1_rmm": {
+            "mean": 0.23705885972876517,
+            "std": 0.040711134198406045
+          },
+          "macro_f1_all": {
+            "mean": 0.3682682795400687,
+            "std": 0.0344984269076611
+          },
+          "bg_pred_rate": {
+            "mean": 0.7919747684789257,
+            "std": 0.014640833120952462
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.29818674159126474,
+              "std": 0.039315075922368076
+            },
+            "recall": {
+              "mean": 0.6725604768718952,
+              "std": 0.058490401073605536
+            },
+            "f1": {
+              "mean": 0.4090142459453115,
+              "std": 0.028957490807049627
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.24757986899522513,
+              "std": 0.03705846411509722
+            },
+            "recall": {
+              "mean": 0.538992408557626,
+              "std": 0.053257230062958676
+            },
+            "f1": {
+              "mean": 0.338849123118001,
+              "std": 0.044481620642509725
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.05635859582672584,
+              "std": 0.03648132741196704
+            },
+            "recall": {
+              "mean": 0.08207024653833164,
+              "std": 0.047096662843377324
+            },
+            "f1": {
+              "mean": 0.06673643650150289,
+              "std": 0.0412468252008161
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.11349464028035457,
+              "std": 0.08670874029721688
+            },
+            "recall": {
+              "mean": 0.2292063492063492,
+              "std": 0.16151462487613563
+            },
+            "f1": {
+              "mean": 0.13363563335024523,
+              "std": 0.11906068332663362
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.955533646460693,
+              "std": 0.009368584885572743
+            },
+            "recall": {
+              "mean": 0.8384931482991508,
+              "std": 0.015139183078325446
+            },
+            "f1": {
+              "mean": 0.8931059587852826,
+              "std": 0.009696120149742707
+            }
+          }
+        }
+      }
+    },
+    "PoseC3D (CE)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce",
+      "folds": [
+        0,
+        1
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.8588911386020682,
+            "std": 0.005606060651065947
+          },
+          "macro_f1_rmm": {
+            "mean": 0.23957989612204558,
+            "std": 0.04135092232913859
+          },
+          "macro_f1_all": {
+            "mean": 0.3762315095451739,
+            "std": 0.03230723482492506
+          },
+          "bg_pred_rate": {
+            "mean": 0.8894289033868572,
+            "std": 0.017212867752113226
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.44487753022987997,
+              "std": 0.024316782566328576
+            },
+            "recall": {
+              "mean": 0.4342203898050975,
+              "std": 0.05491004497751126
+            },
+            "f1": {
+              "mean": 0.43587641597819604,
+              "std": 0.016384890554467235
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.3070330100891371,
+              "std": 0.0062200019590557265
+            },
+            "recall": {
+              "mean": 0.3174960712414877,
+              "std": 0.004243059193294901
+            },
+            "f1": {
+              "mean": 0.312088690898046,
+              "std": 0.0011643211501468076
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.0,
+              "std": 0.0
+            },
+            "recall": {
+              "mean": 0.0,
+              "std": 0.0
+            },
+            "f1": {
+              "mean": 0.0,
+              "std": 0.0
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.18831168831168832,
+              "std": 0.0974025974025974
+            },
+            "recall": {
+              "mean": 0.2638095238095238,
+              "std": 0.21619047619047618
+            },
+            "f1": {
+              "mean": 0.2103544776119403,
+              "std": 0.1478544776119403
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.9181433453278114,
+              "std": 0.004933577749111739
+            },
+            "recall": {
+              "mean": 0.9277532042986013,
+              "std": 0.012852856307459248
+            },
+            "f1": {
+              "mean": 0.9228379632376871,
+              "std": 0.003867515191929183
+            }
+          }
+        }
+      }
+    },
+    "PoseC3D (CE Balanced)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced",
+      "folds": [
+        0,
+        1,
+        2
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.8111342625696844,
+            "std": 0.01673144108332874
+          },
+          "macro_f1_rmm": {
+            "mean": 0.22401695123102808,
+            "std": 0.0753497759226065
+          },
+          "macro_f1_all": {
+            "mean": 0.35815685553102333,
+            "std": 0.0577966292128234
+          },
+          "bg_pred_rate": {
+            "mean": 0.8177190692547355,
+            "std": 0.029891941875894026
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.29196346058150285,
+              "std": 0.0293649875989931
+            },
+            "recall": {
+              "mean": 0.5280985727498873,
+              "std": 0.050615688875187914
+            },
+            "f1": {
+              "mean": 0.3746157234907717,
+              "std": 0.03007538053819442
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.22366063006979817,
+              "std": 0.011737147064138665
+            },
+            "recall": {
+              "mean": 0.4154851766295402,
+              "std": 0.1512806736310412
+            },
+            "f1": {
+              "mean": 0.27905678894459035,
+              "std": 0.03999173715426623
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.042270531400966184,
+              "std": 0.03403140773817722
+            },
+            "recall": {
+              "mean": 0.02049476345250993,
+              "std": 0.01727306714602912
+            },
+            "f1": {
+              "mean": 0.02758047767393562,
+              "std": 0.02290154497501053
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.2537037037037037,
+              "std": 0.28387143286672084
+            },
+            "recall": {
+              "mean": 0.18920634920634924,
+              "std": 0.23471290687146587
+            },
+            "f1": {
+              "mean": 0.21481481481481482,
+              "std": 0.25809261318791626
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.9333383231658346,
+              "std": 0.003657673015379142
+            },
+            "recall": {
+              "mean": 0.8594795376311728,
+              "std": 0.023406728213568834
+            },
+            "f1": {
+              "mean": 0.8947164727310043,
+              "std": 0.012859588128676394
+            }
+          }
+        }
+      }
+    },
+    "STGCN++ (CE, 4-stream)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/stgcnpp_ce_4stream",
+      "folds": [
+        0,
+        1
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.8515565546506537,
+            "std": 0.008131641340437645
+          },
+          "macro_f1_rmm": {
+            "mean": 0.17046664670005202,
+            "std": 0.012532471400319725
+          },
+          "macro_f1_all": {
+            "mean": 0.320326065999997,
+            "std": 0.01101609903907333
+          },
+          "bg_pred_rate": {
+            "mean": 0.8906495332682628,
+            "std": 0.00801416383641429
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.38265263509563185,
+              "std": 0.027603775160778415
+            },
+            "recall": {
+              "mean": 0.41171081126103615,
+              "std": 0.005913709811760787
+            },
+            "f1": {
+              "mean": 0.3959086944252033,
+              "std": 0.012105877523794883
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.23879989139288624,
+              "std": 0.002579418951941359
+            },
+            "recall": {
+              "mean": 0.2569408067050812,
+              "std": 0.003928758512310115
+            },
+            "f1": {
+              "mean": 0.24749635391346622,
+              "std": 0.00043753038405444644
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.0,
+              "std": 0.0
+            },
+            "recall": {
+              "mean": 0.0,
+              "std": 0.0
+            },
+            "f1": {
+              "mean": 0.0,
+              "std": 0.0
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.5,
+              "std": 0.5
+            },
+            "recall": {
+              "mean": 0.02,
+              "std": 0.02
+            },
+            "f1": {
+              "mean": 0.038461538461538464,
+              "std": 0.038461538461538464
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.9143433870226632,
+              "std": 0.0007743329277704603
+            },
+            "recall": {
+              "mean": 0.9252875001198316,
+              "std": 0.00922689405922561
+            },
+            "f1": {
+              "mean": 0.9197637431997768,
+              "std": 0.004950609594087663
+            }
+          }
+        }
+      }
+    },
+    "Fusion: V-JEPA + PoseC3D (MLP)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_mlp_logp",
+      "folds": [
+        0,
+        1
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.48102962951011335,
+            "std": 0.010798766812665006
+          },
+          "macro_f1_rmm": {
+            "mean": 0.18823563213587957,
+            "std": 0.0036412105162808017
+          },
+          "macro_f1_all": {
+            "mean": 0.2764264370309879,
+            "std": 0.005384141910939361
+          },
+          "bg_pred_rate": {
+            "mean": 0.43779169154099185,
+            "std": 0.01292332378076505
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.32573821592552554,
+              "std": 0.017056543899802018
+            },
+            "recall": {
+              "mean": 0.6295334068125754,
+              "std": 0.028000839762767016
+            },
+            "f1": {
+              "mean": 0.4284244772249325,
+              "std": 0.008293186196486113
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.12308460900384588,
+              "std": 0.020735615715255264
+            },
+            "recall": {
+              "mean": 0.6171497584541064,
+              "std": 0.06062801932367151
+            },
+            "f1": {
+              "mean": 0.2032069970845481,
+              "std": 0.02536443148688046
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.017957007227393493,
+              "std": 0.0006409899113761774
+            },
+            "recall": {
+              "mean": 0.4194528875379939,
+              "std": 0.13373860182370823
+            },
+            "f1": {
+              "mean": 0.034319610197019984,
+              "std": 0.0016665489725301921
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.04753637566137566,
+              "std": 0.010499338624338626
+            },
+            "recall": {
+              "mean": 0.5457142857142857,
+              "std": 0.02571428571428569
+            },
+            "f1": {
+              "mean": 0.08699144403701764,
+              "std": 0.017426226645713284
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.9588649111388966,
+              "std": 0.008723268079406488
+            },
+            "recall": {
+              "mean": 0.46849149270882734,
+              "std": 0.015770707695446418
+            },
+            "f1": {
+              "mean": 0.629189656611421,
+              "std": 0.012355867489573569
+            }
+          }
+        }
+      }
+    },
+    "Fusion: V-JEPA + STGCN++ (MLP)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_stgcnpp_mlp_logp",
+      "folds": [
+        0,
+        1
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.5714725724623742,
+            "std": 0.08628360412733832
+          },
+          "macro_f1_rmm": {
+            "mean": 0.1740215941361855,
+            "std": 0.005602268041361491
+          },
+          "macro_f1_all": {
+            "mean": 0.2816534663628301,
+            "std": 0.019309226126169976
+          },
+          "bg_pred_rate": {
+            "mean": 0.5336935404532029,
+            "std": 0.09166085403849408
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.269217644437016,
+              "std": 0.0071208702434676086
+            },
+            "recall": {
+              "mean": 0.6404175195507269,
+              "std": 0.027390699627355297
+            },
+            "f1": {
+              "mean": 0.3787001287001287,
+              "std": 0.002252252252252257
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.12439852745515842,
+              "std": 0.011371707531786769
+            },
+            "recall": {
+              "mean": 0.5454106280193236,
+              "std": 0.03236714975845406
+            },
+            "f1": {
+              "mean": 0.20255823910308962,
+              "std": 0.01731491100261863
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.022777361553349564,
+              "std": 0.006170006867703066
+            },
+            "recall": {
+              "mean": 0.24202127659574468,
+              "std": 0.007978723404255317
+            },
+            "f1": {
+              "mean": 0.041333982853704224,
+              "std": 0.010188265389855506
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.03969732528458923,
+              "std": 0.0017964506490207206
+            },
+            "recall": {
+              "mean": 0.4980952380952381,
+              "std": 0.021904761904761927
+            },
+            "f1": {
+              "mean": 0.07349402588781945,
+              "std": 0.0028418519747759677
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.9606522742851327,
+              "std": 0.00340212985994498
+            },
+            "recall": {
+              "mean": 0.571201503700519,
+              "std": 0.09271464259742923
+            },
+            "f1": {
+              "mean": 0.7121809552694085,
+              "std": 0.07413705846540386
+            }
+          }
+        }
+      }
+    },
+    "Fusion: V-JEPA + PoseC3D Bal (MLP)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp",
+      "folds": [
+        0,
+        1
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.4936122629492324,
+            "std": 0.010218176274465252
+          },
+          "macro_f1_rmm": {
+            "mean": 0.20024519592980938,
+            "std": 0.001850169652556688
+          },
+          "macro_f1_all": {
+            "mean": 0.28746000051112136,
+            "std": 0.0010147336474100044
+          },
+          "bg_pred_rate": {
+            "mean": 0.438949459508322,
+            "std": 0.01023338012395586
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.2696364589060557,
+              "std": 0.03221851579883468
+            },
+            "recall": {
+              "mean": 0.7144872198603894,
+              "std": 0.02866346507111739
+            },
+            "f1": {
+              "mean": 0.38953553854459166,
+              "std": 0.02966820852800786
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.1552498178571795,
+              "std": 0.009509907543278157
+            },
+            "recall": {
+              "mean": 0.6741545893719807,
+              "std": 0.048067632850241515
+            },
+            "f1": {
+              "mean": 0.2517034393251136,
+              "std": 0.009166125892277721
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.020640693041786343,
+              "std": 0.0008732511813212274
+            },
+            "recall": {
+              "mean": 0.4390197568389058,
+              "std": 0.13544832826747724
+            },
+            "f1": {
+              "mean": 0.03929627915400559,
+              "std": 0.0021783752238745922
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.06671575579069852,
+              "std": 0.025517253918039346
+            },
+            "recall": {
+              "mean": 0.641904761904762,
+              "std": 0.11809523809523809
+            },
+            "f1": {
+              "mean": 0.12044552669552669,
+              "std": 0.044056637806637815
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.9678249628135538,
+              "std": 0.004777776912473608
+            },
+            "recall": {
+              "mean": 0.47417973180478323,
+              "std": 0.014991507005496896
+            },
+            "f1": {
+              "mean": 0.6363192188363693,
+              "std": 0.012474346847276774
+            }
+          }
+        }
+      }
+    },
+    "Fusion: V-JEPA Bal + PoseC3D (MLP)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp",
+      "folds": [
+        0,
+        1
+      ],
+      "aggregate": {
+        "scalars": {
+          "accuracy": {
+            "mean": 0.5227856575778675,
+            "std": 0.0511309078332301
+          },
+          "macro_f1_rmm": {
+            "mean": 0.18061679717049,
+            "std": 0.014205433397724607
+          },
+          "macro_f1_all": {
+            "mean": 0.27761072660766667,
+            "std": 0.02079845182043366
+          },
+          "bg_pred_rate": {
+            "mean": 0.4774210940896948,
+            "std": 0.05275306548908196
+          }
+        },
+        "per_class": {
+          "hands_flapping": {
+            "precision": {
+              "mean": 0.27363129311610157,
+              "std": 0.00414648466167622
+            },
+            "recall": {
+              "mean": 0.6845641106387446,
+              "std": 0.014066026347556826
+            },
+            "f1": {
+              "mean": 0.3908794544320442,
+              "std": 0.001937605051682001
+            }
+          },
+          "jumping": {
+            "precision": {
+              "mean": 0.11996639900618887,
+              "std": 0.003515382370329348
+            },
+            "recall": {
+              "mean": 0.6128019323671497,
+              "std": 0.06497584541062806
+            },
+            "f1": {
+              "mean": 0.2004886401603742,
+              "std": 0.008415469428666902
+            }
+          },
+          "rocking": {
+            "precision": {
+              "mean": 0.025471357809626873,
+              "std": 0.0011182375660956714
+            },
+            "recall": {
+              "mean": 0.38753799392097266,
+              "std": 0.10182370820668693
+            },
+            "f1": {
+              "mean": 0.04765969095248641,
+              "std": 0.0027789055387416675
+            }
+          },
+          "spinning": {
+            "precision": {
+              "mean": 0.04617647058823529,
+              "std": 0.02735294117647059
+            },
+            "recall": {
+              "mean": 0.49047619047619045,
+              "std": 0.10952380952380952
+            },
+            "f1": {
+              "mean": 0.08343940313705525,
+              "std": 0.04756496367517185
+            }
+          },
+          "background": {
+            "precision": {
+              "mean": 0.959932669290315,
+              "std": 0.006835856301740051
+            },
+            "recall": {
+              "mean": 0.5110735111564254,
+              "std": 0.05337787153759779
+            },
+            "f1": {
+              "mean": 0.6655864443563732,
+              "std": 0.04717052551126977
+            }
+          }
+        }
+      }
+    }
+  },
+  "segment_level": {
+    "available": true,
+    "fusion_model": "V-JEPA + PoseC3D (MLP)",
+    "base_model": "V-JEPA",
+    "avg_mAP": {
+      "fusion": 6.36,
+      "vjepa": 5.95,
+      "delta": 0.41000000000000014
+    },
+    "per_class_ap_delta": {
+      "tIoU=0.3": {
+        "hands flapping": {
+          "fusion": 11.69,
+          "vjepa": 13.88,
+          "delta": -2.1900000000000013
+        },
+        "jumping": {
+          "fusion": 12.52,
+          "vjepa": 16.42,
+          "delta": -3.900000000000002
+        },
+        "rocking": {
+          "fusion": 2.94,
+          "vjepa": 1.94,
+          "delta": 1.0
+        },
+        "spinning": {
+          "fusion": 12.63,
+          "vjepa": 5.69,
+          "delta": 6.94
+        }
+      },
+      "tIoU=0.5": {
+        "hands flapping": {
+          "fusion": 6.14,
+          "vjepa": 7.34,
+          "delta": -1.2000000000000002
+        },
+        "jumping": {
+          "fusion": 8.42,
+          "vjepa": 12.71,
+          "delta": -4.290000000000001
+        },
+        "rocking": {
+          "fusion": 2.16,
+          "vjepa": 1.03,
+          "delta": 1.1300000000000001
+        },
+        "spinning": {
+          "fusion": 10.99,
+          "vjepa": 4.39,
+          "delta": 6.6000000000000005
+        }
+      },
+      "tIoU=0.7": {
+        "hands flapping": {
+          "fusion": 1.49,
+          "vjepa": 1.08,
+          "delta": 0.4099999999999999
+        },
+        "jumping": {
+          "fusion": 2.85,
+          "vjepa": 4.75,
+          "delta": -1.9
+        },
+        "rocking": {
+          "fusion": 0.6,
+          "vjepa": 0.6,
+          "delta": 0.0
+        },
+        "spinning": {
+          "fusion": 3.94,
+          "vjepa": 1.53,
+          "delta": 2.41
+        }
+      }
+    }
+  },
+  "postprocessing_hpo": {
+    "vjepa_balanced": {
+      "grid_search_csv": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced/grid_search_results.csv",
+      "best_params": {
+        "thr": 0.3,
+        "smooth_k": 1,
+        "merge_gap_sec": 0.5
+      },
+      "best_avg_mAP": 0.0594709795345546
+    },
+    "vjepa_binary": {
+      "grid_search_csv": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_binary/grid_search_results.csv",
+      "best_params": {
+        "thr": 0.6,
+        "smooth_k": 1,
+        "merge_gap_sec": 0.5
+      },
+      "best_avg_mAP": 0.0666489090451648
+    },
+    "vjepa_balanced_posec3d_mlp_logp": {
+      "grid_search_csv": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/grid_search_results.csv",
+      "model_name": "V-JEPA Balanced + PoseC3D (CE)",
+      "n_folds": 2,
+      "best_params": {
+        "thr": 0.5,
+        "smooth_k": 1,
+        "merge_gap_sec": 0.5
+      },
+      "best_avg_mAP": 0.0598762031645987
+    }
+  },
+  "tal_best_eval_postprocess": {
+    "V-JEPA (Balanced)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced",
+      "fold_params": [
+        {
+          "fold": 0,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced/fold0/best_eval/eval_config.json",
+          "thr": 0.3,
+          "smooth_k": 1,
+          "merge_gap_sec": 0.5
+        },
+        {
+          "fold": 1,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced/fold1/best_eval/eval_config.json",
+          "thr": 0.3,
+          "smooth_k": 1,
+          "merge_gap_sec": 0.5
+        },
+        {
+          "fold": 2,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced/fold2/best_eval/eval_config.json",
+          "thr": 0.3,
+          "smooth_k": 1,
+          "merge_gap_sec": 0.5
+        }
+      ],
+      "aggregate": {
+        "thr": {
+          "mean": 0.3,
+          "std": 0.0
+        },
+        "smooth_k": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "merge_gap_sec": {
+          "mean": 0.5,
+          "std": 0.0
+        }
+      }
+    },
+    "PoseC3D (CE Balanced)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced",
+      "fold_params": [
+        {
+          "fold": 0,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced/fold0/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 1,
+          "merge_gap_sec": 1.0
+        },
+        {
+          "fold": 1,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced/fold1/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 1,
+          "merge_gap_sec": 1.0
+        },
+        {
+          "fold": 2,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced/fold2/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 1,
+          "merge_gap_sec": 1.0
+        }
+      ],
+      "aggregate": {
+        "thr": {
+          "mean": 0.4000000000000001,
+          "std": 5.551115123125783e-17
+        },
+        "smooth_k": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "merge_gap_sec": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      }
+    },
+    "Fusion: V-JEPA + PoseC3D (MLP)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_mlp_logp",
+      "fold_params": [
+        {
+          "fold": 0,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_mlp_logp/fold0/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 1,
+          "merge_gap_sec": 1.0
+        },
+        {
+          "fold": 1,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_mlp_logp/fold1/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 1,
+          "merge_gap_sec": 1.0
+        }
+      ],
+      "aggregate": {
+        "thr": {
+          "mean": 0.4,
+          "std": 0.0
+        },
+        "smooth_k": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "merge_gap_sec": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      }
+    },
+    "Fusion: V-JEPA + STGCN++ (MLP)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_stgcnpp_mlp_logp",
+      "fold_params": [
+        {
+          "fold": 0,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_stgcnpp_mlp_logp/fold0/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 1,
+          "merge_gap_sec": 1.0
+        },
+        {
+          "fold": 1,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_stgcnpp_mlp_logp/fold1/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 1,
+          "merge_gap_sec": 1.0
+        }
+      ],
+      "aggregate": {
+        "thr": {
+          "mean": 0.4,
+          "std": 0.0
+        },
+        "smooth_k": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "merge_gap_sec": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      }
+    },
+    "Fusion: V-JEPA + PoseC3D Bal (MLP)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp",
+      "fold_params": [
+        {
+          "fold": 0,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp/fold0/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 3,
+          "merge_gap_sec": 0.5
+        },
+        {
+          "fold": 1,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp/fold1/best_eval/eval_config.json",
+          "thr": 0.4,
+          "smooth_k": 3,
+          "merge_gap_sec": 0.5
+        }
+      ],
+      "aggregate": {
+        "thr": {
+          "mean": 0.4,
+          "std": 0.0
+        },
+        "smooth_k": {
+          "mean": 3.0,
+          "std": 0.0
+        },
+        "merge_gap_sec": {
+          "mean": 0.5,
+          "std": 0.0
+        }
+      }
+    },
+    "Fusion: V-JEPA Bal + PoseC3D (MLP)": {
+      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp",
+      "fold_params": [
+        {
+          "fold": 0,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp/fold0/best_eval/eval_config.json",
+          "thr": 0.5,
+          "smooth_k": 1,
+          "merge_gap_sec": 0.5
+        },
+        {
+          "fold": 1,
+          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp/fold1/best_eval/eval_config.json",
+          "thr": 0.5,
+          "smooth_k": 1,
+          "merge_gap_sec": 0.5
+        }
+      ],
+      "aggregate": {
+        "thr": {
+          "mean": 0.5,
+          "std": 0.0
+        },
+        "smooth_k": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "merge_gap_sec": {
+          "mean": 0.5,
+          "std": 0.0
+        }
+      }
+    }
+  }
+}

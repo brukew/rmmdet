@@ -1,0 +1,239 @@
+{
+  "task": "window_level_detection_5class",
+  "models": [
+    {
+      "model": "PoseC3D (CE)",
+      "folds": "2",
+      "top1_acc": {
+        "mean": 85.89,
+        "std": 0.56
+      },
+      "top2_acc": {
+        "mean": 96.16,
+        "std": 0.48
+      },
+      "macro_f1": {
+        "mean": 37.62,
+        "std": 3.23
+      },
+      "cohens_kappa": {
+        "mean": 0.33,
+        "std": 0.02
+      }
+    },
+    {
+      "model": "STGCN++ 4-Stream (CE)",
+      "folds": "2",
+      "top1_acc": {
+        "mean": 85.74,
+        "std": 0.14
+      },
+      "top2_acc": {
+        "mean": 95.18,
+        "std": 0.11
+      },
+      "macro_f1": {
+        "mean": 32.85,
+        "std": 1.48
+      },
+      "cohens_kappa": {
+        "mean": 0.3,
+        "std": 0.0
+      }
+    },
+    {
+      "model": "PoseC3D (Focal)",
+      "folds": "3",
+      "top1_acc": {
+        "mean": 84.31,
+        "std": 1.33
+      },
+      "top2_acc": {
+        "mean": 96.07,
+        "std": 0.3
+      },
+      "macro_f1": {
+        "mean": 31.47,
+        "std": 1.8
+      },
+      "cohens_kappa": {
+        "mean": 0.25,
+        "std": 0.02
+      }
+    },
+    {
+      "model": "V-JEPA",
+      "folds": "2",
+      "top1_acc": {
+        "mean": 81.75,
+        "std": 3.28
+      },
+      "top2_acc": {
+        "mean": 93.35,
+        "std": 2.03
+      },
+      "macro_f1": {
+        "mean": 36.1,
+        "std": 3.23
+      },
+      "cohens_kappa": {
+        "mean": 0.31,
+        "std": 0.03
+      }
+    },
+    {
+      "model": "PoseC3D (CE Balanced)",
+      "folds": "3",
+      "top1_acc": {
+        "mean": 81.11,
+        "std": 1.67
+      },
+      "top2_acc": {
+        "mean": 96.34,
+        "std": 0.39
+      },
+      "macro_f1": {
+        "mean": 35.82,
+        "std": 5.78
+      },
+      "cohens_kappa": {
+        "mean": 0.28,
+        "std": 0.02
+      }
+    },
+    {
+      "model": "V-JEPA (Balanced)",
+      "folds": "3",
+      "top1_acc": {
+        "mean": 80.94,
+        "std": 1.73
+      },
+      "top2_acc": {
+        "mean": 95.08,
+        "std": 0.87
+      },
+      "macro_f1": {
+        "mean": 36.83,
+        "std": 3.45
+      },
+      "cohens_kappa": {
+        "mean": 0.31,
+        "std": 0.02
+      }
+    },
+    {
+      "model": "V-JEPA Binary (Balanced)",
+      "folds": "3",
+      "top1_acc": {
+        "mean": 78.12,
+        "std": 3.11
+      },
+      "top2_acc": {
+        "mean": 100.0,
+        "std": null
+      },
+      "macro_f1": {
+        "mean": 62.15,
+        "std": 1.17
+      },
+      "cohens_kappa": {
+        "mean": 0.27,
+        "std": 0.02
+      }
+    },
+    {
+      "model": "STGCN++ 4-Stream (CE Balanced)",
+      "folds": "3",
+      "top1_acc": {
+        "mean": 77.48,
+        "std": 3.75
+      },
+      "top2_acc": null,
+      "macro_f1": {
+        "mean": 30.4,
+        "std": 1.35
+      },
+      "cohens_kappa": null
+    },
+    {
+      "model": "STGCN++ 4-Stream (Focal)",
+      "folds": "3",
+      "top1_acc": {
+        "mean": 37.13,
+        "std": 3.75
+      },
+      "top2_acc": {
+        "mean": 74.95,
+        "std": 8.21
+      },
+      "macro_f1": {
+        "mean": 19.56,
+        "std": 1.18
+      },
+      "cohens_kappa": {
+        "mean": 0.06,
+        "std": 0.01
+      }
+    },
+    {
+      "model": "V-JEPA + PoseC3D (MLP)",
+      "folds": "2",
+      "top1_acc": {
+        "mean": 48.1,
+        "std": 2.16
+      },
+      "top2_acc": {
+        "mean": 90.08,
+        "std": 3.23
+      },
+      "macro_f1": {
+        "mean": 18.82,
+        "std": 0.36
+      },
+      "cohens_kappa": {
+        "mean": 0.13,
+        "std": 0.01
+      }
+    },
+    {
+      "model": "V-JEPA + STGCN++ (MLP)",
+      "folds": "2",
+      "top1_acc": {
+        "mean": 57.15,
+        "std": 8.63
+      },
+      "top2_acc": {
+        "mean": 88.73,
+        "std": 3.82
+      },
+      "macro_f1": {
+        "mean": 17.4,
+        "std": 0.56
+      },
+      "cohens_kappa": {
+        "mean": 0.16,
+        "std": 0.03
+      }
+    },
+    {
+      "model": "V-JEPA + PoseC3D Bal (MLP)",
+      "folds": "2",
+      "top1_acc": {
+        "mean": 49.36,
+        "std": 1.02
+      },
+      "top2_acc": {
+        "mean": 87.69,
+        "std": 1.33
+      },
+      "macro_f1": {
+        "mean": 20.02,
+        "std": 0.19
+      },
+      "cohens_kappa": {
+        "mean": 0.14,
+        "std": 0.01
+      }
+    }
+  ]
+}

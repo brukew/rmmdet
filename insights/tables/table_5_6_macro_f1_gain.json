@@ -1,0 +1,224 @@
+{
+  "best_per_family": {
+    "RGB": {
+      "model_name": "V-JEPA Balanced",
+      "model_dir": "vjepa_balanced",
+      "top1_f1": {
+        "mean": 0.23705885972876514,
+        "std": 0.04071113419840606
+      },
+      "top1_acc": {
+        "mean": 0.8093685930764583,
+        "std": 0.017253576542154193
+      },
+      "top2_acc": {
+        "mean": 0.9507615793641159,
+        "std": 0.008722415449060853
+      }
+    },
+    "Pose": {
+      "model_name": "PoseC3D (CE)",
+      "model_dir": "posec3d_ce",
+      "top1_f1": {
+        "mean": 0.23957989612204558,
+        "std": 0.04135092232913859
+      },
+      "top1_acc": {
+        "mean": 0.8588911386020682,
+        "std": 0.005606060651065947
+      },
+      "top2_acc": {
+        "mean": 0.9599333393136462,
+        "std": 0.005545502557177784
+      }
+    },
+    "Fusion": {
+      "model_name": "V-JEPA + PoseC3D (MLP)",
+      "model_dir": "vjepa_balanced_posec3d_mlp_logp",
+      "top1_f1": {
+        "mean": 0.18061679717049,
+        "std": 0.014205433397724607
+      },
+      "top1_acc": {
+        "mean": 0.5227856575778675,
+        "std": 0.0511309078332301
+      },
+      "top2_acc": {
+        "mean": 0.8752197318247805,
+        "std": 0.034055278300776426
+      }
+    }
+  },
+  "all_models": {
+    "vjepa": {
+      "model_name": "V-JEPA",
+      "model_dir": "vjepa",
+      "top1_f1": {
+        "mean": 0.22645340515730156,
+        "std": 0.03575806924536089
+      },
+      "top1_acc": {
+        "mean": 0.8175367922814918,
+        "std": 0.032807476653299694
+      },
+      "top2_acc": {
+        "mean": 0.933502085719924,
+        "std": 0.020325374790404083
+      },
+      "family": "RGB"
+    },
+    "vjepa_balanced": {
+      "model_name": "V-JEPA Balanced",
+      "model_dir": "vjepa_balanced",
+      "top1_f1": {
+        "mean": 0.23705885972876514,
+        "std": 0.04071113419840606
+      },
+      "top1_acc": {
+        "mean": 0.8093685930764583,
+        "std": 0.017253576542154193
+      },
+      "top2_acc": {
+        "mean": 0.9507615793641159,
+        "std": 0.008722415449060853
+      },
+      "family": "RGB"
+    },
+    "posec3d_ce": {
+      "model_name": "PoseC3D (CE)",
+      "model_dir": "posec3d_ce",
+      "top1_f1": {
+        "mean": 0.23957989612204558,
+        "std": 0.04135092232913859
+      },
+      "top1_acc": {
+        "mean": 0.8588911386020682,
+        "std": 0.005606060651065947
+      },
+      "top2_acc": {
+        "mean": 0.9599333393136462,
+        "std": 0.005545502557177784
+      },
+      "family": "Pose"
+    },
+    "posec3d_focal": {
+      "model_name": "PoseC3D (Focal)",
+      "model_dir": "posec3d_focal",
+      "top1_f1": {
+        "mean": 0.1645514629053089,
+        "std": 0.024417489127581318
+      },
+      "top1_acc": {
+        "mean": 0.8431413048462879,
+        "std": 0.013285448731071113
+      },
+      "top2_acc": {
+        "mean": 0.9605609091932535,
+        "std": 0.003040661117910797
+      },
+      "family": "Pose"
+    },
+    "posec3d_ce_balanced": {
+      "model_name": "PoseC3D (CE Balanced)",
+      "model_dir": "posec3d_ce_balanced",
+      "top1_f1": {
+        "mean": 0.22401695123102808,
+        "std": 0.0753497759226065
+      },
+      "top1_acc": {
+        "mean": 0.8111342625696844,
+        "std": 0.01673144108332874
+      },
+      "top2_acc": {
+        "mean": 0.9634993814767805,
+        "std": 0.0038168909696974294
+      },
+      "family": "Pose"
+    },
+    "stgcnpp_focal_4stream": {
+      "model_name": "STGCN++ (Focal)",
+      "model_dir": "stgcnpp_focal_4stream",
+      "top1_f1": {
+        "mean": 0.11647199788172376,
+        "std": 0.02064997889692987
+      },
+      "top1_acc": {
+        "mean": 0.371266643477356,
+        "std": 0.0375117480945195
+      },
+      "top2_acc": {
+        "mean": 0.7494591416166795,
+        "std": 0.08205799330229485
+      },
+      "family": "Skeleton"
+    },
+    "vjepa_posec3d_mlp_logp": {
+      "model_name": "V-JEPA + PoseC3D (MLP)",
+      "model_dir": "vjepa_posec3d_mlp_logp",
+      "top1_f1": {
+        "mean": 0.18823563213587954,
+        "std": 0.003641210516280774
+      },
+      "top1_acc": {
+        "mean": 0.48102962951011335,
+        "std": 0.010798766812665006
+      },
+      "top2_acc": {
+        "mean": 0.9008297888712786,
+        "std": 0.032341535551564604
+      },
+      "family": "Fusion"
+    },
+    "vjepa_stgcnpp_mlp_logp": {
+      "model_name": "V-JEPA + STGCN++ (MLP)",
+      "model_dir": "vjepa_stgcnpp_mlp_logp",
+      "top1_f1": {
+        "mean": 0.1740215941361855,
+        "std": 0.005602268041361477
+      },
+      "top1_acc": {
+        "mean": 0.5714725724623742,
+        "std": 0.08628360412733832
+      },
+      "top2_acc": {
+        "mean": 0.8872782978804385,
+        "std": 0.038197603294126026
+      },
+      "family": "Fusion"
+    },
+    "vjepa_posec3d_bal_mlp_logp": {
+      "model_name": "V-JEPA + PoseC3D Bal (MLP)",
+      "model_dir": "vjepa_posec3d_bal_mlp_logp",
+      "top1_f1": {
+        "mean": 0.20024519592980938,
+        "std": 0.0018501696525567157
+      },
+      "top1_acc": {
+        "mean": 0.4936122629492324,
+        "std": 0.010218176274465252
+      },
+      "top2_acc": {
+        "mean": 0.8769376633896683,
+        "std": 0.01330129975330463
+      },
+      "family": "Fusion"
+    },
+    "vjepa_balanced_posec3d_mlp_logp": {
+      "model_name": "V-JEPA Bal + PoseC3D (MLP)",
+      "model_dir": "vjepa_balanced_posec3d_mlp_logp",
+      "top1_f1": {
+        "mean": 0.18061679717049,
+        "std": 0.014205433397724607
+      },
+      "top1_acc": {
+        "mean": 0.5227856575778675,
+        "std": 0.0511309078332301
+      },
+      "top2_acc": {
+        "mean": 0.8752197318247805,
+        "std": 0.034055278300776426
+      },
+      "family": "Fusion"
+    }
+  }
+}

@@ -1,0 +1,245 @@
+{
+  "multiclass": {
+    "by_fold": {
+      "fold_0": {
+        "n_videos": 71,
+        "avg_precision": 0.15941103301647977,
+        "avg_recall": 0.6315194195475885,
+        "total_tp": 94,
+        "total_fn": 61
+      },
+      "fold_1": {
+        "n_videos": 73,
+        "avg_precision": 0.1333164700458283,
+        "avg_recall": 0.6357340528573404,
+        "total_tp": 122,
+        "total_fn": 57
+      },
+      "fold_2": {
+        "n_videos": 80,
+        "avg_precision": 0.10985872268898975,
+        "avg_recall": 0.54375,
+        "total_tp": 96,
+        "total_fn": 76
+      }
+    },
+    "combined": {
+      "n_videos": 224,
+      "avg_precision": 0.13320974764569068,
+      "avg_recall": 0.6015467171717171,
+      "total_tp": 312,
+      "total_fn": 194
+    },
+    "class_performance": {
+      "hands flapping": {
+        "n_segments": 265,
+        "n_videos": 136,
+        "avg_recall": 0.6384543969102792
+      },
+      "jumping": {
+        "n_segments": 134,
+        "n_videos": 70,
+        "avg_recall": 0.642622655122655
+      },
+      "rocking": {
+        "n_segments": 74,
+        "n_videos": 45,
+        "avg_recall": 0.44388888888888894
+      },
+      "spinning": {
+        "n_segments": 33,
+        "n_videos": 21,
+        "avg_recall": 0.6439153439153438
+      }
+    }
+  },
+  "binary": {
+    "by_fold": {
+      "fold_0": {
+        "n_videos": 71,
+        "avg_precision": 0.2331632974464218,
+        "avg_recall": 0.6944302176696543,
+        "total_tp": 102,
+        "total_fn": 53
+      },
+      "fold_1": {
+        "n_videos": 73,
+        "avg_precision": 0.23306576599869266,
+        "avg_recall": 0.7703611457036115,
+        "total_tp": 137,
+        "total_fn": 42
+      },
+      "fold_2": {
+        "n_videos": 80,
+        "avg_precision": 0.1958928150273932,
+        "avg_recall": 0.6859375,
+        "total_tp": 119,
+        "total_fn": 53
+      }
+    },
+    "combined": {
+      "n_videos": 224,
+      "avg_precision": 0.21982062606603558,
+      "avg_recall": 0.7161424512987014,
+      "total_tp": 358,
+      "total_fn": 148
+    }
+  },
+  "comparison": {
+    "overall": {
+      "multiclass": {
+        "avg_precision": 0.13320974764569068,
+        "avg_recall": 0.6015467171717171,
+        "total_tp": 312,
+        "total_fp": 2640,
+        "total_fn": 194
+      },
+      "binary": {
+        "avg_precision": 0.21982062606603558,
+        "avg_recall": 0.7161424512987014,
+        "total_tp": 358,
+        "total_fp": 1695,
+        "total_fn": 148
+      }
+    },
+    "by_class": {},
+    "agreement": {
+      "common_videos": 298,
+      "multiclass_better_recall": 13,
+      "binary_better_recall": 50,
+      "same_recall": 235
+    }
+  },
+  "failure_correlations": {
+    "multiclass": {
+      "SAM3 Mask Issues": {
+        "n_with": 59,
+        "n_without": 165,
+        "recall_with": 0.6605332990926212,
+        "recall_without": 0.5804545454545454,
+        "recall_diff": 0.0800787536380757,
+        "precision_with": 0.14894716748408643,
+        "precision_without": 0.12758242782468857
+      },
+      "Pose Keypoint Issues": {
+        "n_with": 91,
+        "n_without": 133,
+        "recall_with": 0.6004190254190254,
+        "recall_without": 0.6023182957393484,
+        "recall_diff": -0.0018992703203229988,
+        "precision_with": 0.13252595417723648,
+        "precision_without": 0.13367760633463308
+      },
+      "Low Body Visibility": {
+        "n_with": 13,
+        "n_without": 211,
+        "recall_with": 0.6567599067599068,
+        "recall_without": 0.5981449566757623,
+        "recall_diff": 0.058614950084144524,
+        "precision_with": 0.17107708468002586,
+        "precision_without": 0.13087668896585014
+      },
+      "Low Hand Visibility": {
+        "n_with": 102,
+        "n_without": 122,
+        "recall_with": 0.6051940978411566,
+        "recall_without": 0.5984972677595628,
+        "recall_diff": 0.00669683008159383,
+        "precision_with": 0.14075511244065184,
+        "precision_without": 0.1269013278990838
+      },
+      "High Motion Blur": {
+        "n_with": 17,
+        "n_without": 207,
+        "recall_with": 0.6836007130124777,
+        "recall_without": 0.5948079832137803,
+        "recall_diff": 0.08879272979869746,
+        "precision_with": 0.1494097832931622,
+        "precision_without": 0.13187930993551186
+      },
+      "Multiple Children": {
+        "n_with": 55,
+        "n_without": 169,
+        "recall_with": 0.566850321395776,
+        "recall_without": 0.6128384436076744,
+        "recall_diff": -0.04598812221189841,
+        "precision_with": 0.13301176996103944,
+        "precision_without": 0.13327417825312157
+      },
+      "Ambiguous Annotation": {
+        "n_with": 3,
+        "n_without": 221,
+        "recall_with": 0.75,
+        "recall_without": 0.5995315142373965,
+        "recall_diff": 0.15046848576260352,
+        "precision_with": 0.28998316498316495,
+        "precision_without": 0.1310816017089829
+      }
+    },
+    "binary": {
+      "SAM3 Mask Issues": {
+        "n_with": 59,
+        "n_without": 165,
+        "recall_with": 0.6658063687724705,
+        "recall_without": 0.7341414141414141,
+        "recall_diff": -0.06833504536894364,
+        "precision_with": 0.2042754438418207,
+        "precision_without": 0.22537920637651243
+      },
+      "Pose Keypoint Issues": {
+        "n_with": 91,
+        "n_without": 133,
+        "recall_with": 0.6674825174825175,
+        "recall_without": 0.7494360902255639,
+        "recall_diff": -0.08195357274304638,
+        "precision_with": 0.1954950815995339,
+        "precision_without": 0.2364644196483788
+      },
+      "Low Body Visibility": {
+        "n_with": 13,
+        "n_without": 211,
+        "recall_with": 0.7977855477855478,
+        "recall_without": 0.7111123079132559,
+        "recall_diff": 0.08667323987229192,
+        "precision_with": 0.26931918656056586,
+        "precision_without": 0.21677095172277067
+      },
+      "Low Hand Visibility": {
+        "n_with": 102,
+        "n_without": 122,
+        "recall_with": 0.7178030303030302,
+        "recall_without": 0.7147540983606557,
+        "recall_diff": 0.003048931942374433,
+        "precision_with": 0.22883004391204,
+        "precision_without": 0.21228816196527778
+      },
+      "High Motion Blur": {
+        "n_with": 17,
+        "n_without": 207,
+        "recall_with": 0.7424242424242424,
+        "recall_without": 0.7139840433318694,
+        "recall_diff": 0.028440199092373053,
+        "precision_with": 0.25209037638043724,
+        "precision_without": 0.21717045333490115
+      },
+      "Multiple Children": {
+        "n_with": 55,
+        "n_without": 169,
+        "recall_with": 0.668870523415978,
+        "recall_without": 0.7315268065268065,
+        "recall_diff": -0.06265628311082849,
+        "precision_with": 0.21165544241929324,
+        "precision_without": 0.22247793435343696
+      },
+      "Ambiguous Annotation": {
+        "n_with": 3,
+        "n_without": 221,
+        "recall_with": 0.9166666666666666,
+        "recall_without": 0.7134204031262854,
+        "recall_diff": 0.20324626354038122,
+        "precision_with": 0.5571428571428572,
+        "precision_without": 0.215241591255038
+      }
+    }
+  }
+}

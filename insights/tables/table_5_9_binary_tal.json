@@ -1,0 +1,72 @@
+{
+  "task": "binary_tal",
+  "models": [
+    {
+      "model": "ActionFormer + V-JEPA Binary",
+      "mAP_0.3": {
+        "mean": 40.83,
+        "std": 5.6
+      },
+      "mAP_0.4": {
+        "mean": 35.68,
+        "std": 5.12
+      },
+      "mAP_0.5": {
+        "mean": 28.55,
+        "std": 6.33
+      },
+      "mAP_0.6": {
+        "mean": 22.61,
+        "std": 4.67
+      },
+      "mAP_0.7": {
+        "mean": 11.97,
+        "std": 2.24
+      },
+      "avg_mAP": {
+        "mean": 27.93,
+        "std": 4.7
+      }
+    },
+    {
+      "model": "ActionFormer + V-JEPA Binary",
+      "type": "End-to-end",
+      "mAP_0.3": {
+        "mean": 40.83,
+        "std": null
+      },
+      "mAP_0.5": {
+        "mean": 28.55,
+        "std": null
+      },
+      "mAP_0.7": {
+        "mean": 11.97,
+        "std": null
+      },
+      "avg_mAP": {
+        "mean": 27.93,
+        "std": null
+      }
+    },
+    {
+      "model": "V-JEPA Binary (window)",
+      "type": "Window-based",
+      "mAP_0.3": {
+        "mean": 11.78,
+        "std": 0.63
+      },
+      "mAP_0.5": {
+        "mean": 6.77,
+        "std": 1.12
+      },
+      "mAP_0.7": {
+        "mean": 1.44,
+        "std": 0.33
+      },
+      "avg_mAP": {
+        "mean": 6.66,
+        "std": 0.69
+      }
+    }
+  ]
+}

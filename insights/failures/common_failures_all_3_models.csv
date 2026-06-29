@@ -1,0 +1,49 @@
+id,label,vjepa_pred,posec3d_pred,qwen_pred,quality_bucket,n_children,age_group,video_id
+S2C4T1Y7V7_36_month_4_1_0,spinning,hands flapping,hands flapping,hands flapping,low,1,36,S2C4T1Y7V7_36_month_4
+S2C4T1Y7V7_36_month_6_1_0,rocking,spinning,hands flapping,hands flapping,low,2,36,S2C4T1Y7V7_36_month_6
+G4J8F6F4X0_36_month_109_0_0,rocking,hands flapping,jumping,hands flapping,high,1,36,G4J8F6F4X0_36_month_109
+G4J8F6F4X0_36_month_111_0_0,jumping,hands flapping,hands flapping,hands flapping,high,1,36,G4J8F6F4X0_36_month_111
+L4K0P3T4Q8_14_month_183_0_0,rocking,hands flapping,jumping,hands flapping,high,2,14,L4K0P3T4Q8_14_month_183
+H9T5Y8D3A1_36_month_223_0_0,jumping,hands flapping,hands flapping,hands flapping,high,2,36,H9T5Y8D3A1_36_month_223
+J4J6X7C4D9_36_month_243_0_0,rocking,jumping,spinning,hands flapping,medium,1,36,J4J6X7C4D9_36_month_243
+Z7I5F2E1L4_36_month_247_2_0,rocking,jumping,jumping,hands flapping,high,2,36,Z7I5F2E1L4_36_month_247
+T4R5V7C3L6_unknown_258_1_0,jumping,hands flapping,hands flapping,hands flapping,high,1,unknown,T4R5V7C3L6_unknown_258
+L4M8P2T7S0_36_month_282_0_0,rocking,spinning,spinning,jumping,high,2,36,L4M8P2T7S0_36_month_282
+N5I9D3R2M1_36_month_284_0_0,spinning,rocking,rocking,hands flapping,high,1,36,N5I9D3R2M1_36_month_284
+Q9W9P7Z3J7_36_month_291_1_0,hands flapping,jumping,jumping,jumping,high,1,36,Q9W9P7Z3J7_36_month_291
+A1H3H9Y3T1_36_month_24_0_0,jumping,hands flapping,rocking,hands flapping,low,1,36,A1H3H9Y3T1_36_month_24
+J3J0V4T8C3_14_month_50_0_1,rocking,jumping,hands flapping,hands flapping,low,1,14,J3J0V4T8C3_14_month_50
+J3J0V4T8C3_14_month_50_0_2,rocking,jumping,hands flapping,hands flapping,low,1,14,J3J0V4T8C3_14_month_50
+J3J0V4T8C3_36_month_53_1_0,hands flapping,jumping,jumping,jumping,low,2,36,J3J0V4T8C3_36_month_53
+N4U1A5H1W0_36_month_95_0_0,rocking,hands flapping,hands flapping,hands flapping,low,1,36,N4U1A5H1W0_36_month_95
+L0C6T6H2C6_36_month_102_0_0,jumping,hands flapping,hands flapping,hands flapping,low,2,36,L0C6T6H2C6_36_month_102
+L0C6T6H2C6_36_month_102_0_1,jumping,hands flapping,hands flapping,hands flapping,low,2,36,L0C6T6H2C6_36_month_102
+L0C6T6H2C6_36_month_102_0_2,jumping,hands flapping,rocking,hands flapping,low,2,36,L0C6T6H2C6_36_month_102
+L0C6T6H2C6_36_month_102_2_0,spinning,hands flapping,hands flapping,hands flapping,low,2,36,L0C6T6H2C6_36_month_102
+L0C6T6H2C6_36_month_102_2_1,spinning,hands flapping,rocking,hands flapping,low,2,36,L0C6T6H2C6_36_month_102
+W9K7Y8Y0V6_36_month_113_0_0,spinning,hands flapping,hands flapping,hands flapping,high,1,36,W9K7Y8Y0V6_36_month_113
+W9K7Y8Y0V6_36_month_113_0_1,spinning,hands flapping,hands flapping,hands flapping,high,1,36,W9K7Y8Y0V6_36_month_113
+X2V2P0U5X4_36_month_136_0_0,rocking,hands flapping,jumping,hands flapping,low,1,36,X2V2P0U5X4_36_month_136
+C5L2D6N1W6_36_month_145_0_0,jumping,hands flapping,rocking,hands flapping,high,1,36,C5L2D6N1W6_36_month_145
+C5L2D6N1W6_36_month_145_0_4,jumping,hands flapping,hands flapping,hands flapping,high,1,36,C5L2D6N1W6_36_month_145
+R6R8Q6A7K0_36_month_150_1_0,jumping,hands flapping,hands flapping,hands flapping,high,1,36,R6R8Q6A7K0_36_month_150
+C1G1X2G4C6_36_month_232_1_3,jumping,hands flapping,hands flapping,hands flapping,high,1,36,C1G1X2G4C6_36_month_232
+C1G1X2G4C6_36_month_232_1_5,jumping,hands flapping,hands flapping,hands flapping,high,1,36,C1G1X2G4C6_36_month_232
+S9B3J7I4R1_36_month_268_1_0,rocking,hands flapping,hands flapping,hands flapping,low,1,36,S9B3J7I4R1_36_month_268
+L7Z6Q2U6Y6_14_month_356_0_2,rocking,spinning,hands flapping,hands flapping,high,1,14,L7Z6Q2U6Y6_14_month_356
+H7B1M3P5D9_36_month_74_0_3,rocking,jumping,jumping,hands flapping,high,2,36,H7B1M3P5D9_36_month_74
+N4U1A5H1W0_14_month_94_0_0,rocking,jumping,hands flapping,jumping,high,2,14,N4U1A5H1W0_14_month_94
+G4J8F6F4X0_14_month_104_0_0,rocking,hands flapping,hands flapping,hands flapping,high,1,14,G4J8F6F4X0_14_month_104
+L6F2P7K8P1_36_month_121_0_1,jumping,hands flapping,hands flapping,hands flapping,high,1,36,L6F2P7K8P1_36_month_121
+L6F2P7K8P1_36_month_121_0_2,jumping,hands flapping,hands flapping,hands flapping,high,1,36,L6F2P7K8P1_36_month_121
+E7Z4G3O5K2_unknown_140_0_0,jumping,hands flapping,hands flapping,hands flapping,high,1,unknown,E7Z4G3O5K2_unknown_140
+S7Y0I2P0S8_14_month_202_1_0,rocking,jumping,jumping,jumping,high,1,14,S7Y0I2P0S8_14_month_202
+E7G3N4A1K5_36_month_207_0_2,jumping,hands flapping,hands flapping,hands flapping,medium,1,36,E7G3N4A1K5_36_month_207
+D8G5K7I0D6_14_month_220_0_0,hands flapping,rocking,jumping,jumping,high,2,14,D8G5K7I0D6_14_month_220
+C5U1P3X9F0_14_month_310_1_0,rocking,hands flapping,hands flapping,hands flapping,high,1,14,C5U1P3X9F0_14_month_310
+C5U1P3X9F0_14_month_310_1_2,rocking,hands flapping,hands flapping,hands flapping,high,1,14,C5U1P3X9F0_14_month_310
+C5U1P3X9F0_14_month_310_2_0,rocking,hands flapping,hands flapping,hands flapping,low,1,14,C5U1P3X9F0_14_month_310
+C5U1P3X9F0_14_month_310_2_1,rocking,hands flapping,hands flapping,hands flapping,low,1,14,C5U1P3X9F0_14_month_310
+C5U1P3X9F0_14_month_310_2_2,rocking,hands flapping,hands flapping,hands flapping,high,1,14,C5U1P3X9F0_14_month_310
+C5U1P3X9F0_14_month_310_2_3,rocking,hands flapping,hands flapping,hands flapping,high,1,14,C5U1P3X9F0_14_month_310
+W3O7N1N8U2_36_month_372_0_0,jumping,hands flapping,hands flapping,hands flapping,high,2,36,W3O7N1N8U2_36_month_372

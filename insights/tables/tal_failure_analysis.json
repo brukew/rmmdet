@@ -1,0 +1,679 @@
+{
+  "summary": {
+    "total_windows": 14145,
+    "windows_with_predictions": 14145,
+    "total_errors": 2683,
+    "overall_accuracy": 0.8103216684340756,
+    "rmm_windows": 1355,
+    "background_windows": 12790,
+    "preprocessing": {
+      "sam3_issues_total": 2402,
+      "sam3_issues_pct": 16.981265464828564,
+      "pose_issues_total": 2938,
+      "pose_issues_pct": 20.770590314598795,
+      "sam3_issues_rmm_only": 46,
+      "sam3_issues_rmm_pct": 3.394833948339483,
+      "pose_issues_rmm_only": 84,
+      "pose_issues_rmm_pct": 6.199261992619927
+    },
+    "by_class": {
+      "hands_flapping": {
+        "n_windows": 795,
+        "n_errors": 262,
+        "accuracy": 0.6704402515723271,
+        "sam3_issue_pct": 3.270440251572327,
+        "pose_issue_pct": 4.779874213836479
+      },
+      "jumping": {
+        "n_windows": 331,
+        "n_errors": 155,
+        "accuracy": 0.5317220543806647,
+        "sam3_issue_pct": 4.531722054380665,
+        "pose_issue_pct": 10.27190332326284
+      },
+      "rocking": {
+        "n_windows": 178,
+        "n_errors": 162,
+        "accuracy": 0.0898876404494382,
+        "sam3_issue_pct": 2.247191011235955,
+        "pose_issue_pct": 6.179775280898876
+      },
+      "spinning": {
+        "n_windows": 51,
+        "n_errors": 38,
+        "accuracy": 0.2549019607843137,
+        "sam3_issue_pct": 1.9607843137254901,
+        "pose_issue_pct": 1.9607843137254901
+      },
+      "background": {
+        "n_windows": 12790,
+        "n_errors": 2066,
+        "accuracy": 0.8384675527756059,
+        "sam3_issue_pct": 18.420641125879595,
+        "pose_issue_pct": 22.31430805316654
+      }
+    }
+  },
+  "preprocessing_impact": {
+    "SAM3 Mask Issues": {
+      "factor": "SAM3 Mask Issues",
+      "available": true,
+      "n_with_factor": 2402,
+      "n_without_factor": 11743,
+      "pct_with_factor": 16.981265464828564,
+      "error_rate_with": 0.09408825978351373,
+      "error_rate_without": 0.20923103125266115,
+      "error_rate_diff": -0.11514277146914742,
+      "accuracy_with": 0.9059117402164862,
+      "accuracy_without": 0.7907689687473388,
+      "by_class": {
+        "hands_flapping": {
+          "n_with": 26,
+          "n_without": 769,
+          "error_rate_with": 0.5,
+          "error_rate_without": 0.3237971391417425,
+          "error_rate_diff": 0.17620286085825748
+        },
+        "jumping": {
+          "n_with": 15,
+          "n_without": 316,
+          "error_rate_with": 0.5333333333333333,
+          "error_rate_without": 0.4651898734177215,
+          "error_rate_diff": 0.06814345991561183
+        },
+        "rocking": {
+          "n_with": 4,
+          "n_without": 174,
+          "error_rate_with": 1.0,
+          "error_rate_without": 0.9080459770114943,
+          "error_rate_diff": 0.09195402298850575
+        },
+        "spinning": {
+          "n_with": 1,
+          "n_without": 50,
+          "error_rate_with": 1.0,
+          "error_rate_without": 0.74,
+          "error_rate_diff": 0.26
+        },
+        "background": {
+          "n_with": 2356,
+          "n_without": 10434,
+          "error_rate_with": 0.08488964346349745,
+          "error_rate_without": 0.17883841288096608,
+          "error_rate_diff": -0.09394876941746863
+        }
+      }
+    },
+    "Pose Keypoint Issues": {
+      "factor": "Pose Keypoint Issues",
+      "available": true,
+      "n_with_factor": 2938,
+      "n_without_factor": 11207,
+      "pct_with_factor": 20.770590314598795,
+      "error_rate_with": 0.1102791014295439,
+      "error_rate_without": 0.21049344159900063,
+      "error_rate_diff": -0.10021434016945673,
+      "accuracy_with": 0.8897208985704561,
+      "accuracy_without": 0.7895065584009994,
+      "by_class": {
+        "hands_flapping": {
+          "n_with": 38,
+          "n_without": 757,
+          "error_rate_with": 0.42105263157894735,
+          "error_rate_without": 0.3249669749009247,
+          "error_rate_diff": 0.09608565667802266
+        },
+        "jumping": {
+          "n_with": 34,
+          "n_without": 297,
+          "error_rate_with": 0.5882352941176471,
+          "error_rate_without": 0.45454545454545453,
+          "error_rate_diff": 0.13368983957219255
+        },
+        "rocking": {
+          "n_with": 11,
+          "n_without": 167,
+          "error_rate_with": 1.0,
+          "error_rate_without": 0.9041916167664671,
+          "error_rate_diff": 0.09580838323353291
+        },
+        "spinning": {
+          "n_with": 1,
+          "n_without": 50,
+          "error_rate_with": 1.0,
+          "error_rate_without": 0.74,
+          "error_rate_diff": 0.26
+        },
+        "background": {
+          "n_with": 2854,
+          "n_without": 9936,
+          "error_rate_with": 0.09670637701471618,
+          "error_rate_without": 0.18015297906602254,
+          "error_rate_diff": -0.08344660205130636
+        }
+      }
+    },
+    "Any Preprocessing Issue": {
+      "factor": "Any Preprocessing Issue",
+      "available": true,
+      "n_with_factor": 2938,
+      "n_without_factor": 11207,
+      "pct_with_factor": 20.770590314598795,
+      "error_rate_with": 0.1102791014295439,
+      "error_rate_without": 0.21049344159900063,
+      "error_rate_diff": -0.10021434016945673,
+      "accuracy_with": 0.8897208985704561,
+      "accuracy_without": 0.7895065584009994,
+      "by_class": {
+        "hands_flapping": {
+          "n_with": 38,
+          "n_without": 757,
+          "error_rate_with": 0.42105263157894735,
+          "error_rate_without": 0.3249669749009247,
+          "error_rate_diff": 0.09608565667802266
+        },
+        "jumping": {
+          "n_with": 34,
+          "n_without": 297,
+          "error_rate_with": 0.5882352941176471,
+          "error_rate_without": 0.45454545454545453,
+          "error_rate_diff": 0.13368983957219255
+        },
+        "rocking": {
+          "n_with": 11,
+          "n_without": 167,
+          "error_rate_with": 1.0,
+          "error_rate_without": 0.9041916167664671,
+          "error_rate_diff": 0.09580838323353291
+        },
+        "spinning": {
+          "n_with": 1,
+          "n_without": 50,
+          "error_rate_with": 1.0,
+          "error_rate_without": 0.74,
+          "error_rate_diff": 0.26
+        },
+        "background": {
+          "n_with": 2854,
+          "n_without": 9936,
+          "error_rate_with": 0.09670637701471618,
+          "error_rate_without": 0.18015297906602254,
+          "error_rate_diff": -0.08344660205130636
+        }
+      }
+    }
+  },
+  "multi_label_overlap": {
+    "total_with_overlap": 123,
+    "pct_with_overlap": 0.8695652173913043,
+    "overlap_combinations": {
+      "('jumping', 'spinning')": {
+        "count": 12,
+        "errors": 10
+      },
+      "('hands_flapping', 'jumping')": {
+        "count": 104,
+        "errors": 63
+      },
+      "('hands_flapping', 'rocking')": {
+        "count": 4,
+        "errors": 3
+      },
+      "('jumping', 'rocking')": {
+        "count": 3,
+        "errors": 1
+      }
+    },
+    "error_by_n_overlapping": {
+      "0": {
+        "n_windows": 10757,
+        "error_rate": 0.1174119178209538,
+        "n_errors": 1263
+      },
+      "1": {
+        "n_windows": 3265,
+        "error_rate": 0.4113323124042879,
+        "n_errors": 1343
+      },
+      "2": {
+        "n_windows": 123,
+        "error_rate": 0.6260162601626016,
+        "n_errors": 77
+      }
+    }
+  },
+  "annotation_ambiguity": {
+    "total_debatable": 111,
+    "total_has_context": 1078,
+    "total_ambiguous_notes": 109,
+    "sample_ambiguity_notes": [
+      "not explicitly jumping, but moving body up and down",
+      "slow spinning",
+      "cant see legs",
+      "twisting vs rocking?",
+      "jumping and arm flapping coincide",
+      "jumping and arm flapping coincide",
+      "No RMM identified",
+      "2 one single-leg stomp instances",
+      "sitting but jumping motions",
+      "head rocking?",
+      "head rocking?",
+      "Not sure if this is rocking (on a rocking toy)",
+      "No RMM identified",
+      "child is spinning fan",
+      "dancing",
+      "not sure if this counts",
+      "not repetitive",
+      "not repetitive - on rocking pony but not really rocking",
+      "No RMM identified",
+      "flapping throughout video, mixed in and out of frame, small stops"
+    ],
+    "error_rate_debatable": 0.11711711711711711,
+    "error_rate_not_debatable": 0.19025224454895254
+  },
+  "video_quality": {
+    "quality_factors": {
+      "Low Face Visibility": {
+        "factor": "Low Face Visibility",
+        "available": true,
+        "n_with_factor": 5230,
+        "n_without_factor": 8915,
+        "pct_with_factor": 36.974195828914816,
+        "error_rate_with": 0.19980879541108987,
+        "error_rate_without": 0.1837352776219854,
+        "error_rate_diff": 0.016073517789104458,
+        "accuracy_with": 0.8001912045889101,
+        "accuracy_without": 0.8162647223780146,
+        "by_class": {
+          "hands_flapping": {
+            "n_with": 295,
+            "n_without": 500,
+            "error_rate_with": 0.36610169491525424,
+            "error_rate_without": 0.308,
+            "error_rate_diff": 0.05810169491525424
+          },
+          "jumping": {
+            "n_with": 176,
+            "n_without": 155,
+            "error_rate_with": 0.5056818181818182,
+            "error_rate_without": 0.4258064516129032,
+            "error_rate_diff": 0.07987536656891503
+          },
+          "rocking": {
+            "n_with": 43,
+            "n_without": 135,
+            "error_rate_with": 0.9767441860465116,
+            "error_rate_without": 0.8888888888888888,
+            "error_rate_diff": 0.08785529715762275
+          },
+          "spinning": {
+            "n_with": 35,
+            "n_without": 16,
+            "error_rate_with": 0.8,
+            "error_rate_without": 0.625,
+            "error_rate_diff": 0.17500000000000004
+          },
+          "background": {
+            "n_with": 4681,
+            "n_without": 8109,
+            "error_rate_with": 0.1662038026062807,
+            "error_rate_without": 0.15883586138858058,
+            "error_rate_diff": 0.007367941217700125
+          }
+        }
+      },
+      "Low Body Visibility": {
+        "factor": "Low Body Visibility",
+        "available": true,
+        "n_with_factor": 1081,
+        "n_without_factor": 13064,
+        "pct_with_factor": 7.642276422764227,
+        "error_rate_with": 0.1702127659574468,
+        "error_rate_without": 0.1912890385793019,
+        "error_rate_diff": -0.021076272621855102,
+        "accuracy_with": 0.8297872340425532,
+        "accuracy_without": 0.8087109614206981,
+        "by_class": {
+          "hands_flapping": {
+            "n_with": 77,
+            "n_without": 718,
+            "error_rate_with": 0.44155844155844154,
+            "error_rate_without": 0.31754874651810583,
+            "error_rate_diff": 0.12400969504033571
+          },
+          "jumping": {
+            "n_with": 25,
+            "n_without": 306,
+            "error_rate_with": 0.68,
+            "error_rate_without": 0.45098039215686275,
+            "error_rate_diff": 0.2290196078431373
+          },
+          "spinning": {
+            "n_with": 6,
+            "n_without": 45,
+            "error_rate_with": 1.0,
+            "error_rate_without": 0.7111111111111111,
+            "error_rate_diff": 0.28888888888888886
+          },
+          "background": {
+            "n_with": 973,
+            "n_without": 11817,
+            "error_rate_with": 0.13052415210688592,
+            "error_rate_without": 0.16408563933316409,
+            "error_rate_diff": -0.033561487226278164
+          }
+        }
+      },
+      "Low Hand Visibility": {
+        "factor": "Low Hand Visibility",
+        "available": true,
+        "n_with_factor": 6153,
+        "n_without_factor": 7992,
+        "pct_with_factor": 43.49946977730647,
+        "error_rate_with": 0.17812449211766618,
+        "error_rate_without": 0.19857357357357358,
+        "error_rate_diff": -0.020449081455907403,
+        "accuracy_with": 0.8218755078823339,
+        "accuracy_without": 0.8014264264264264,
+        "by_class": {
+          "hands_flapping": {
+            "n_with": 317,
+            "n_without": 478,
+            "error_rate_with": 0.3753943217665615,
+            "error_rate_without": 0.29916317991631797,
+            "error_rate_diff": 0.07623114185024354
+          },
+          "jumping": {
+            "n_with": 147,
+            "n_without": 184,
+            "error_rate_with": 0.4421768707482993,
+            "error_rate_without": 0.4891304347826087,
+            "error_rate_diff": -0.04695356403430939
+          },
+          "rocking": {
+            "n_with": 99,
+            "n_without": 79,
+            "error_rate_with": 0.8686868686868687,
+            "error_rate_without": 0.9620253164556962,
+            "error_rate_diff": -0.09333844776882749
+          },
+          "spinning": {
+            "n_with": 38,
+            "n_without": 13,
+            "error_rate_with": 0.9210526315789473,
+            "error_rate_without": 0.23076923076923078,
+            "error_rate_diff": 0.6902834008097165
+          },
+          "background": {
+            "n_with": 5552,
+            "n_without": 7238,
+            "error_rate_with": 0.14247118155619595,
+            "error_rate_without": 0.17615363360044212,
+            "error_rate_diff": -0.033682452044246164
+          }
+        }
+      },
+      "High Motion Blur": {
+        "factor": "High Motion Blur",
+        "available": true,
+        "n_with_factor": 1831,
+        "n_without_factor": 12314,
+        "pct_with_factor": 12.944503358077059,
+        "error_rate_with": 0.1529219006007646,
+        "error_rate_without": 0.19514373883384764,
+        "error_rate_diff": -0.04222183823308304,
+        "accuracy_with": 0.8470780993992354,
+        "accuracy_without": 0.8048562611661524,
+        "by_class": {
+          "hands_flapping": {
+            "n_with": 145,
+            "n_without": 650,
+            "error_rate_with": 0.3310344827586207,
+            "error_rate_without": 0.3292307692307692,
+            "error_rate_diff": 0.0018037135278514693
+          },
+          "jumping": {
+            "n_with": 35,
+            "n_without": 296,
+            "error_rate_with": 0.6,
+            "error_rate_without": 0.4527027027027027,
+            "error_rate_diff": 0.1472972972972973
+          },
+          "rocking": {
+            "n_with": 6,
+            "n_without": 172,
+            "error_rate_with": 1.0,
+            "error_rate_without": 0.9069767441860465,
+            "error_rate_diff": 0.09302325581395354
+          },
+          "spinning": {
+            "n_with": 7,
+            "n_without": 44,
+            "error_rate_with": 1.0,
+            "error_rate_without": 0.7045454545454546,
+            "error_rate_diff": 0.2954545454545454
+          },
+          "background": {
+            "n_with": 1638,
+            "n_without": 11152,
+            "error_rate_with": 0.12087912087912088,
+            "error_rate_without": 0.1675035868005739,
+            "error_rate_diff": -0.046624465921453015
+          }
+        }
+      },
+      "Upper Body Only": {
+        "factor": "Upper Body Only",
+        "available": true,
+        "n_with_factor": 2297,
+        "n_without_factor": 11848,
+        "pct_with_factor": 16.238953693884763,
+        "error_rate_with": 0.1802350892468437,
+        "error_rate_without": 0.19150911546252533,
+        "error_rate_diff": -0.011274026215681632,
+        "accuracy_with": 0.8197649107531563,
+        "accuracy_without": 0.8084908845374746,
+        "by_class": {
+          "hands_flapping": {
+            "n_with": 150,
+            "n_without": 645,
+            "error_rate_with": 0.34,
+            "error_rate_without": 0.3271317829457364,
+            "error_rate_diff": 0.012868217054263609
+          },
+          "jumping": {
+            "n_with": 43,
+            "n_without": 288,
+            "error_rate_with": 0.4186046511627907,
+            "error_rate_without": 0.4756944444444444,
+            "error_rate_diff": -0.0570897932816537
+          },
+          "rocking": {
+            "n_with": 49,
+            "n_without": 129,
+            "error_rate_with": 0.9795918367346939,
+            "error_rate_without": 0.8837209302325582,
+            "error_rate_diff": 0.0958709065021357
+          },
+          "spinning": {
+            "n_with": 12,
+            "n_without": 39,
+            "error_rate_with": 0.9166666666666666,
+            "error_rate_without": 0.6923076923076923,
+            "error_rate_diff": 0.22435897435897434
+          },
+          "background": {
+            "n_with": 2043,
+            "n_without": 10747,
+            "error_rate_with": 0.13999021047479196,
+            "error_rate_without": 0.16562761700939796,
+            "error_rate_diff": -0.025637406534606
+          }
+        }
+      },
+      "Child of Interest Unclear": {
+        "factor": "Child of Interest Unclear",
+        "available": true,
+        "n_with_factor": 1005,
+        "n_without_factor": 13140,
+        "pct_with_factor": 7.104984093319194,
+        "error_rate_with": 0.20796019900497512,
+        "error_rate_without": 0.1882800608828006,
+        "error_rate_diff": 0.019680138122174506,
+        "accuracy_with": 0.7920398009950249,
+        "accuracy_without": 0.8117199391171994,
+        "by_class": {
+          "hands_flapping": {
+            "n_with": 83,
+            "n_without": 712,
+            "error_rate_with": 0.40963855421686746,
+            "error_rate_without": 0.3202247191011236,
+            "error_rate_diff": 0.08941383511574386
+          },
+          "jumping": {
+            "n_with": 18,
+            "n_without": 313,
+            "error_rate_with": 0.7222222222222222,
+            "error_rate_without": 0.4536741214057508,
+            "error_rate_diff": 0.2685481008164714
+          },
+          "rocking": {
+            "n_with": 2,
+            "n_without": 176,
+            "error_rate_with": 0.5,
+            "error_rate_without": 0.9147727272727273,
+            "error_rate_diff": -0.4147727272727273
+          },
+          "background": {
+            "n_with": 902,
+            "n_without": 11888,
+            "error_rate_with": 0.17849223946784923,
+            "error_rate_without": 0.16024562584118437,
+            "error_rate_diff": 0.018246613626664854
+          }
+        }
+      }
+    },
+    "quality_score_correlation": 0.0728774014586677
+  },
+  "scene_complexity": {
+    "complexity_factors": {
+      "Multiple Children Present": {
+        "factor": "Multiple Children Present",
+        "available": true,
+        "n_with_factor": 3440,
+        "n_without_factor": 10705,
+        "pct_with_factor": 24.31954754330152,
+        "error_rate_with": 0.20290697674418604,
+        "error_rate_without": 0.18542737038766932,
+        "error_rate_diff": 0.017479606356516714,
+        "accuracy_with": 0.797093023255814,
+        "accuracy_without": 0.8145726296123307,
+        "by_class": {
+          "hands_flapping": {
+            "n_with": 186,
+            "n_without": 609,
+            "error_rate_with": 0.3602150537634409,
+            "error_rate_without": 0.32019704433497537,
+            "error_rate_diff": 0.040018009428465506
+          },
+          "jumping": {
+            "n_with": 76,
+            "n_without": 255,
+            "error_rate_with": 0.5131578947368421,
+            "error_rate_without": 0.4549019607843137,
+            "error_rate_diff": 0.05825593395252843
+          },
+          "rocking": {
+            "n_with": 40,
+            "n_without": 138,
+            "error_rate_with": 0.95,
+            "error_rate_without": 0.8985507246376812,
+            "error_rate_diff": 0.0514492753623188
+          },
+          "spinning": {
+            "n_with": 24,
+            "n_without": 27,
+            "error_rate_with": 0.7083333333333334,
+            "error_rate_without": 0.7777777777777778,
+            "error_rate_diff": -0.06944444444444442
+          },
+          "background": {
+            "n_with": 3114,
+            "n_without": 9676,
+            "error_rate_with": 0.1724470134874759,
+            "error_rate_without": 0.1580198429102935,
+            "error_rate_diff": 0.014427170577182402
+          }
+        }
+      },
+      "Adult Present in Scene": {
+        "factor": "Adult Present in Scene",
+        "available": true,
+        "n_with_factor": 5055,
+        "n_without_factor": 9090,
+        "pct_with_factor": 35.73700954400849,
+        "error_rate_with": 0.1414441147378833,
+        "error_rate_without": 0.2165016501650165,
+        "error_rate_diff": -0.0750575354271332,
+        "accuracy_with": 0.8585558852621167,
+        "accuracy_without": 0.7834983498349835,
+        "by_class": {
+          "hands_flapping": {
+            "n_with": 258,
+            "n_without": 537,
+            "error_rate_with": 0.29457364341085274,
+            "error_rate_without": 0.3463687150837989,
+            "error_rate_diff": -0.05179507167294617
+          },
+          "jumping": {
+            "n_with": 77,
+            "n_without": 254,
+            "error_rate_with": 0.6363636363636364,
+            "error_rate_without": 0.41732283464566927,
+            "error_rate_diff": 0.21904080171796708
+          },
+          "rocking": {
+            "n_with": 42,
+            "n_without": 136,
+            "error_rate_with": 0.9523809523809523,
+            "error_rate_without": 0.8970588235294118,
+            "error_rate_diff": 0.05532212885154053
+          },
+          "spinning": {
+            "n_with": 10,
+            "n_without": 41,
+            "error_rate_with": 0.9,
+            "error_rate_without": 0.7073170731707317,
+            "error_rate_diff": 0.19268292682926835
+          },
+          "background": {
+            "n_with": 4668,
+            "n_without": 8122,
+            "error_rate_with": 0.11589545844044559,
+            "error_rate_without": 0.18776163506525487,
+            "error_rate_diff": -0.07186617662480928
+          }
+        }
+      }
+    }
+  },
+  "five_class_confusion": {
+    "hf_ohf_overlap": {
+      "hf_windows_with_ohf_tiou": 6,
+      "hf_windows_total": 569,
+      "hf_pct_with_ohf": 1.054481546572935,
+      "ohf_windows_with_hf_tiou": 3,
+      "ohf_windows_total": 226,
+      "ohf_pct_with_hf": 1.3274336283185841
+    },
+    "class_distribution": {
+      "hands_flapping": 569,
+      "jumping": 331,
+      "one_hand_flap": 226,
+      "rocking": 178,
+      "spinning": 51,
+      "background": 12790
+    }
+  }
+}

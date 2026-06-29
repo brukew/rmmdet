@@ -1,0 +1,78 @@
+{
+  "selected_videos": {
+    "single_segment": {
+      "video_key": "G7P6U6U2J5_0310202006",
+      "video_file": "J.H._Home_Videos_AMES_G7P6U6U2J5/12-16 month videos/0310202006.mp4",
+      "n_segments": 1,
+      "n_classes": 1,
+      "class_counts": {
+        "hands flapping": 1
+      },
+      "segments": [
+        {
+          "class": "hands flapping",
+          "start_sec": 0.0,
+          "end_sec": 3.0
+        }
+      ]
+    },
+    "multi_same_class": {
+      "video_key": "F8N7H3T0O1_11-4-2021",
+      "video_file": "H.P._Home_Videos_AMES_F8N7H3T0O1/12-16 month videos/11-4-2021.mp4",
+      "n_segments": 3,
+      "n_classes": 1,
+      "class_counts": {
+        "hands flapping": 3
+      },
+      "segments": [
+        {
+          "class": "hands flapping",
+          "start_sec": 14.0,
+          "end_sec": 16.0
+        },
+        {
+          "class": "hands flapping",
+          "start_sec": 22.0,
+          "end_sec": 24.0
+        },
+        {
+          "class": "hands flapping",
+          "start_sec": 29.0,
+          "end_sec": 30.0
+        }
+      ]
+    },
+    "multi_class": {
+      "video_key": "T4R5V7C3L6_344619313_6065239563588538_5835258672173916095_n",
+      "video_file": "L.P._Home_Videos_AMES_T4R5V7C3L6/34-38 month videos/344619313_6065239563588538_5835258672173916095_n.mp4",
+      "n_segments": 3,
+      "n_classes": 2,
+      "class_counts": {
+        "hands flapping": 2,
+        "jumping": 1
+      },
+      "segments": [
+        {
+          "class": "hands flapping",
+          "start_sec": 0.0,
+          "end_sec": 1.0
+        },
+        {
+          "class": "jumping",
+          "start_sec": 12.0,
+          "end_sec": 14.0
+        },
+        {
+          "class": "hands flapping",
+          "start_sec": 12.0,
+          "end_sec": 15.0
+        }
+      ]
+    }
+  },
+  "criteria": {
+    "single_segment": "Exactly 1 RMM segment",
+    "multi_same_class": "Multiple segments of same RMM class",
+    "multi_class": "Multiple different RMM classes"
+  }
+}

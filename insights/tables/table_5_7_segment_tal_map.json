@@ -1,0 +1,474 @@
+{
+  "task": "segment_level_tal",
+  "models": [
+    {
+      "model": "V-JEPA + PoseC3D (MLP)",
+      "folds": "2",
+      "mAP_0.3": {
+        "mean": 9.95,
+        "std": 2.26
+      },
+      "mAP_0.5": {
+        "mean": 6.93,
+        "std": 2.44
+      },
+      "mAP_0.7": {
+        "mean": 2.22,
+        "std": 0.66
+      },
+      "avg_mAP": {
+        "mean": 6.36,
+        "std": 1.79
+      },
+      "per_class_ap": {
+        "tIoU=0.3": {
+          "hands flapping": {
+            "mean": 11.69,
+            "std": 1.37
+          },
+          "jumping": {
+            "mean": 12.52,
+            "std": 0.68
+          },
+          "rocking": {
+            "mean": 2.94,
+            "std": 2.22
+          },
+          "spinning": {
+            "mean": 12.63,
+            "std": 6.13
+          }
+        },
+        "tIoU=0.5": {
+          "hands flapping": {
+            "mean": 6.14,
+            "std": 1.28
+          },
+          "jumping": {
+            "mean": 8.42,
+            "std": 0.04
+          },
+          "rocking": {
+            "mean": 2.16,
+            "std": 2.02
+          },
+          "spinning": {
+            "mean": 10.99,
+            "std": 6.47
+          }
+        },
+        "tIoU=0.7": {
+          "hands flapping": {
+            "mean": 1.49,
+            "std": 0.34
+          },
+          "jumping": {
+            "mean": 2.85,
+            "std": 0.8
+          },
+          "rocking": {
+            "mean": 0.6,
+            "std": 0.46
+          },
+          "spinning": {
+            "mean": 3.94,
+            "std": 3.33
+          }
+        }
+      }
+    },
+    {
+      "model": "V-JEPA + STGCN++ (MLP)",
+      "folds": "2",
+      "mAP_0.3": {
+        "mean": 8.42,
+        "std": 0.49
+      },
+      "mAP_0.5": {
+        "mean": 5.88,
+        "std": 0.38
+      },
+      "mAP_0.7": {
+        "mean": 2.67,
+        "std": 0.14
+      },
+      "avg_mAP": {
+        "mean": 5.66,
+        "std": 0.34
+      },
+      "per_class_ap": {
+        "tIoU=0.3": {
+          "hands flapping": {
+            "mean": 10.46,
+            "std": 0.56
+          },
+          "jumping": {
+            "mean": 8.3,
+            "std": 1.38
+          },
+          "rocking": {
+            "mean": 1.57,
+            "std": 0.93
+          },
+          "spinning": {
+            "mean": 13.33,
+            "std": 0.23
+          }
+        },
+        "tIoU=0.5": {
+          "hands flapping": {
+            "mean": 5.48,
+            "std": 0.68
+          },
+          "jumping": {
+            "mean": 5.47,
+            "std": 0.39
+          },
+          "rocking": {
+            "mean": 0.77,
+            "std": 0.45
+          },
+          "spinning": {
+            "mean": 11.8,
+            "std": 0.01
+          }
+        },
+        "tIoU=0.7": {
+          "hands flapping": {
+            "mean": 0.73,
+            "std": 0.14
+          },
+          "jumping": {
+            "mean": 2.36,
+            "std": 0.24
+          },
+          "rocking": {
+            "mean": 0.16,
+            "std": 0.15
+          },
+          "spinning": {
+            "mean": 7.43,
+            "std": 0.04
+          }
+        }
+      }
+    },
+    {
+      "model": "ActionFormer + V-JEPA Balanced",
+      "mAP_0.3": {
+        "mean": 23.97,
+        "std": 1.07
+      },
+      "mAP_0.4": {
+        "mean": 21.68,
+        "std": 1.05
+      },
+      "mAP_0.5": {
+        "mean": 17.57,
+        "std": 2.92
+      },
+      "mAP_0.6": {
+        "mean": 13.23,
+        "std": 3.55
+      },
+      "mAP_0.7": {
+        "mean": 7.04,
+        "std": 0.67
+      },
+      "avg_mAP": {
+        "mean": 16.7,
+        "std": 1.53
+      },
+      "per_class_ap": {
+        "tIoU=0.3": {
+          "hands flapping": {
+            "mean": 22.07,
+            "std": 2.25
+          },
+          "jumping": {
+            "mean": 30.98,
+            "std": 8.39
+          },
+          "rocking": {
+            "mean": 6.55,
+            "std": 3.98
+          },
+          "spinning": {
+            "mean": 18.86,
+            "std": 3.35
+          }
+        },
+        "tIoU=0.5": {
+          "hands flapping": {
+            "mean": 16.01,
+            "std": 1.19
+          },
+          "jumping": {
+            "mean": 23.59,
+            "std": 7.41
+          },
+          "rocking": {
+            "mean": 1.37,
+            "std": 0.71
+          },
+          "spinning": {
+            "mean": 15.75,
+            "std": 2.48
+          }
+        },
+        "tIoU=0.7": {
+          "hands flapping": {
+            "mean": 5.54,
+            "std": 0.02
+          },
+          "jumping": {
+            "mean": 13.09,
+            "std": 9.34
+          },
+          "rocking": {
+            "mean": 0.53,
+            "std": 0.36
+          },
+          "spinning": {
+            "mean": 11.97,
+            "std": 3.83
+          }
+        }
+      }
+    },
+    {
+      "model": "V-JEPA",
+      "folds": "3",
+      "type": "single_modality",
+      "hpo_status": "post-HPO",
+      "mAP_0.3": {
+        "mean": 9.48,
+        "std": 1.6
+      },
+      "mAP_0.5": {
+        "mean": 6.37,
+        "std": 0.96
+      },
+      "mAP_0.7": {
+        "mean": 1.99,
+        "std": 0.8
+      },
+      "avg_mAP": {
+        "mean": 5.95,
+        "std": 1.1
+      },
+      "per_class_ap": {
+        "tIoU=0.3": {
+          "hands flapping": {
+            "mean": 13.88,
+            "std": 0.66
+          },
+          "jumping": {
+            "mean": 16.42,
+            "std": 3.56
+          },
+          "rocking": {
+            "mean": 1.94,
+            "std": 1.37
+          },
+          "spinning": {
+            "mean": 5.69,
+            "std": 4.21
+          }
+        },
+        "tIoU=0.5": {
+          "hands flapping": {
+            "mean": 7.34,
+            "std": 1.26
+          },
+          "jumping": {
+            "mean": 12.71,
+            "std": 2.36
+          },
+          "rocking": {
+            "mean": 1.03,
+            "std": 0.56
+          },
+          "spinning": {
+            "mean": 4.39,
+            "std": 3.04
+          }
+        },
+        "tIoU=0.7": {
+          "hands flapping": {
+            "mean": 1.08,
+            "std": 0.08
+          },
+          "jumping": {
+            "mean": 4.75,
+            "std": 1.61
+          },
+          "rocking": {
+            "mean": 0.6,
+            "std": 0.45
+          },
+          "spinning": {
+            "mean": 1.53,
+            "std": 1.53
+          }
+        }
+      }
+    },
+    {
+      "model": "PoseC3D",
+      "folds": "3",
+      "type": "single_modality",
+      "hpo_status": "post-HPO",
+      "mAP_0.3": {
+        "mean": 3.46,
+        "std": 4.89
+      },
+      "mAP_0.5": {
+        "mean": 2.65,
+        "std": 3.75
+      },
+      "mAP_0.7": {
+        "mean": 1.53,
+        "std": 2.17
+      },
+      "avg_mAP": {
+        "mean": 2.55,
+        "std": 3.6
+      },
+      "per_class_ap": {
+        "tIoU=0.3": {
+          "hands flapping": {
+            "mean": 4.12,
+            "std": 5.83
+          },
+          "jumping": {
+            "mean": 4.52,
+            "std": 6.4
+          },
+          "rocking": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "spinning": {
+            "mean": 5.19,
+            "std": 7.33
+          }
+        },
+        "tIoU=0.5": {
+          "hands flapping": {
+            "mean": 2.37,
+            "std": 3.36
+          },
+          "jumping": {
+            "mean": 3.04,
+            "std": 4.3
+          },
+          "rocking": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "spinning": {
+            "mean": 5.19,
+            "std": 7.33
+          }
+        },
+        "tIoU=0.7": {
+          "hands flapping": {
+            "mean": 0.69,
+            "std": 0.97
+          },
+          "jumping": {
+            "mean": 1.42,
+            "std": 2.01
+          },
+          "rocking": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "spinning": {
+            "mean": 4.02,
+            "std": 5.69
+          }
+        }
+      }
+    },
+    {
+      "model": "STGCN++",
+      "folds": "2",
+      "type": "single_modality",
+      "hpo_status": "pre-HPO (no balanced version available)",
+      "mAP_0.3": {
+        "mean": 3.53,
+        "std": 0.32
+      },
+      "mAP_0.5": {
+        "mean": 2.19,
+        "std": 0.29
+      },
+      "mAP_0.7": {
+        "mean": 0.92,
+        "std": 0.18
+      },
+      "avg_mAP": {
+        "mean": 2.21,
+        "std": 0.14
+      },
+      "per_class_ap": {
+        "tIoU=0.3": {
+          "hands flapping": {
+            "mean": 8.01,
+            "std": 1.35
+          },
+          "jumping": {
+            "mean": 5.01,
+            "std": 1.04
+          },
+          "rocking": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "spinning": {
+            "mean": 1.11,
+            "std": 1.11
+          }
+        },
+        "tIoU=0.5": {
+          "hands flapping": {
+            "mean": 5.11,
+            "std": 0.63
+          },
+          "jumping": {
+            "mean": 3.64,
+            "std": 0.52
+          },
+          "rocking": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "spinning": {
+            "mean": 0.0,
+            "std": 0.0
+          }
+        },
+        "tIoU=0.7": {
+          "hands flapping": {
+            "mean": 2.35,
+            "std": 0.27
+          },
+          "jumping": {
+            "mean": 1.32,
+            "std": 0.44
+          },
+          "rocking": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "spinning": {
+            "mean": 0.0,
+            "std": 0.0
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# Videos with 2+ commonly failed clips (V-JEPA + PoseC3D both wrong)
+# Format: video_id | failed_clips | label | original_path
+
+C5U1P3X9F0_14_month_310	6	rocking	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/O.B._Home_Videos_AMES_C5U1P3X9F0/12-16 month videos/09-22-2019.mp4
+L0C6T6H2C6_36_month_102	5	jumping	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/D.R._Home_Videos_AMES_L0C6T6H2C6/34-38 month videos/03-08-2021.mp4
+J3J0V4T8C3_36_month_58	4	hands flapping	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/C.B._Home_Videos_AMES_J3J0V4T8C3/34-38 month videos/06-18-2021 (2).mp4
+C1G1X2G4C6_36_month_232	2	jumping	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/J.V._Home_Videos_AMES_C1G1X2G4C6/34-38 month videos/IMG_7585.mp4
+C5L2D6N1W6_36_month_145	2	jumping	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/G.L._Home_Videos_AMES_C5L2D6N1W6/34-38 month videos/3-13-20.mp4
+J3J0V4T8C3_14_month_50	2	rocking	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/C.B._Home_Videos_AMES_J3J0V4T8C3/12-16 month videos/05-28-2019 (1).mp4
+L6F2P7K8P1_36_month_121	2	jumping	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/E.F._Home_Videos_AMES_L6F2P7K8P1/34-38 month videos/10.17.2019.mp4
+S9B3J7I4R1_36_month_271	2	jumping	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/M.J._Home_Videos_AMES_S9B3J7I4R1/34-38 month videos/20191019_154219.mp4
+T4R5V7C3L6_unknown_258	2	hands flapping	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/L.P._Home_Videos_AMES_T4R5V7C3L6/34-38 month videos/344619313_6065239563588538_5835258672173916095_n.mp4
+W9K7Y8Y0V6_36_month_113	2	spinning	/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized/D.W._Home_Videos_AMES_W9K7Y8Y0V6/34-38 month videos/35-month-daniel-hike.mp4

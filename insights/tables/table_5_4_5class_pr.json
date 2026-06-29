@@ -1,0 +1,277 @@
+{
+  "Fusion": {
+    "model_name": "3-Way MLP",
+    "per_class": {
+      "hands flapping": {
+        "precision": {
+          "mean": 75.8,
+          "std": 4.9
+        },
+        "recall": {
+          "mean": 66.5,
+          "std": 2.2
+        }
+      },
+      "jumping": {
+        "precision": {
+          "mean": 68.9,
+          "std": 5.2
+        },
+        "recall": {
+          "mean": 78.3,
+          "std": 5.9
+        }
+      },
+      "one hand flap": {
+        "precision": {
+          "mean": 49.7,
+          "std": 10.7
+        },
+        "recall": {
+          "mean": 52.8,
+          "std": 12.1
+        }
+      },
+      "rocking": {
+        "precision": {
+          "mean": 68.3,
+          "std": 5.9
+        },
+        "recall": {
+          "mean": 68.9,
+          "std": 5.5
+        }
+      },
+      "spinning": {
+        "precision": {
+          "mean": 87.1,
+          "std": 4.9
+        },
+        "recall": {
+          "mean": 89.1,
+          "std": 5.6
+        }
+      }
+    }
+  },
+  "PoseC3D": {
+    "model_name": "PoseC3D + Weighted",
+    "per_class": {
+      "hands flapping": {
+        "precision": {
+          "mean": 65.8,
+          "std": 6.3
+        },
+        "recall": {
+          "mean": 73.3,
+          "std": 4.9
+        }
+      },
+      "jumping": {
+        "precision": {
+          "mean": 70.2,
+          "std": 3.5
+        },
+        "recall": {
+          "mean": 77.1,
+          "std": 4.3
+        }
+      },
+      "one hand flap": {
+        "precision": {
+          "mean": 57.3,
+          "std": 9.6
+        },
+        "recall": {
+          "mean": 41.1,
+          "std": 8.7
+        }
+      },
+      "rocking": {
+        "precision": {
+          "mean": 61.2,
+          "std": 13.9
+        },
+        "recall": {
+          "mean": 52.5,
+          "std": 10.9
+        }
+      },
+      "spinning": {
+        "precision": {
+          "mean": 84.3,
+          "std": 12.5
+        },
+        "recall": {
+          "mean": 82.9,
+          "std": 14.4
+        }
+      }
+    }
+  },
+  "STGCN++": {
+    "model_name": "STGCN++ 4-stream",
+    "per_class": {
+      "hands flapping": {
+        "precision": {
+          "mean": 67.6,
+          "std": 5.9
+        },
+        "recall": {
+          "mean": 78.1,
+          "std": 9.1
+        }
+      },
+      "jumping": {
+        "precision": {
+          "mean": 66.7,
+          "std": 5.8
+        },
+        "recall": {
+          "mean": 71.2,
+          "std": 7.8
+        }
+      },
+      "one hand flap": {
+        "precision": {
+          "mean": 52.0,
+          "std": 13.5
+        },
+        "recall": {
+          "mean": 33.5,
+          "std": 11.7
+        }
+      },
+      "rocking": {
+        "precision": {
+          "mean": 60.5,
+          "std": 8.8
+        },
+        "recall": {
+          "mean": 55.4,
+          "std": 8.2
+        }
+      },
+      "spinning": {
+        "precision": {
+          "mean": 85.1,
+          "std": 9.2
+        },
+        "recall": {
+          "mean": 78.3,
+          "std": 11.2
+        }
+      }
+    }
+  },
+  "V-JEPA": {
+    "model_name": "V-JEPA2 + SAM3",
+    "per_class": {
+      "hands flapping": {
+        "precision": {
+          "mean": 57.6,
+          "std": 5.5
+        },
+        "recall": {
+          "mean": 68.4,
+          "std": 4.0
+        }
+      },
+      "jumping": {
+        "precision": {
+          "mean": 53.6,
+          "std": 0.8
+        },
+        "recall": {
+          "mean": 60.6,
+          "std": 3.6
+        }
+      },
+      "one hand flap": {
+        "precision": {
+          "mean": 35.0,
+          "std": 7.1
+        },
+        "recall": {
+          "mean": 22.9,
+          "std": 6.7
+        }
+      },
+      "rocking": {
+        "precision": {
+          "mean": 61.9,
+          "std": 14.5
+        },
+        "recall": {
+          "mean": 52.9,
+          "std": 13.7
+        }
+      },
+      "spinning": {
+        "precision": {
+          "mean": 93.3,
+          "std": 9.4
+        },
+        "recall": {
+          "mean": 45.0,
+          "std": 14.7
+        }
+      }
+    }
+  },
+  "VLM": {
+    "model_name": "Qwen2.5-VL (zero-shot)",
+    "per_class": {
+      "hands flapping": {
+        "precision": {
+          "mean": 37.6,
+          "std": null
+        },
+        "recall": {
+          "mean": 98.0,
+          "std": null
+        }
+      },
+      "jumping": {
+        "precision": {
+          "mean": 66.7,
+          "std": null
+        },
+        "recall": {
+          "mean": 3.5,
+          "std": null
+        }
+      },
+      "one hand flap": {
+        "precision": {
+          "mean": 0.0,
+          "std": null
+        },
+        "recall": {
+          "mean": 0.0,
+          "std": null
+        }
+      },
+      "rocking": {
+        "precision": {
+          "mean": 0.0,
+          "std": null
+        },
+        "recall": {
+          "mean": 0.0,
+          "std": null
+        }
+      },
+      "spinning": {
+        "precision": {
+          "mean": 0.0,
+          "std": null
+        },
+        "recall": {
+          "mean": 0.0,
+          "std": null
+        }
+      }
+    }
+  }
+}

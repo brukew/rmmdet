@@ -1,0 +1,182 @@
+{
+  "summary": {
+    "true_positives": 291,
+    "false_positives": 1042,
+    "false_negatives": 186,
+    "class_confusions": 90
+  },
+  "high_confidence_fps": [
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "hands flapping",
+      "pred_start": 13.0,
+      "pred_end": 16.0,
+      "score": 0.8222783,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "hands flapping",
+      "pred_start": 70.0,
+      "pred_end": 72.0,
+      "score": 0.60144633,
+      "best_tiou": 0.25
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "hands flapping",
+      "pred_start": 132.0,
+      "pred_end": 135.0,
+      "score": 0.9947292,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "jumping",
+      "pred_start": 75.0,
+      "pred_end": 77.0,
+      "score": 0.86719763,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "rocking",
+      "pred_start": 15.0,
+      "pred_end": 17.0,
+      "score": 0.9380109,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "rocking",
+      "pred_start": 28.0,
+      "pred_end": 31.0,
+      "score": 0.8564657,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "rocking",
+      "pred_start": 54.0,
+      "pred_end": 56.0,
+      "score": 0.7402355,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "rocking",
+      "pred_start": 126.0,
+      "pred_end": 129.0,
+      "score": 0.9938983,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "rocking",
+      "pred_start": 152.0,
+      "pred_end": 154.0,
+      "score": 0.8161678,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_L5V8G4A3K7/12-16 month videos/4-10-2020.mov",
+      "pred_class": "rocking",
+      "pred_start": 215.0,
+      "pred_end": 217.0,
+      "score": 0.5805613,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_S2C4T1Y7V7/34-38 month videos/IMG_4359.MOV",
+      "pred_class": "hands flapping",
+      "pred_start": 13.0,
+      "pred_end": 15.0,
+      "score": 0.55957794,
+      "best_tiou": 0.25
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_S2C4T1Y7V7/34-38 month videos/IMG_4617.MOV",
+      "pred_class": "rocking",
+      "pred_start": 4.0,
+      "pred_end": 7.0,
+      "score": 0.509041,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_S2C4T1Y7V7/34-38 month videos/IMG_4617.MOV",
+      "pred_class": "rocking",
+      "pred_start": 8.0,
+      "pred_end": 18.0,
+      "score": 0.7604825,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "A.B._Home_Videos_AMES_S2C4T1Y7V7/34-38 month videos/IMG_5202.MOV",
+      "pred_class": "hands flapping",
+      "pred_start": 3.0,
+      "pred_end": 6.0,
+      "score": 0.65979505,
+      "best_tiou": 0.14285714285714285
+    },
+    {
+      "video_key": "C.M._Home_Videos_AMES_H3B5L5F8T1/12-16 month videos/IMG_6636.mov",
+      "pred_class": "rocking",
+      "pred_start": 4.0,
+      "pred_end": 7.0,
+      "score": 0.772825,
+      "best_tiou": 0.2857142857142857
+    },
+    {
+      "video_key": "C.M._Home_Videos_AMES_H3B5L5F8T1/12-16 month videos/IMG_6850.mov",
+      "pred_class": "hands flapping",
+      "pred_start": 11.0,
+      "pred_end": 15.0,
+      "score": 0.99243087,
+      "best_tiou": 0.25
+    },
+    {
+      "video_key": "C.M._Home_Videos_AMES_H3B5L5F8T1/12-16 month videos/IMG_6850.mov",
+      "pred_class": "hands flapping",
+      "pred_start": 20.0,
+      "pred_end": 25.0,
+      "score": 0.93340576,
+      "best_tiou": 0.16666666666666666
+    },
+    {
+      "video_key": "C.N._Home_Videos_AMES_J2P8I1O3Q0/34-38 month videos/MOV_20170405_2132589.mp4",
+      "pred_class": "jumping",
+      "pred_start": 29.0,
+      "pred_end": 31.0,
+      "score": 0.74847335,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "C.N._Home_Videos_AMES_J2P8I1O3Q0/34-38 month videos/MOV_20170405_2132589.mp4",
+      "pred_class": "jumping",
+      "pred_start": 36.0,
+      "pred_end": 39.0,
+      "score": 0.65244997,
+      "best_tiou": 0
+    },
+    {
+      "video_key": "C.S._Home_Videos_AMES_H7B1M3P5D9/12-16 months/IMG_6818.MOV",
+      "pred_class": "hands flapping",
+      "pred_start": 5.0,
+      "pred_end": 7.0,
+      "score": 0.9751517,
+      "best_tiou": 0.2857142857142857
+    }
+  ],
+  "class_confusion_counts": {
+    "jumping -> hands flapping": 25,
+    "rocking -> spinning": 1,
+    "hands flapping -> jumping": 32,
+    "rocking -> hands flapping": 8,
+    "hands flapping -> rocking": 1,
+    "rocking -> jumping": 8,
+    "spinning -> rocking": 1,
+    "jumping -> rocking": 12,
+    "jumping -> spinning": 1,
+    "spinning -> jumping": 1
+  }
+}
