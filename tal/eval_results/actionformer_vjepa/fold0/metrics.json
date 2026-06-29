@@ -1,0 +1,135 @@
+{
+  "per_class_ap": {
+    "tIoU=0.3": {
+      "hands flapping": 0.19820021444601024,
+      "jumping": 0.39377303790100293,
+      "rocking": 0.025670643015057105,
+      "spinning": 0.15515698354809535
+    },
+    "tIoU=0.5": {
+      "hands flapping": 0.14814390520838838,
+      "jumping": 0.3100249395622182,
+      "rocking": 0.006588783768652706,
+      "spinning": 0.13276586080144623
+    },
+    "tIoU=0.7": {
+      "hands flapping": 0.05523493125373705,
+      "jumping": 0.22426438130463483,
+      "rocking": 0.0016934584708646978,
+      "spinning": 0.08134118113611447
+    }
+  },
+  "details": {
+    "tIoU=0.3": {
+      "hands flapping": {
+        "n_gt": 89,
+        "n_pred": 4996,
+        "n_tp": 80,
+        "n_fp": 4916,
+        "precision_at_threshold": 0.016012810248198558,
+        "recall_at_threshold": 0.898876404494382
+      },
+      "jumping": {
+        "n_gt": 34,
+        "n_pred": 4426,
+        "n_tp": 31,
+        "n_fp": 4395,
+        "precision_at_threshold": 0.0070040668775417985,
+        "recall_at_threshold": 0.9117647058823529
+      },
+      "rocking": {
+        "n_gt": 26,
+        "n_pred": 4489,
+        "n_tp": 26,
+        "n_fp": 4463,
+        "precision_at_threshold": 0.0057919358431721985,
+        "recall_at_threshold": 1.0
+      },
+      "spinning": {
+        "n_gt": 9,
+        "n_pred": 2872,
+        "n_tp": 9,
+        "n_fp": 2863,
+        "precision_at_threshold": 0.0031337047353760445,
+        "recall_at_threshold": 1.0
+      }
+    },
+    "tIoU=0.5": {
+      "hands flapping": {
+        "n_gt": 89,
+        "n_pred": 4996,
+        "n_tp": 68,
+        "n_fp": 4928,
+        "precision_at_threshold": 0.013610888710968775,
+        "recall_at_threshold": 0.7640449438202247
+      },
+      "jumping": {
+        "n_gt": 34,
+        "n_pred": 4426,
+        "n_tp": 27,
+        "n_fp": 4399,
+        "precision_at_threshold": 0.006100316312697696,
+        "recall_at_threshold": 0.7941176470588235
+      },
+      "rocking": {
+        "n_gt": 26,
+        "n_pred": 4489,
+        "n_tp": 22,
+        "n_fp": 4467,
+        "precision_at_threshold": 0.004900868790376476,
+        "recall_at_threshold": 0.8461538461538461
+      },
+      "spinning": {
+        "n_gt": 9,
+        "n_pred": 2872,
+        "n_tp": 9,
+        "n_fp": 2863,
+        "precision_at_threshold": 0.0031337047353760445,
+        "recall_at_threshold": 1.0
+      }
+    },
+    "tIoU=0.7": {
+      "hands flapping": {
+        "n_gt": 89,
+        "n_pred": 4996,
+        "n_tp": 58,
+        "n_fp": 4938,
+        "precision_at_threshold": 0.011609287429943955,
+        "recall_at_threshold": 0.651685393258427
+      },
+      "jumping": {
+        "n_gt": 34,
+        "n_pred": 4426,
+        "n_tp": 27,
+        "n_fp": 4399,
+        "precision_at_threshold": 0.006100316312697696,
+        "recall_at_threshold": 0.7941176470588235
+      },
+      "rocking": {
+        "n_gt": 26,
+        "n_pred": 4489,
+        "n_tp": 12,
+        "n_fp": 4477,
+        "precision_at_threshold": 0.0026732011583871684,
+        "recall_at_threshold": 0.46153846153846156
+      },
+      "spinning": {
+        "n_gt": 9,
+        "n_pred": 2872,
+        "n_tp": 7,
+        "n_fp": 2865,
+        "precision_at_threshold": 0.002437325905292479,
+        "recall_at_threshold": 0.7777777777777778
+      }
+    }
+  },
+  "summary": {
+    "mAP@0.3": 0.1932002197275414,
+    "mAP@0.5": 0.14938087233517638,
+    "mAP@0.7": 0.09063348804133778,
+    "avg_mAP": 0.1444048600346852,
+    "total_gt": 158,
+    "total_predictions": 16783,
+    "num_classes": 4
+  }
+}

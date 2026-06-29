@@ -1,0 +1,16 @@
+{
+  "n_windows": 4938,
+  "n_videos": 101,
+  "n_inner_folds": 5,
+  "oof_accuracy": 0.5739165654110976,
+  "mean_final_loss": 0.723989707463983,
+  "config": {
+    "num_classes": 5,
+    "hidden_dim": 16,
+    "dropout": 0.1,
+    "num_epochs": 100,
+    "lr": 0.01,
+    "batch_size": 64,
+    "random_seed": 42
+  }
+}

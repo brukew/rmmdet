@@ -1,0 +1,31 @@
+============================================================
+TAL Evaluation Results
+============================================================
+
+Summary:
+  mAP@0.3: 0.0386
+  mAP@0.5: 0.0247
+  mAP@0.7: 0.0074
+  avg_mAP: 0.0236
+
+Per-class AP:
+
+  tIoU=0.3:
+    hands flapping: 0.0937
+    jumping: 0.0606
+    rocking: 0.0000
+    spinning: 0.0000
+
+  tIoU=0.5:
+    hands flapping: 0.0574
+    jumping: 0.0416
+    rocking: 0.0000
+    spinning: 0.0000
+
+  tIoU=0.7:
+    hands flapping: 0.0208
+    jumping: 0.0088
+    rocking: 0.0000
+    spinning: 0.0000
+
+============================================================

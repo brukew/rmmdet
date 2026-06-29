@@ -1,0 +1,25 @@
+{
+  "window_preds": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_focal/fold2/tal_format_preds.csv",
+  "splits_root": "/orcd/data/satra/001/users/brukew/actreg/dataprep/splits",
+  "task": "4class",
+  "mode": "cv",
+  "tiou_thresholds": [
+    0.3,
+    0.5,
+    0.7
+  ],
+  "postprocess": {
+    "smooth_k": 3,
+    "threshold": 0.5,
+    "threshold_per_class": null,
+    "merge_gap_sec": 1.0,
+    "min_duration_sec": 0.0,
+    "score_reducer": "max",
+    "class_ids": [
+      0,
+      1,
+      2,
+      3
+    ]
+  }
+}

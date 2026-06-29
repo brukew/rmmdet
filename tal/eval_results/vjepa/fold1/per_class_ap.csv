@@ -1,0 +1,13 @@
+tiou_threshold,class_id,class_name,AP
+tIoU=0.3,0,hands flapping,0.1013489450691197
+tIoU=0.3,1,jumping,0.13313819056641044
+tIoU=0.3,2,rocking,0.006582754629629629
+tIoU=0.3,3,spinning,0.0
+tIoU=0.5,0,hands flapping,0.048366469878531056
+tIoU=0.5,1,jumping,0.1112464822521098
+tIoU=0.5,2,rocking,0.0020833333333333333
+tIoU=0.5,3,spinning,0.0
+tIoU=0.7,0,hands flapping,0.00801350214142759
+tIoU=0.7,1,jumping,0.06185268495174856
+tIoU=0.7,2,rocking,0.0
+tIoU=0.7,3,spinning,0.0

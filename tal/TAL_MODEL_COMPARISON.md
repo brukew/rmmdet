@@ -355,7 +355,37 @@ threshold=0.4, smooth_k=1, merge_gap_sec=1.0
 2. **Train fusion on train windows** — Current OOF approach on val windows is a limitation
 3. **Improve skeleton coverage** — 27% missing skeleton preds hurts fusion
 4. **Class-specific thresholds** — Lower threshold for rare classes (rocking, spinning)
-5. **Two-stage detection** — Binary detector → 4-class classifier
+5. **Two-stage detection** — Binary detector → 4-class classifier (implemented in `actreg/two-stg/`)
+
+---
+
+## Two-Stage Pipeline (Binary Detection + V-JEPA2 Classification)
+
+A two-stage approach: Stage 1 uses **ActionFormer Binary** to detect RMM segments (no class); Stage 2 runs **V-JEPA2 4-class** on each detected segment and combines scores as `final_score = det_score × max(class_probs)`. Evaluated on val folds with the same mAP@tIoU setup as other TAL models.
+
+- **Detection:** Precomputed `result_detection.json` from ActionFormer Binary (per fold).
+- **Classifier:** V-JEPA2 4-class checkpoints from `v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_{0,1,2}/`.
+- **Results:** `actreg/two-stg/eval_results/cv_summary.json` (after running `two-stg/run_two_stage_cv.sh` or `sbatch two-stg/run_two_stage_cv_gpu.sh`).
+
+### Per-Fold Results
+
+| Fold | mAP@0.3 | mAP@0.5 | mAP@0.7 | avg_mAP |
+|------|---------|---------|---------|---------|
+| 0 | 30.32% | 23.39% | 14.00% | 23.23% |
+| 1 | 22.87% | 15.87% | 6.28% | 15.77% |
+| 2 | 22.67% | 13.96% | 6.88% | 14.50% |
+| **Mean ± Std** | **25.29% ± 3.56%** | **17.74% ± 4.07%** | **9.05% ± 3.50%** | **17.83% ± 3.85%** |
+
+### Comparison
+
+| Model | Type | mAP@0.3 | mAP@0.5 | mAP@0.7 | avg_mAP |
+|-------|------|---------|---------|---------|---------|
+| ActionFormer Binary | End-to-end (no class labels) | 40.83% | 28.55% | 11.97% | 27.93% |
+| **Two-Stage (Binary AF + V-JEPA2 4-class)** | **Detect then classify** | **25.29%** | **17.74%** | **9.05%** | **17.83%** |
+| ActionFormer Balanced | End-to-end 4-class | 23.97% | 17.57% | 7.04% | 16.70% |
+| V-JEPA + PoseC3D (MLP) | Window-based fusion | 9.95% | 6.93% | 2.22% | 6.36% |
+
+The two-stage pipeline outperforms ActionFormer Balanced (+6.8% relative avg_mAP) while producing per-class labels, and is 2.8× better than the best window-based approach. It trails ActionFormer Binary, which only detects RMM presence without class distinction.
 
 ---
 
@@ -414,6 +444,7 @@ These recalls are computed as top-kx recall (R@k) at each tIoU threshold during 
 | Model | Type | mAP@0.3 | mAP@0.5 | mAP@0.7 | avg_mAP |
 |-------|------|---------|---------|---------|---------|
 | **ActionFormer + V-JEPA Binary** | End-to-end | 40.83% | 28.55% | 11.97% | **27.93%** |
+| **Two-Stage (Binary AF + V-JEPA2 4-class)** | Detect then classify | 25.29% | 17.74% | 9.05% | **17.83%** |
 | **ActionFormer + V-JEPA Balanced** | End-to-end | 23.97% | 17.57% | 7.04% | **16.70%** |
 | V-JEPA Binary (window) | Window-based | 11.78% | 6.77% | 1.44% | 6.66% |
 | V-JEPA + PoseC3D (MLP) | Fusion | 9.95% | 6.93% | 2.22% | 6.36% |
@@ -421,7 +452,8 @@ These recalls are computed as top-kx recall (R@k) at each tIoU threshold during 
 
 **Key Findings:**
 1. **ActionFormer is decisively better** than window-based TAL (+ postprocessing)
-2. **Binary detection reaches 40.8% mAP@0.3 (best checkpoints)** — strong for broad RMM localization
+2. **Two-stage pipeline (17.83%) beats end-to-end ActionFormer Balanced (16.70%)** for 4-class TAL, while trailing binary-only detection (27.93%)
+3. **Binary detection reaches 40.8% mAP@0.3 (best checkpoints)** — strong for broad RMM localization
 3. **End-to-end TAL significantly outperforms** window-based + postprocessing
 4. **V-JEPA features transfer excellently** to ActionFormer architecture
 

@@ -1,0 +1,42 @@
+============================================================
+TAL Evaluation Results
+============================================================
+
+Summary:
+  mAP@0.3:   0.1250    Recall@0.3:   0.1959
+  mAP@0.5:   0.0799    Recall@0.5:   0.1532
+  mAP@0.7:   0.0255    Recall@0.7:   0.0681
+  avg_mAP:    0.0768    avg_Recall:    0.1391
+
+Per-class AP:
+
+  tIoU=0.3:
+    hands flapping: 0.1421
+    jumping: 0.1890
+    rocking: 0.0344
+    spinning: 0.1345
+
+  tIoU=0.5:
+    hands flapping: 0.0653
+    jumping: 0.1410
+    rocking: 0.0042
+    spinning: 0.1090
+
+  tIoU=0.7:
+    hands flapping: 0.0160
+    jumping: 0.0325
+    rocking: 0.0005
+    spinning: 0.0528
+
+Per-class Detection Metrics (tIoU=0.5):
+
+  Class             n_GT   n_Pred    n_TP    n_FP     Prec   Recall
+  -----------------------------------------------------------------
+  hands flapping     343      201      54     147    0.269    0.157
+  jumping            170      148      31     117    0.209    0.182
+  rocking             96      204       7     197    0.034    0.073
+  spinning            45       70       9      61    0.129    0.200
+  -----------------------------------------------------------------
+  TOTAL              654      623     101     522    0.162    0.154
+
+============================================================

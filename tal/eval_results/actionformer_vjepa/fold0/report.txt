@@ -1,0 +1,55 @@
+============================================================
+TAL Evaluation Results (OpenTAD)
+============================================================
+
+Summary:
+  mAP@0.3: 0.1932
+  mAP@0.5: 0.1494
+  mAP@0.7: 0.0906
+  avg_mAP: 0.1444
+
+  Total GT instances: 158
+  Total predictions: 16783
+  Number of classes: 4
+
+Per-class AP:
+
+  tIoU=0.3:
+    hands flapping: 0.1982
+    jumping: 0.3938
+    rocking: 0.0257
+    spinning: 0.1552
+
+  tIoU=0.5:
+    hands flapping: 0.1481
+    jumping: 0.3100
+    rocking: 0.0066
+    spinning: 0.1328
+
+  tIoU=0.7:
+    hands flapping: 0.0552
+    jumping: 0.2243
+    rocking: 0.0017
+    spinning: 0.0813
+
+Per-class Details (TP/FP/Precision/Recall):
+
+  tIoU=0.3:
+    hands flapping: GT=89, Pred=4996, TP=80, FP=4916, P=0.016, R=0.899
+    jumping: GT=34, Pred=4426, TP=31, FP=4395, P=0.007, R=0.912
+    rocking: GT=26, Pred=4489, TP=26, FP=4463, P=0.006, R=1.000
+    spinning: GT=9, Pred=2872, TP=9, FP=2863, P=0.003, R=1.000
+
+  tIoU=0.5:
+    hands flapping: GT=89, Pred=4996, TP=68, FP=4928, P=0.014, R=0.764
+    jumping: GT=34, Pred=4426, TP=27, FP=4399, P=0.006, R=0.794
+    rocking: GT=26, Pred=4489, TP=22, FP=4467, P=0.005, R=0.846
+    spinning: GT=9, Pred=2872, TP=9, FP=2863, P=0.003, R=1.000
+
+  tIoU=0.7:
+    hands flapping: GT=89, Pred=4996, TP=58, FP=4938, P=0.012, R=0.652
+    jumping: GT=34, Pred=4426, TP=27, FP=4399, P=0.006, R=0.794
+    rocking: GT=26, Pred=4489, TP=12, FP=4477, P=0.003, R=0.462
+    spinning: GT=9, Pred=2872, TP=7, FP=2865, P=0.002, R=0.778
+
+============================================================
