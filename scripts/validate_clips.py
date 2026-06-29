@@ -24,7 +24,13 @@ except ImportError as e:
     sys.exit(1)
 
 
-DEFAULT_CLIPS_ROOT = "/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips"
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
+DEFAULT_CLIPS_ROOT = str(PATHS.vjepa2_finetune_clips)
 DEFAULT_CSV_DIR = "/orcd/data/satra/001/users/brukew/actreg/dataprep/cv_folds"
 
 

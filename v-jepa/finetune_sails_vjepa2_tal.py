@@ -55,6 +55,14 @@ except ImportError:  # pragma: no cover - optional
 
 logger = logging.getLogger(__name__)
 
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+# Walk up from this file until paths.py (sitting at the repo root) is found, so the
+# import works regardless of the current working directory.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
 # ==============================================================================
 # TAL-specific constants
 # ==============================================================================
@@ -78,11 +86,11 @@ BINARY_ID2LABEL = BINARY_LABEL_MAP.copy()
 BINARY_LABEL2ID = {v: k for k, v in BINARY_LABEL_MAP.items()}
 
 DEFAULT_TAL_CSV_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class")
-DEFAULT_TAL_CLIPS_ROOT = Path("/orcd/scratch/bcs/001/brukew/sails/tal_windows_4class/canonical_clips")
+DEFAULT_TAL_CLIPS_ROOT = PATHS.tal_clips_root
 
 # Cropping defaults (same as original)
 DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
-DEFAULT_MASK_CACHE_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking")
+DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_MASK_MODEL = "facebook-sam3"
 DEFAULT_MASK_PROMPT = "person"
 DEFAULT_CROP_PADDING = 20

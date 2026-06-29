@@ -39,6 +39,12 @@ from tqdm import tqdm
 # Add parent for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
 logger = logging.getLogger(__name__)
 
 
@@ -49,8 +55,8 @@ logger = logging.getLogger(__name__)
 # SAILS paths
 BASE_DIR = Path("/orcd/data/satra/001/users/brukew")
 DATAPREP_DIR = BASE_DIR / "actreg/dataprep"
-VIDEOS_ROOT = Path("/orcd/scratch/bcs/001/sensein/sails/rmm/videos")
-OUTPUT_ROOT = Path("/orcd/scratch/bcs/001/sensein/sails/rmm/features")
+VIDEOS_ROOT = PATHS.rmm_videos
+OUTPUT_ROOT = PATHS.rmm_features
 
 # Feature extraction settings
 SNIPPET_SIZE = 16  # frames per snippet
@@ -123,7 +129,7 @@ except ImportError:
     h5py = None
 
 DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
-DEFAULT_MASK_CACHE_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking")
+DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_MASK_MODEL = "facebook-sam3"
 DEFAULT_MASK_PROMPT = "person"
 DEFAULT_CROP_PADDING = 20

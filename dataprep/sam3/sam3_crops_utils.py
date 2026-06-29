@@ -23,8 +23,15 @@ DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm
 DEFAULT_ORIGINAL_VIDEO_BASE = Path(
     "/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized"
 )
-DEFAULT_SAM3_OUTPUT_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/rmm/rmm_sam_numbered")
-DEFAULT_MASK_CACHE_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking")
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+import sys as _sys
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
+DEFAULT_SAM3_OUTPUT_BASE = PATHS.rmm_sam_numbered
+DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_ROTATION_REPORT = Path(
     "/orcd/data/satra/001/users/brukew/sailsprep/feature_processing/tracker/sam3/rotation_inconsistencies_report.csv"
 )

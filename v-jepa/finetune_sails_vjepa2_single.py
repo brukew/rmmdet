@@ -49,10 +49,16 @@ except ImportError:  # pragma: no cover - optional
 
 logger = logging.getLogger(__name__)
 
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
 DEFAULT_SPLIT_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits/single_split")
-DEFAULT_CLIPS_ROOT = Path("/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips")
+DEFAULT_CLIPS_ROOT = PATHS.vjepa2_finetune_clips
 DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
-DEFAULT_MASK_CACHE_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking")
+DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_MASK_MODEL = "facebook-sam3"
 DEFAULT_MASK_PROMPT = "person"
 DEFAULT_CROP_PADDING = 20

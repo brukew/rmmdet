@@ -20,8 +20,14 @@ import h5py
 import numpy as np
 import pandas as pd
 
-ACTREG = Path("/orcd/data/satra/001/users/brukew/actreg")
-POSE_CACHE_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking")
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
+ACTREG = PATHS.repo_root
+POSE_CACHE_BASE = PATHS.cache_for_tracking
 POSE_CACHE_FILENAME = "dino-5scale_swin-l_8xb2-36e_coco_0.5_td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288_sam3guided.h5"
 SPLITS_DIR = ACTREG / "dataprep/tal/splits_cv_4class"
 

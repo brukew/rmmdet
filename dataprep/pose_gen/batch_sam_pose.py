@@ -74,10 +74,17 @@ class ProcessingConfig:
     max_frames: Optional[int] = None  # None = process all frames
 
 
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
+
 @dataclass
 class CacheConfig:
     """Configuration for caching"""
-    cache_base_path: str = "/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking"
+    cache_base_path: str = str(PATHS.cache_for_tracking)
     enable_cache: bool = True
     force_recompute: bool = False
 
@@ -85,7 +92,7 @@ class CacheConfig:
 @dataclass
 class OutputConfig:
     """Configuration for output"""
-    output_base_dir: str = "/orcd/scratch/bcs/001/sensein/sails/feature_processing/pipeline_outputs/sam_pose"
+    output_base_dir: str = str(PATHS.pipeline_outputs / "sam_pose")
     generate_video: bool = True
     ffmpeg_loglevel: str = "error"
 
@@ -706,10 +713,10 @@ Examples:
     parser.add_argument('--exp-id', type=str, default=None,
                        help='Experiment identifier for output directory')
     parser.add_argument('--output-dir', type=str, 
-                       default='/orcd/scratch/bcs/001/sensein/sails/feature_processing/pipeline_outputs/sam_pose',
+                       default=str(PATHS.pipeline_outputs / "sam_pose"),
                        help='Base output directory')
     parser.add_argument('--cache-dir', type=str,
-                       default='/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking',
+                       default=str(PATHS.cache_for_tracking),
                        help='Base cache directory')
     parser.add_argument('--video-meta', type=str,
                        default='/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json',

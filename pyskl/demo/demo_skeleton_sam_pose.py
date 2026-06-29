@@ -62,7 +62,15 @@ LINETYPE = 1
 COCO_KEYPOINT_INDICES = list(range(17))
 
 # Default cache configuration (matches batch_sam_pose.py)
-DEFAULT_CACHE_BASE = "/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking"
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+import sys as _sys
+from pathlib import Path as _Path
+_REPO_ROOT = next(p for p in _Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
+DEFAULT_CACHE_BASE = str(PATHS.cache_for_tracking)
 DEFAULT_DETECTION_CONFIG = "dino-5scale_swin-l_8xb2-36e_coco"
 DEFAULT_DET_CONF_THRESH = 0.5
 DEFAULT_POSE_CONFIG = "td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288"
@@ -71,7 +79,7 @@ DEFAULT_POSE_CONFIG = "td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288"
 DEFAULT_VIDEO_META_JSON = "/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json"
 
 # Default output directory for row-based processing
-DEFAULT_OUTPUT_DIR = "/orcd/scratch/bcs/001/sensein/sails/feature_processing/pipeline_outputs/skeleton_recognition"
+DEFAULT_OUTPUT_DIR = str(PATHS.pipeline_outputs / "skeleton_recognition")
 
 
 def load_video_metadata(meta_path: str) -> Dict[int, Dict]:

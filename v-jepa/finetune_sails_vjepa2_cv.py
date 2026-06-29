@@ -41,6 +41,12 @@ except ImportError:  # pragma: no cover - optional
 
 logger = logging.getLogger(__name__)
 
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
 DEFAULT_ISSUE_CLIPS_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/issue_clips.csv")
 
 
@@ -70,7 +76,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--clips-root",
         type=Path,
-        default=Path("/orcd/scratch/bcs/001/sensein/sails/rmm/vjepa2_finetune_clips"),
+        default=PATHS.vjepa2_finetune_clips,
         help="Root directory containing fold subdirectories with MP4 clips.",
     )
     parser.add_argument(

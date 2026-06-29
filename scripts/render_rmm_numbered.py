@@ -37,6 +37,12 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
 # COCO pose skeleton connections (17 keypoints)
 COCO_SKELETON = [
     (0, 1), (0, 2), (1, 3), (2, 4),
@@ -546,7 +552,7 @@ def main():
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("/orcd/scratch/bcs/001/sensein/sails/rmm/rmm_numbered_target"),
+        default=PATHS.rmm_numbered_target,
         help="Output directory for numbered folders"
     )
     parser.add_argument(

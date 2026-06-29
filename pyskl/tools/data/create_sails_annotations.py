@@ -113,7 +113,14 @@ TAL_ID_TO_CLASS_5CLASS = {v: k for k, v in TAL_CLASS_MAP_5CLASS.items()}
 COCO_KEYPOINT_INDICES = list(range(17))
 
 # Default paths for SAILS dataset
-DEFAULT_POSE_CACHE_BASE = "/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking"
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+import sys as _sys
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
+DEFAULT_POSE_CACHE_BASE = str(PATHS.cache_for_tracking)
 DEFAULT_VIDEO_ROOT = "/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized"
 DEFAULT_VIDEO_META_JSON = "/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json"
 

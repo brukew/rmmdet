@@ -43,6 +43,10 @@ ACTREG_ROOT = Path(__file__).resolve().parent.parent
 PYSKL_ROOT = ACTREG_ROOT / "pyskl"
 if str(PYSKL_ROOT) not in sys.path:
     sys.path.insert(0, str(PYSKL_ROOT))
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+if str(ACTREG_ROOT) not in sys.path:
+    sys.path.insert(0, str(ACTREG_ROOT))
+from paths import PATHS  # noqa: E402
 
 from tools.data.create_sails_annotations import (  # noqa: E402
     DEFAULT_VIDEO_META_JSON,
@@ -64,9 +68,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_WINDOW_SPLITS_DIR = ACTREG_ROOT / "dataprep/tal/splits_cv_4class"
 DEFAULT_DET_ROOT = ACTREG_ROOT / "OpenTAD/exps/sails_rmm"
-DEFAULT_POSE_CACHE_BASE = Path(
-    "/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking"
-)
+DEFAULT_POSE_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_OUT_DIR = ACTREG_ROOT / "two-stg" / "proposal_pickles"
 
 

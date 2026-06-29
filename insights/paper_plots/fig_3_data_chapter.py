@@ -32,14 +32,20 @@ import seaborn as sns
 # Project root
 ACTREG_ROOT = Path(__file__).parent.parent.parent
 
+# Resolve filesystem locations from the repo's single source of truth (config.yaml).
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from paths import PATHS  # noqa: E402
+
 # Data paths
 ANNOTATIONS_EXCEL = Path("/orcd/data/satra/002/datasets/SAILS/data4analysis/Video Rating Data/SAILS_RATINGS_ALL_8.8.25.xlsx")
 RMM_SEGMENTS_CSV = ACTREG_ROOT / "dataprep" / "rmm_segments.csv"
 SPLITS_4CLASS_DIR = ACTREG_ROOT / "dataprep" / "tal" / "splits_cv_4class"
 SPLITS_5CLASS_DIR = ACTREG_ROOT / "dataprep" / "tal" / "splits_cv_5class"
 ORIGINAL_VIDEO_BASE = Path("/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized")
-SAM3_OUTPUT_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/rmm/rmm_sam_numbered")
-POSE_CACHE_BASE = Path("/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking")
+SAM3_OUTPUT_BASE = PATHS.rmm_sam_numbered
+POSE_CACHE_BASE = PATHS.cache_for_tracking
 VIDEO_META_JSON = ACTREG_ROOT / "dataprep" / "video_meta.json"
 
 # Output paths
