@@ -1,0 +1,107 @@
+{
+  "generated_at_utc": "2026-03-19T09:11:52.948844+00:00",
+  "fold": 0,
+  "output_dir": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way/fold0",
+  "pipeline": {
+    "name": "two-stage-tal",
+    "description": "Binary ActionFormer proposal generation followed by stage-2 classification (three_way).",
+    "stage1": {
+      "model_name": "ActionFormer + V-JEPA Binary",
+      "task": "binary TAL proposal generation (rmm vs background)",
+      "detection_json": "/orcd/data/satra/001/users/brukew/actreg/OpenTAD/exps/sails_rmm/actionformer_vjepa_binary_fold0/gpu1_id99/result_detection.json"
+    },
+    "stage2": {
+      "model_name": "V-JEPA2 4-class + ThreeWayMLPFusion (PoseC3D/STGCN++ via skeleton index)",
+      "task": "clip classification into hands flapping / jumping / rocking / spinning; Live V-JEPA2 4-class softmax vectors + 3-way MLP fusion with PoseC3D and STGCN++ score vectors from exported skeleton_index.csv (nearest training clip by half-open tIoU; uniform fallback if no overlap).",
+      "checkpoint_dir": "/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_0",
+      "frames_per_clip": 64,
+      "score_combination": "final_score = detection_score * max(stage2_class_probs) (stage2 is fused softmax for three_way; V-JEPA-only softmax for vjepa2).",
+      "classifier_backend": "three_way",
+      "vjepa_checkpoint_dir": "/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_0",
+      "fusion_bundle_dir": "/orcd/data/satra/001/users/brukew/actreg/two-stg/fusion_checkpoints/three_way/fold_0",
+      "fusion_artifacts": {
+        "mlp_state": "/orcd/data/satra/001/users/brukew/actreg/two-stg/fusion_checkpoints/three_way/fold_0/mlp_state.pt",
+        "config": "/orcd/data/satra/001/users/brukew/actreg/two-stg/fusion_checkpoints/three_way/fold_0/config.json",
+        "skeleton_index": "/orcd/data/satra/001/users/brukew/actreg/two-stg/fusion_checkpoints/three_way/fold_0/skeleton_index.csv"
+      }
+    },
+    "evaluation": {
+      "primary_metrics_file": "metrics.json",
+      "primary_evaluator": "OpenTAD mAP",
+      "primary_tiou_thresholds": [
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "custom_crosscheck_metrics_file": "metrics_custom.json",
+      "custom_crosscheck_tiou_thresholds": [
+        0.3,
+        0.5,
+        0.7
+      ],
+      "annotation_json": "/orcd/data/satra/001/users/brukew/actreg/OpenTAD/data/sails_rmm/annotations/fold0_anno.json"
+    }
+  },
+  "environments": {
+    "classification_env": "vjepa2",
+    "evaluation_env": "opentad",
+    "stage2_backend": "three_way"
+  },
+  "invocation": {
+    "window_splits_dir": "/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class",
+    "splits_root": "/orcd/data/satra/001/users/brukew/actreg/dataprep/splits",
+    "source_job_ids": null,
+    "postprocess_job_id": null,
+    "postprocess_dependency": null,
+    "hostname": "node3002"
+  },
+  "artifacts": {
+    "predictions_csv": {
+      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way/fold0/predictions.csv",
+      "exists": true,
+      "size_bytes": 1131006,
+      "modified_at_utc": "2026-03-19T09:11:14.233573+00:00"
+    },
+    "result_detection_json": {
+      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way/fold0/result_detection.json",
+      "exists": true,
+      "size_bytes": 1203510,
+      "modified_at_utc": "2026-03-19T09:11:52.325754+00:00"
+    },
+    "metrics_json": {
+      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way/fold0/metrics.json",
+      "exists": true,
+      "size_bytes": 1177,
+      "modified_at_utc": "2026-03-19T09:11:52.326754+00:00"
+    },
+    "metrics_opentad_json": {
+      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way/fold0/metrics_opentad.json",
+      "exists": true,
+      "size_bytes": 1177,
+      "modified_at_utc": "2026-03-19T09:11:52.326754+00:00"
+    },
+    "metrics_custom_json": {
+      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way/fold0/metrics_custom.json",
+      "exists": true,
+      "size_bytes": 3331,
+      "modified_at_utc": "2026-03-19T09:11:14.242574+00:00"
+    }
+  },
+  "metrics_summary": {
+    "average_mAP": 0.28975841284519893,
+    "avg_mAP": 0.28975841284519893,
+    "mAP@0.3": 0.38233041486619207,
+    "mAP@0.4": 0.3479693915351268,
+    "mAP@0.5": 0.29772647530738094,
+    "mAP@0.6": 0.2523000080635393,
+    "mAP@0.7": 0.1684657744537555
+  },
+  "custom_metrics_summary": {
+    "avg_mAP": 0.32644411035814275,
+    "mAP@0.3": 0.4905482448493603,
+    "mAP@0.5": 0.32323570306466515,
+    "mAP@0.7": 0.1655483831604028
+  }
+}
