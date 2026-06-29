@@ -15,15 +15,29 @@
 # =============================================================================
 
 # --- External data roots (machine-specific; most likely to change) -----------
-sails_data_root: /orcd/scratch/bcs/001/sensein/sails   # shared SAILS data (features, clips, caches)
-scratch_root:     /orcd/scratch/bcs/001/brukew/sails   # personal scratch (e.g. tal_windows)
+# NOTE: the shared SAILS data was migrated OFF the soon-to-be-purged scratch
+# (/orcd/scratch/bcs/001/sensein/sails) INTO the durable lab project space below.
+# The lab copy mirrors scratch 1:1 (verified for rmm/features + classification_clips
+# + cache_for_tracking + feature_processing/pipeline_outputs).
+sails_data_root: /orcd/data/satra/002/projects/SAILS   # shared SAILS data (lab durable space)
 models_root:      /orcd/data/satra/002/models          # pretrained mmpose / mmdet weights
 dataset_root:     /orcd/data/satra/002/datasets/SAILS  # raw SAILS dataset
 
-# --- Derived shared-data locations (absolute) --------------------------------
-rmm_features:                 /orcd/scratch/bcs/001/sensein/sails/rmm/features
-classification_clips:         /orcd/scratch/bcs/001/sensein/sails/rmm/classification_clips
-classification_clips_cropped: /orcd/scratch/bcs/001/sensein/sails/rmm/classification_clips_cropped
+# --- Derived shared-data locations (absolute, under the lab project space) ---
+rmm_features:                 /orcd/data/satra/002/projects/SAILS/rmm/features
+classification_clips:         /orcd/data/satra/002/projects/SAILS/rmm/classification_clips
+# NOTE: cropped clips not present anywhere (purged + not on scratch); regenerable from clips + SAM3 masks.
+classification_clips_cropped: /orcd/data/satra/002/projects/SAILS/rmm/classification_clips_cropped
+cache_for_tracking:           /orcd/data/satra/002/projects/SAILS/cache_for_tracking
+pipeline_outputs:             /orcd/data/satra/002/projects/SAILS/feature_processing/pipeline_outputs
+vjepa2_finetune_clips:        /orcd/data/satra/002/projects/SAILS/rmm/vjepa2_finetune_clips
+rmm_sam_numbered:             /orcd/data/satra/002/projects/SAILS/rmm/rmm_sam_numbered
+rmm_numbered_target:          /orcd/data/satra/002/projects/SAILS/rmm/rmm_numbered_target
+# NOTE: rmm/videos source was already purged from scratch; features are pre-extracted.
+# Re-extraction requires repopulating this dir (e.g. from BIDS_data).
+rmm_videos:                   /orcd/data/satra/002/projects/SAILS/rmm/videos
+# Windowed-TAL clips (Track 1), migrated from personal scratch into the lab space.
+tal_clips_root:               /orcd/data/satra/002/projects/SAILS/rmm/tal_windows_4class/canonical_clips
 
 # --- In-repo input locations (relative to repo_root; tracked in git) ---------
 splits:       dataprep/splits

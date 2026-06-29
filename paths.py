@@ -104,8 +104,41 @@ class _Paths:
 PATHS = _Paths()
 
 
+def _shell_quote(value: str) -> str:
+    """Single-quote a value for safe use in a POSIX shell `eval`."""
+    return "'" + value.replace("'", "'\\''") + "'"
+
+
 if __name__ == "__main__":
-    # `python paths.py` prints the fully-resolved configuration.
+    import argparse
     import json
 
-    print(json.dumps(PATHS.as_dict(), indent=2))
+    parser = argparse.ArgumentParser(
+        description="Resolve actreg paths from config.yaml (single source of truth)."
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--export",
+        action="store_true",
+        help="Emit `export KEY=VALUE` lines (UPPERCASE keys) for sourcing in shell "
+        "scripts, e.g. `eval \"$(python paths.py --export)\"`.",
+    )
+    group.add_argument(
+        "--get",
+        metavar="KEY",
+        help="Print a single resolved path value (no trailing newline issues; "
+        "handy for `X=$(python paths.py --get rmm_features)`).",
+    )
+    args = parser.parse_args()
+
+    if args.get:
+        # Print one resolved value; raises KeyError with the known-keys list if bad.
+        print(PATHS[args.get])
+    elif args.export:
+        # `repo_root` first so REPO_ROOT is always available to scripts.
+        resolved = PATHS.as_dict()
+        for key, val in resolved.items():
+            print(f"export {key.upper()}={_shell_quote(val)}")
+    else:
+        # `python paths.py` prints the fully-resolved configuration as JSON.
+        print(json.dumps(PATHS.as_dict(), indent=2))
