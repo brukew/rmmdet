@@ -42,7 +42,7 @@ import json
 import pickle
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 import warnings
 
 import numpy as np
@@ -512,6 +512,40 @@ def extract_coco_keypoints(
     return keypoint_xy, keypoint_score
 
 
+def _append_pose_skip_record(
+    skip_events: Optional[List[Dict[str, Any]]],
+    segment: SegmentInfo,
+    *,
+    reason: str,
+    detail: str,
+    **extra: Any,
+) -> None:
+    """If *skip_events* is a list, append one JSON-serializable skip dict."""
+    if skip_events is None:
+        return
+    af_key = (
+        segment.segment_id.rsplit("__", 1)[0]
+        if "__" in segment.segment_id and segment.segment_id != "__probe__"
+        else segment.segment_id
+    )
+    detail_clean = detail.strip()
+    if detail_clean.startswith("[skip]"):
+        detail_clean = detail_clean[6:].lstrip()
+    rec: Dict[str, Any] = {
+        "proposal_id": segment.segment_id,
+        "af_key": af_key,
+        "video_file": segment.video_file,
+        "filename": segment.filename,
+        "child_id": segment.child_id,
+        "start_sec": float(segment.start_sec),
+        "end_sec": float(segment.end_sec),
+        "reason": reason,
+        "detail": detail_clean,
+    }
+    rec.update(extra)
+    skip_events.append(rec)
+
+
 def create_annotation(
     segment: SegmentInfo,
     pose_cache_base: Path,
@@ -520,23 +554,46 @@ def create_annotation(
     default_fps: float = 30.0,
     default_shape: Tuple[int, int] = (480, 640),  # (height, width)
     min_keypoint_conf: float = 0.0,
+    pose_data: Optional[Dict[int, List[Dict]]] = None,
+    skip_events: Optional[List[Dict[str, Any]]] = None,
 ) -> Optional[Dict]:
     """
     Create a single annotation entry for pyskl format.
-    
+
+    If *pose_data* is supplied (pre-loaded H5 for this video) the expensive
+    ``find_pose_cache`` / ``load_pose_cache`` calls are skipped.  Callers that
+    process many proposals per video should memoize the loaded dict.
+
+    If *skip_events* is a list, each skipped proposal is appended as a dict
+    (for JSON logs); skip lines are still printed.
+
     Returns:
         Dictionary with pyskl annotation format, or None if failed.
     """
-    # Find pose cache
-    cache_path = find_pose_cache(segment, pose_cache_base, video_meta_lookup)
-    if cache_path is None:
-        print(f"  [skip] No pose cache found for {segment.segment_id} (filename: {segment.filename})")
-        return None
-    
-    # Load pose data
-    pose_data = load_pose_cache(cache_path)
-    if pose_data is None or len(pose_data) == 0:
-        print(f"  [skip] Empty pose cache for {segment.segment_id}")
+    if pose_data is None:
+        cache_path = find_pose_cache(segment, pose_cache_base, video_meta_lookup)
+        if cache_path is None:
+            msg = f"  [skip] No pose cache found for {segment.segment_id} (filename: {segment.filename})"
+            print(msg)
+            _append_pose_skip_record(
+                skip_events, segment, reason="no_pose_cache", detail=msg.strip()
+            )
+            return None
+
+        pose_data = load_pose_cache(cache_path)
+        if pose_data is None or len(pose_data) == 0:
+            msg = f"  [skip] Empty pose cache for {segment.segment_id}"
+            print(msg)
+            _append_pose_skip_record(
+                skip_events, segment, reason="empty_pose_cache", detail=msg.strip()
+            )
+            return None
+    elif len(pose_data) == 0:
+        msg = f"  [skip] Empty (preloaded) pose cache for {segment.segment_id}"
+        print(msg)
+        _append_pose_skip_record(
+            skip_events, segment, reason="empty_preloaded_pose_cache", detail=msg.strip()
+        )
         return None
     
     # Get video info for FPS and shape
@@ -553,12 +610,12 @@ def create_annotation(
             img_shape = (video_meta["height"], video_meta["width"])
     else:
         # Fall back to OpenCV probe (slow path, only if metadata missing)
-    video_path = resolve_video_path(video_root, segment.video_file)
-    video_info = get_video_info(video_path)
+        video_path = resolve_video_path(video_root, segment.video_file)
+        video_info = get_video_info(video_path)
         if video_info["fps"] > 0:
             fps = video_info["fps"]
-    if video_info["width"] > 0 and video_info["height"] > 0:
-        img_shape = (video_info["height"], video_info["width"])
+        if video_info["width"] > 0 and video_info["height"] > 0:
+            img_shape = (video_info["height"], video_info["width"])
     
     # Calculate frame range for this segment
     start_frame = int(segment.start_sec * fps)
@@ -569,6 +626,46 @@ def create_annotation(
         end_frame = start_frame + int(fps)  # Default to 1 second
     
     total_frames = end_frame - start_frame
+
+    # Pose HDF5 is often only built for a prefix of the video (e.g. first N frames). If the
+    # proposal starts after the last cached frame, every lookup misses and we would only
+    # print the vague "Too few pose frames (0/...)". Fail fast with a clear reason.
+    max_cached_frame = max(pose_data.keys())
+    min_cached_frame = min(pose_data.keys())
+    if start_frame > max_cached_frame:
+        approx_cached_sec = (max_cached_frame + 1) / fps if fps > 0 else 0.0
+        msg = (
+            f"  [skip] Proposal starts after end of pose cache for {segment.segment_id}: "
+            f"start_frame={start_frame} > max_cached_frame={max_cached_frame} "
+            f"(cache covers ~0–{approx_cached_sec:.1f}s at fps={fps:.3f}; extend/regenerate pose for full video)"
+        )
+        print(msg)
+        _append_pose_skip_record(
+            skip_events,
+            segment,
+            reason="starts_after_pose_cache",
+            detail=msg.strip(),
+            start_frame=start_frame,
+            max_cached_frame=max_cached_frame,
+            fps_used=fps,
+            approx_cached_sec_end=approx_cached_sec,
+        )
+        return None
+    if end_frame <= min_cached_frame:
+        msg = (
+            f"  [skip] Proposal ends before start of pose cache for {segment.segment_id}: "
+            f"end_frame={end_frame} <= min_cached_frame={min_cached_frame}"
+        )
+        print(msg)
+        _append_pose_skip_record(
+            skip_events,
+            segment,
+            reason="ends_before_pose_cache",
+            detail=msg.strip(),
+            end_frame=end_frame,
+            min_cached_frame=min_cached_frame,
+        )
+        return None
     
     # Extract keypoints for the segment's frame range
     # We assume 1 person (the target child)
@@ -590,7 +687,29 @@ def create_annotation(
     
     # Skip if too few frames have pose data
     if frames_with_pose < total_frames * 0.1:  # Less than 10% coverage
-        print(f"  [skip] Too few pose frames ({frames_with_pose}/{total_frames}) for {segment.segment_id}")
+        hint = ""
+        if frames_with_pose > 0 and (end_frame - 1) > max_cached_frame:
+            hint = (
+                f" [cache ends at frame {max_cached_frame}; "
+                f"proposal range {start_frame}-{end_frame - 1}]"
+            )
+        msg = (
+            f"  [skip] Too few pose frames ({frames_with_pose}/{total_frames}) "
+            f"for {segment.segment_id}{hint}"
+        )
+        print(msg)
+        _append_pose_skip_record(
+            skip_events,
+            segment,
+            reason="insufficient_pose_coverage",
+            detail=msg.strip(),
+            frames_with_pose=frames_with_pose,
+            total_frames=total_frames,
+            min_keypoint_conf=min_keypoint_conf,
+            start_frame=start_frame,
+            end_frame_exclusive=end_frame,
+            max_cached_frame=max_cached_frame,
+        )
         return None
     
     return {
@@ -780,7 +899,7 @@ def process_csvs(
         if windows_mode:
             segments = load_csv_windows(csv_path, id_to_class, background_label)
         else:
-        segments = load_csv_segments(csv_path, class_map)
+            segments = load_csv_segments(csv_path, class_map)
         print(f"  Loaded {len(segments)} segments")
         
         if dry_run:
@@ -927,7 +1046,7 @@ def main():
             if args.windows:
                 csv_path = splits_dir / f"{split}_windows.csv"
             else:
-            csv_path = splits_dir / f"{split}.csv"
+                csv_path = splits_dir / f"{split}.csv"
             if csv_path.exists():
                 csv_paths.append(csv_path)
                 split_names.append(split)
@@ -970,7 +1089,7 @@ def main():
         if args.windows:
             fold_files = list(splits_dir.glob("fold_*_train_windows.csv"))
         else:
-        fold_files = list(splits_dir.glob("fold_*_train.csv"))
+            fold_files = list(splits_dir.glob("fold_*_train.csv"))
         fold_nums = sorted(set(int(f.stem.split("_")[1]) for f in fold_files))
         
         if not fold_nums:
@@ -992,8 +1111,8 @@ def main():
                 train_csv = splits_dir / f"fold_{fold_num}_train_windows.csv"
                 val_csv = splits_dir / f"fold_{fold_num}_val_windows.csv"
             else:
-            train_csv = splits_dir / f"fold_{fold_num}_train.csv"
-            val_csv = splits_dir / f"fold_{fold_num}_val.csv"
+                train_csv = splits_dir / f"fold_{fold_num}_train.csv"
+                val_csv = splits_dir / f"fold_{fold_num}_val.csv"
             
             if train_csv.exists():
                 csv_paths.append(train_csv)

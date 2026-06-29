@@ -1,0 +1,17 @@
+video_key,start_sec,end_sec,num_labels,labels,labels_names,num_windows
+C.B._Home_Videos_AMES_J3J0V4T8C3/34-38 month videos/03-09-2021.mov,0.000,5.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",4
+D.R._Home_Videos_AMES_L0C6T6H2C6/34-38 month videos/03-08-2021.mov,1.000,4.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",2
+D.R._Home_Videos_AMES_L0C6T6H2C6/34-38 month videos/03-08-2021.mov,23.000,27.000,2,"[1, 3]","[""jumping"", ""spinning""]",3
+D.W._Home_Videos_AMES_G4J8F6F4X0/34-38 month home videos/Snapchat-1467744963.mp4,34.000,37.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",2
+G.G._Home_Videos_AMES_E7Z4G3O5K2/34-38 month videos/IMG_3807.mov,4.000,6.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",1
+J.M._Home_Videos_AMES_E7G3N4A1K5/34-38 month videos/20160526_170216.mp4,3.000,7.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",3
+J.M._Home_Videos_AMES_E7G3N4A1K5/34-38 month videos/20160526_170216.mp4,9.000,16.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",6
+J.V._Home_Videos_AMES_C1G1X2G4C6/34-38 month videos/IMG_7585.mov,5.000,7.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",1
+J.V._Home_Videos_AMES_C1G1X2G4C6/34-38 month videos/IMG_7585.mov,25.000,28.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",2
+J.V._Home_Videos_AMES_C1G1X2G4C6/34-38 month videos/IMG_7585.mov,32.000,37.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",3
+L.P._Home_Videos_AMES_T4R5V7C3L6/34-38 month videos/344619313_6065239563588538_5835258672173916095_n.mp4,12.000,15.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",2
+M.J._Home_Videos_AMES_S9B3J7I4R1/34-38 month videos/20191019_154113.mp4,7.000,10.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",2
+N.O._Home_Videos_AMES_Q9W9P7Z3J7/34-38 month home videos/IMG_0289.mov,8.000,10.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",1
+N.S._Home_Videos_AMES_D4Y7P4G2V4/20210912_214928.mp4,280.000,283.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",2
+N.S._Home_Videos_AMES_D4Y7P4G2V4/PXL_20210927_195801036.mp4,25.000,28.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",2
+T.F._Home_Videos_AMES_Y6Z4H0C5U2/34-38 month videos/9-11-20.mov,37.000,40.000,2,"[0, 1]","[""hands flapping"", ""jumping""]",2

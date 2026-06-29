@@ -1,0 +1,121 @@
+{
+  "generated_at": "2026-01-01T01:50:17.436663+00:00",
+  "task": "5class",
+  "mode": "cv",
+  "window_len_sec": 2.0,
+  "stride_sec": 1.0,
+  "tiou_thresh": 0.3,
+  "label_map": {
+    "hands flapping": 0,
+    "jumping": 1,
+    "one hand flap": 2,
+    "rocking": 3,
+    "spinning": 4
+  },
+  "priority_order": [
+    "hands flapping",
+    "jumping",
+    "one hand flap",
+    "rocking",
+    "spinning"
+  ],
+  "time_semantics": "half-open [start, end) intervals; GT end converted via end_exclusive = end_sec + 1.0",
+  "split_statistics": {
+    "fold_0_train": {
+      "total_windows": 9207,
+      "background_windows": 8306,
+      "background_pct": 90.21,
+      "positive_windows": 901,
+      "multi_label_windows": 35,
+      "class_counts": {
+        "hands flapping": 343,
+        "jumping": 268,
+        "one hand flap": 165,
+        "rocking": 131,
+        "spinning": 29
+      },
+      "videos_with_meta": 197,
+      "videos_missing_meta": 0
+    },
+    "fold_0_val": {
+      "total_windows": 4938,
+      "background_windows": 4484,
+      "background_pct": 90.81,
+      "positive_windows": 454,
+      "multi_label_windows": 7,
+      "class_counts": {
+        "hands flapping": 230,
+        "jumping": 94,
+        "one hand flap": 65,
+        "rocking": 47,
+        "spinning": 25
+      },
+      "videos_with_meta": 101,
+      "videos_missing_meta": 0
+    },
+    "fold_1_train": {
+      "total_windows": 10229,
+      "background_windows": 9327,
+      "background_pct": 91.18,
+      "positive_windows": 902,
+      "multi_label_windows": 21,
+      "class_counts": {
+        "hands flapping": 390,
+        "jumping": 231,
+        "one hand flap": 150,
+        "rocking": 122,
+        "spinning": 30
+      },
+      "videos_with_meta": 204,
+      "videos_missing_meta": 0
+    },
+    "fold_1_val": {
+      "total_windows": 3916,
+      "background_windows": 3463,
+      "background_pct": 88.43,
+      "positive_windows": 453,
+      "multi_label_windows": 21,
+      "class_counts": {
+        "hands flapping": 183,
+        "jumping": 131,
+        "one hand flap": 80,
+        "rocking": 56,
+        "spinning": 24
+      },
+      "videos_with_meta": 94,
+      "videos_missing_meta": 0
+    },
+    "fold_2_train": {
+      "total_windows": 8854,
+      "background_windows": 7947,
+      "background_pct": 89.76,
+      "positive_windows": 907,
+      "multi_label_windows": 28,
+      "class_counts": {
+        "hands flapping": 413,
+        "jumping": 225,
+        "one hand flap": 145,
+        "rocking": 103,
+        "spinning": 49
+      },
+      "videos_with_meta": 195,
+      "videos_missing_meta": 0
+    },
+    "fold_2_val": {
+      "total_windows": 5291,
+      "background_windows": 4843,
+      "background_pct": 91.53,
+      "positive_windows": 448,
+      "multi_label_windows": 14,
+      "class_counts": {
+        "hands flapping": 160,
+        "jumping": 137,
+        "one hand flap": 85,
+        "rocking": 75,
+        "spinning": 5
+      },
+      "videos_with_meta": 103,
+      "videos_missing_meta": 0
+    }
+  }
+}

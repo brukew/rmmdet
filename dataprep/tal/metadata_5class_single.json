@@ -1,0 +1,73 @@
+{
+  "generated_at": "2026-01-01T01:50:18.475523+00:00",
+  "task": "5class",
+  "mode": "single",
+  "window_len_sec": 2.0,
+  "stride_sec": 1.0,
+  "tiou_thresh": 0.3,
+  "label_map": {
+    "hands flapping": 0,
+    "jumping": 1,
+    "one hand flap": 2,
+    "rocking": 3,
+    "spinning": 4
+  },
+  "priority_order": [
+    "hands flapping",
+    "jumping",
+    "one hand flap",
+    "rocking",
+    "spinning"
+  ],
+  "time_semantics": "half-open [start, end) intervals; GT end converted via end_exclusive = end_sec + 1.0",
+  "split_statistics": {
+    "train": {
+      "total_windows": 10796,
+      "background_windows": 9786,
+      "background_pct": 90.64,
+      "positive_windows": 1010,
+      "multi_label_windows": 27,
+      "class_counts": {
+        "hands flapping": 443,
+        "jumping": 262,
+        "one hand flap": 194,
+        "rocking": 103,
+        "spinning": 35
+      },
+      "videos_with_meta": 221,
+      "videos_missing_meta": 0
+    },
+    "val": {
+      "total_windows": 912,
+      "background_windows": 807,
+      "background_pct": 88.49,
+      "positive_windows": 105,
+      "multi_label_windows": 9,
+      "class_counts": {
+        "hands flapping": 41,
+        "jumping": 49,
+        "one hand flap": 14,
+        "rocking": 2,
+        "spinning": 8
+      },
+      "videos_with_meta": 25,
+      "videos_missing_meta": 0
+    },
+    "test": {
+      "total_windows": 2437,
+      "background_windows": 2197,
+      "background_pct": 90.15,
+      "positive_windows": 240,
+      "multi_label_windows": 6,
+      "class_counts": {
+        "hands flapping": 89,
+        "jumping": 51,
+        "one hand flap": 22,
+        "rocking": 73,
+        "spinning": 11
+      },
+      "videos_with_meta": 52,
+      "videos_missing_meta": 0
+    }
+  }
+}
