@@ -1,6 +1,6 @@
 diff --git a/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold0.py b/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold0.py
 new file mode 100644
-index 0000000..c3c3e52
+index 0000000..1809d25
 --- /dev/null
 +++ b/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold0.py
 @@ -0,0 +1,82 @@
@@ -14,7 +14,7 @@ index 0000000..c3c3e52
 +dataset_type = "ThumosPaddingDataset"
 +annotation_path = "data/sails_rmm/annotations/fold0_anno.json"
 +class_map = "data/sails_rmm/annotations/category_idx.txt"
-+data_path = "/orcd/scratch/bcs/001/sensein/sails/rmm/features/vjepa2_tal_cv_5class_balanced_fold_0/"
++data_path = "/orcd/data/satra/002/projects/SAILS/rmm/features/vjepa2_tal_cv_5class_balanced_fold_0/"
 +
 +# Max sequence length (based on longest video at ~4min @ 2fps = ~480 frames)
 +# Set conservatively to handle longer videos
@@ -88,7 +88,7 @@ index 0000000..c3c3e52
 +
 diff --git a/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold1.py b/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold1.py
 new file mode 100644
-index 0000000..c2689ab
+index 0000000..ae605cf
 --- /dev/null
 +++ b/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold1.py
 @@ -0,0 +1,78 @@
@@ -102,7 +102,7 @@ index 0000000..c2689ab
 +dataset_type = "ThumosPaddingDataset"
 +annotation_path = "data/sails_rmm/annotations/fold1_anno.json"
 +class_map = "data/sails_rmm/annotations/category_idx.txt"
-+data_path = "/orcd/scratch/bcs/001/sensein/sails/rmm/features/vjepa2_tal_cv_5class_balanced_fold_1/"
++data_path = "/orcd/data/satra/002/projects/SAILS/rmm/features/vjepa2_tal_cv_5class_balanced_fold_1/"
 +
 +trunc_len = 2048  # Must be divisible by fpn_stride * window_size (18)
 +
@@ -172,7 +172,7 @@ index 0000000..c2689ab
 +
 diff --git a/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold2.py b/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold2.py
 new file mode 100644
-index 0000000..4f7b912
+index 0000000..b37b526
 --- /dev/null
 +++ b/configs/_base_/datasets/sails_rmm/features_vjepa_balanced_fold2.py
 @@ -0,0 +1,78 @@
@@ -186,7 +186,7 @@ index 0000000..4f7b912
 +dataset_type = "ThumosPaddingDataset"
 +annotation_path = "data/sails_rmm/annotations/fold2_anno.json"
 +class_map = "data/sails_rmm/annotations/category_idx.txt"
-+data_path = "/orcd/scratch/bcs/001/sensein/sails/rmm/features/vjepa2_tal_cv_5class_balanced_fold_2/"
++data_path = "/orcd/data/satra/002/projects/SAILS/rmm/features/vjepa2_tal_cv_5class_balanced_fold_2/"
 +
 +trunc_len = 2048  # Must be divisible by fpn_stride * window_size (18)
 +
@@ -256,7 +256,7 @@ index 0000000..4f7b912
 +
 diff --git a/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold0.py b/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold0.py
 new file mode 100644
-index 0000000..6fb9f8e
+index 0000000..e49525f
 --- /dev/null
 +++ b/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold0.py
 @@ -0,0 +1,79 @@
@@ -271,7 +271,7 @@ index 0000000..6fb9f8e
 +dataset_type = "ThumosPaddingDataset"
 +annotation_path = "data/sails_rmm/annotations/fold0_anno_binary.json"
 +class_map = "data/sails_rmm/annotations/category_idx_binary.txt"
-+data_path = "/orcd/scratch/bcs/001/sensein/sails/rmm/features/vjepa2_tal_cv_binary_balanced_fold_0/"
++data_path = "/orcd/data/satra/002/projects/SAILS/rmm/features/vjepa2_tal_cv_binary_balanced_fold_0/"
 +
 +trunc_len = 2048
 +
@@ -341,7 +341,7 @@ index 0000000..6fb9f8e
 +
 diff --git a/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold1.py b/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold1.py
 new file mode 100644
-index 0000000..612fa9b
+index 0000000..72fe5b2
 --- /dev/null
 +++ b/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold1.py
 @@ -0,0 +1,79 @@
@@ -356,7 +356,7 @@ index 0000000..612fa9b
 +dataset_type = "ThumosPaddingDataset"
 +annotation_path = "data/sails_rmm/annotations/fold1_anno_binary.json"
 +class_map = "data/sails_rmm/annotations/category_idx_binary.txt"
-+data_path = "/orcd/scratch/bcs/001/sensein/sails/rmm/features/vjepa2_tal_cv_binary_balanced_fold_1/"
++data_path = "/orcd/data/satra/002/projects/SAILS/rmm/features/vjepa2_tal_cv_binary_balanced_fold_1/"
 +
 +trunc_len = 2048
 +
@@ -426,7 +426,7 @@ index 0000000..612fa9b
 +
 diff --git a/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold2.py b/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold2.py
 new file mode 100644
-index 0000000..b744bd9
+index 0000000..8459423
 --- /dev/null
 +++ b/configs/_base_/datasets/sails_rmm/features_vjepa_binary_fold2.py
 @@ -0,0 +1,79 @@
@@ -441,7 +441,7 @@ index 0000000..b744bd9
 +dataset_type = "ThumosPaddingDataset"
 +annotation_path = "data/sails_rmm/annotations/fold2_anno_binary.json"
 +class_map = "data/sails_rmm/annotations/category_idx_binary.txt"
-+data_path = "/orcd/scratch/bcs/001/sensein/sails/rmm/features/vjepa2_tal_cv_binary_balanced_fold_2/"
++data_path = "/orcd/data/satra/002/projects/SAILS/rmm/features/vjepa2_tal_cv_binary_balanced_fold_2/"
 +
 +trunc_len = 2048
 +
