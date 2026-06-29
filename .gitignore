@@ -1,4 +1,39 @@
-# Ignore all video files
+# =============================================================================
+# actreg .gitignore
+#
+# Policy: ignore large/regenerable ARTIFACTS by directory and binary type, but
+# DO track text data that others need to reproduce results (splits, annotations,
+# metrics, configs, env files). We intentionally do NOT blanket-ignore *.json /
+# *.csv / *.txt anymore -- that was hiding splits, annotations and metrics.
+# =============================================================================
+
+# --- Model run / experiment output directories (regenerable) ---
+runs/
+work_dirs/
+exps/
+logs/
+slurm_logs/
+wandb/
+outputs/
+proposal_pickles/
+proposal_pickles_tridet/
+fusion_checkpoints/
+
+# --- Model weights & large binary artifacts ---
+*.pth
+*.ckpt
+*.pt
+*.safetensors
+*.pkl
+*.npy
+*.npz
+*.h5
+*.hdf5
+# Keep the small pretrained init weights that the pipeline needs
+!pyskl/checkpoints/**
+!pyskl/demo/hagrid.pth
+
+# --- Media files ---
 *.mp4
 *.mov
 *.avi
@@ -7,17 +42,25 @@
 *.flv
 *.wmv
 
-# Ignore all CSV files
-*.csv
-*.txt
-*.xlsx
-*.json
+# --- Python caches / build ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
 
+# --- Derived per-proposal / per-clip prediction dumps (regenerable) ---
+# We keep metrics*.json / cv_summary.json / info.json and the splits instead.
+predictions_clip.csv
+predictions.csv
+predictions_video.csv
+*tal_format_preds.csv
+result_detection.json
 
-# Ignore cache
-*.pyc
+# --- SLURM / job logs ---
+*.out
+*.err
 
-# Model runs
-wandb/
-runs/
-logs/
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
