@@ -1,6 +1,11 @@
 # SAILS RMM Action Recognition
 
-Automated classification of **Repetitive Motor Movements (RMM)** in video clips from the SAILS dataset. This repository contains implementations and evaluations of four distinct approaches: skeleton-based CNN (PoseC3D), skeleton-based GCN (STGCN++), video encoder finetuning (V-JEPA2), and zero-shot vision-language (Qwen2.5-VL).
+Automated classification **and temporal localization** of **Repetitive Motor Movements (RMM)** in video from the SAILS dataset. The repo covers two tasks:
+
+1. **Clip classification** — given a trimmed clip, predict the RMM class. Approaches: skeleton-based CNN (PoseC3D), skeleton-based GCN (STGCN++), video encoder finetuning (V-JEPA2), late fusion, and zero-shot VLM (Qwen2.5-VL).
+2. **Temporal Action Localization (TAL)** — given an untrimmed video, find *when* RMMs occur and classify them. Approaches: window-based scoring + postprocessing, OpenTAD end-to-end detectors (ActionFormer/TriDet), and a two-stage (binary detector → classifier) pipeline.
+
+> **New here / picking this up?** Start with [`REPRODUCE.md`](REPRODUCE.md) for the end-to-end pipeline, [`docs/ARTIFACTS.md`](docs/ARTIFACTS.md) for where data/checkpoints live, and [`REPRODUCIBILITY_TODO.md`](REPRODUCIBILITY_TODO.md) for the remaining handoff tasks.
 
 ---
 
@@ -347,6 +352,26 @@ python fusion/train_fusion_cv.py \
 
 ---
 
+## Temporal Action Localization (TAL)
+
+Beyond clip classification, the repo localizes RMMs in untrimmed video. There are three TAL tracks; all are evaluated with **mAP@tIoU {0.3, 0.5, 0.7}** under 3-fold CV.
+
+| Track | Directory | What it does |
+|-------|-----------|--------------|
+| **Window-based** | `tal/` | Score 2s/1s windows with a clip classifier (V-JEPA2 / PoseC3D / STGCN++ / log-prob MLP fusion), postprocess into segments, evaluate mAP. |
+| **OpenTAD E2E** | `OpenTAD/` (submodule) | ActionFormer / TriDet trained end-to-end on V-JEPA2 features. Also trains **binary** detectors (single "action" class) used as Stage 1 below. |
+| **Two-stage** | `two-stg/` | Binary detector (Stage 1) → V-JEPA2 / 3-way-fusion-MLP / 5-class classifier (Stage 2). |
+
+**Headline finding:** TriDet E2E and ActionFormer E2E reach the highest avg_mAP (~19.5–19.7%), but classify near chance — their advantage is better-calibrated detection *ranking*. The two-stage pipeline classifies far better per-class (V-JEPA2 lifts per-class accuracy from ~29% to 51–84%) and closes most of the mAP gap; under class-agnostic NMS the E2E edge largely disappears. See `two-stg/ANALYSIS_NOTES.md` and `tal/TAL_MODEL_COMPARISON.md`.
+
+**Where to look:**
+- Pipeline + commands: [`REPRODUCE.md`](REPRODUCE.md) §3–5
+- Window eval: [`tal/README.md`](tal/README.md)
+- Two-stage: [`two-stg/README.md`](two-stg/README.md)
+- OpenTAD SAILS fork: [`opentad_sails/README.md`](opentad_sails/README.md)
+
+---
+
 ## Data Preparation
 
 ### Directory Structure
@@ -470,34 +495,31 @@ All methods report both **clip-level** and **video-level** metrics:
 ```
 actreg/
 ├── README.md                 # This file
+├── REPRODUCE.md              # End-to-end pipeline (start here to run things)
 ├── ANALYSIS.md               # Detailed results analysis and conclusions
-├── pyskl/                    # Skeleton-based action recognition (PoseC3D + STGCN++)
-│   ├── configs/
-│   │   ├── posec3d/slowonly_r50_sails_k400p/  # PoseC3D SAILS configs
-│   │   └── stgcn++/stgcnpp_sails_ntu60p/      # STGCN++ SAILS configs
+├── envs/                     # Pinned conda environments (pyskl, vjepa2, opentad)
+├── docs/                     # ARTIFACTS.md (data/artifact retention policy), etc.
+├── opentad_sails/            # OpenTAD fork delta (UPSTREAM_COMMIT + patch)
+├── pyskl/                    # Skeleton-based classification (PoseC3D + STGCN++)
+│   ├── configs/{posec3d,stgcn++}/...  # SAILS configs
 │   ├── tools/                # Training, testing, evaluation scripts
-│   ├── scripts/slurm/        # SLURM job scripts
-│   └── work_dirs/
-│       ├── posec3d/          # PoseC3D experiment outputs
-│       └── stgcnpp/          # STGCN++ experiment outputs
+│   └── work_dirs/            # Experiment outputs (git-ignored)
 ├── v-jepa/                   # V-JEPA2 video encoder finetuning
-│   ├── finetune_sails_vjepa2_*.py  # Training scripts
-│   ├── slurm/                # SLURM job scripts
-│   └── runs/                 # Experiment outputs
-├── fusion/                   # Late fusion (V-JEPA2 + PoseC3D)
-│   ├── train_fusion_cv.py    # Fusion training script
-│   ├── slurm/                # SLURM job scripts
-│   └── runs/                 # Fusion experiment outputs
+│   ├── finetune_sails_vjepa2_*.py     # Training scripts (incl. _tal)
+│   └── runs/                 # Experiment outputs (git-ignored)
+├── fusion/                   # Late fusion (V-JEPA2 + PoseC3D) + 3-way export
 ├── dataprep/                 # Data preparation utilities
-│   ├── splits/               # Train/val/test split CSVs
-│   ├── clip_gen/             # Video clip generation
-│   ├── pose_gen/             # Pose estimation
-│   └── sam3/                 # SAM3 mask processing
-├── insights/                 # Analysis notebooks and failure review
-│   └── failures/             # Common failure analysis
+│   ├── splits/               # Classification train/val/test split CSVs
+│   ├── tal/                  # TAL window splits (2s/1s) + generators
+│   ├── clip_gen/  pose_gen/  sam3/    # Clip gen, pose est., SAM3 masks
+├── OpenTAD/                  # (submodule) ActionFormer/TriDet E2E + binary detectors
+├── tal/                      # Window-based TAL evaluation (window→segment→mAP)
+├── two-stg/                  # Two-stage TAL (binary detector → Stage-2 classifier)
+├── insights/                 # Analysis notebooks, failure review, paper figs/tables
+├── writeup/                  # Paper-section drafts
 ├── clip_validation/          # Clip integrity validation results
 ├── scripts/                  # Shared utility scripts
-└── rendered_videos/          # Demo/visualization outputs
+└── rendered_videos/          # Demo/visualization outputs (git-ignored *.mp4)
 ```
 
 ---
