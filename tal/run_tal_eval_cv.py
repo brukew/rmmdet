@@ -49,7 +49,27 @@ from tal_map_eval import (
     load_gt_segments,
     save_metrics,
 )
-from export_pyskl_window_preds import export_window_preds
+# ``export_pyskl_window_preds`` is only needed for the pyskl-based models
+# (PoseC3D / STGCN++). Its canonical copy lives under ``dataprep/tal/`` -- the
+# duplicate that used to sit next to this file was removed during the repo
+# cleanup. Import it normally when a sibling copy is present; otherwise load it
+# by explicit file path. We deliberately avoid adding ``dataprep/tal/`` to
+# ``sys.path`` because that directory also contains its own (diverged) copies of
+# ``window_to_segments`` and ``tal_map_eval`` which would shadow the intended
+# siblings in this directory.
+try:
+    from export_pyskl_window_preds import export_window_preds
+except ModuleNotFoundError:
+    import importlib.util as _ilu
+
+    _export_src = (
+        Path(__file__).resolve().parent.parent
+        / "dataprep" / "tal" / "export_pyskl_window_preds.py"
+    )
+    _spec = _ilu.spec_from_file_location("export_pyskl_window_preds", _export_src)
+    _export_mod = _ilu.module_from_spec(_spec)
+    _spec.loader.exec_module(_export_mod)
+    export_window_preds = _export_mod.export_window_preds
 
 
 @dataclass
