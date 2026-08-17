@@ -12,9 +12,14 @@ README that has the detailed commands. Data/artifact locations are documented in
 > scripts.
 
 > Four conda envs are used: **`pyskl`** (PoseC3D/STGCN++), **`vjepa2`** (V-JEPA2 +
-> two-stage), **`opentad`** (OpenTAD TAL eval), and **`dataprep`** (mmpose/mmdet + SAM3
-> stack for pose generation and TAL pose-pickle creation). All four are pinned in
-> [`envs/`](envs/).
+> two-stage), **`opentad`** (OpenTAD TAL eval), and **`dataprep`** (window cutting +
+> pyskl-format TAL pose-pickle creation, i.e. `dataprep/tal/*.sbatch`). All four are
+> pinned in [`envs/`](envs/) and each includes PyYAML (required by `paths.py`).
+>
+> **Not pinned:** the actual *pose generation* step (`dataprep/pose_gen/batch_sam_pose.py`,
+> HRNet + SAM3 mask inference) needs a separate `mmpose`/`mmdet` environment. This step is
+> **optional for reproducing results** — the SAM3 pose H5 caches it produces already exist
+> under `cache_for_tracking/pose_sam3/` and are consumed directly downstream.
 
 ---
 
