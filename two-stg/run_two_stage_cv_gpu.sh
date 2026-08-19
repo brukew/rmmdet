@@ -7,7 +7,7 @@
 #SBATCH --partition=mit_normal_gpu
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
+#SBATCH --mem=128G
 #SBATCH --time=3:20:00
 #SBATCH --output=/orcd/data/satra/001/users/brukew/actreg/two-stg/logs/two_stage_cv_%j.out
 #SBATCH --error=/orcd/data/satra/001/users/brukew/actreg/two-stg/logs/two_stage_cv_%j.err
