@@ -1,81 +1,125 @@
-# Artifact & Data Retention Policy
+# Artifacts: where the data and checkpoints live
 
-The repo working tree is ~168 GB, but the **tracked source** (code, configs, splits,
-annotations, metrics, docs, figures) is only **~57 MB** (`.git` ~72 MB). The rest is model
-output and input data that must **not** live in git. This document records where everything
-is and what is safe to delete vs. must be kept. Sizes verified Aug 2026.
+Reference for everything that is **not** in git: the input data and the trained
+checkpoints. The repo working tree is ~168 GB; the **tracked source** in git (code,
+configs, splits, annotations, metrics JSON, docs, figures) is only **~57 MB**. Everything
+else is described here. Sizes verified Aug 2026.
 
-## Where the data lives (durable vs. scratch)
+A fresh reproduction needs three things:
 
-Shared SAILS data has been **mirrored to the lab's durable project space**, and
-[`config.yaml`](../config.yaml) resolves every input path there:
+1. **The repo** (GitHub) — code, splits, metrics, tables, and the OpenTAD patch.
+2. **The input data** — in the durable lab project space (below).
+3. **The trained checkpoints** — git-ignored; a durable copy lives in the lab project space
+   (below). Only needed to reproduce results *without retraining*.
 
-```
-/orcd/data/satra/002/projects/SAILS/          # durable lab project space (config source of truth)
-  rmm/features/                 # V-JEPA2 TAL features       (~933 MB)
-  rmm/classification_clips/     # source classification clips (~4.0 GB)
-  rmm/tal_windows_4class/       # TAL window clips + splits   (~37 GB)
-  rmm/vjepa2_finetune_clips/    # V-JEPA finetune clips
-  rmm/{rmm_sam_numbered,rmm_numbered_target}/
-  cache_for_tracking/           # SAM3 pose H5 caches (consumed by crop + pose-pickle steps)
-  feature_processing/pipeline_outputs/
-```
+---
 
-The original **scratch** copies still exist but are **shared and impermanent** (scheduled
-for cleanup) — treat them as disposable now that the durable mirror exists:
+## 1. Input data — durable lab project space
 
-```
-/orcd/scratch/bcs/001/sensein/sails/    # 2.0 TB shared lab scratch (many users; original inputs)
-/orcd/scratch/bcs/001/brukew/sails/     # 36 GB — tal_windows_4class (duplicate of the lab copy)
-```
+All inputs resolve under `/orcd/data/satra/002/projects/SAILS/`, addressed via
+[`config.yaml`](../config.yaml)/[`paths.py`](../paths.py). This tree is **self-contained**
+(no symlinks into scratch — verified; see §4).
 
-> **Scratch-independence — verified (Aug 2026).** The lab tree is self-contained: the
-> per-fold split dirs under `rmm/classification_clips/` and `rmm/vjepa2_finetune_clips/` are
-> **relative** symlinks into their own sibling `canonical_clips/` (which holds the real 654 /
-> 558 clips), and `tal_windows_4class/` symlinks are likewise relative. A full scan of
-> `rmm/`, `cache_for_tracking/`, and `feature_processing/` finds **0 symlinks pointing into
-> `/orcd/scratch`** and **0 broken links**, so the scratch purge will not affect any input
-> required to reproduce results. *(Re-check with:
-> `find /orcd/data/satra/002/projects/SAILS/rmm -type l -lname '/orcd/scratch/*' | wc -l`.)*
+| Path (`config.yaml` key) | Contents | Size |
+| :--- | :--- | ---: |
+| `rmm/features` (`rmm_features`) | V-JEPA2 TAL features (OpenTAD input) | 933 MB |
+| `rmm/classification_clips` (`classification_clips`) | source classification clips (+ per-fold split symlinks into local `canonical_clips/`) | 4.0 GB |
+| `rmm/tal_windows_4class` (`tal_clips_root`) | TAL window clips + splits | 37 GB |
+| `rmm/vjepa2_finetune_clips` (`vjepa2_finetune_clips`) | V-JEPA finetune clips | — |
+| `cache_for_tracking` (`cache_for_tracking`) | SAM3 pose H5 caches (live-crop + pose pickles) | — |
+| `feature_processing/pipeline_outputs` (`pipeline_outputs`) | intermediate pipeline outputs | — |
+| `/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos` (`dataset_root`) | raw source videos (window CSVs' `video_path`) | — |
 
-> Two `config.yaml` paths are **absent everywhere** and non-blocking:
-> `classification_clips_cropped` (output-only crop target; nothing reads it) and `rmm/videos`
-> (a dead `--videos-root` fallback). See the data-availability table in `REPRODUCE.md`.
+Two `config.yaml` paths are **absent everywhere and non-blocking**:
+`classification_clips_cropped` (output-only crop target; nothing reads it) and `rmm/videos`
+(a dead `--videos-root` fallback). See the data-availability table in `REPRODUCE.md`.
 
-## Tiering
+The originals still exist on **shared scratch** (`/orcd/scratch/bcs/001/sensein/sails`,
+~2.0 TB; `/orcd/scratch/bcs/001/brukew/sails`, 36 GB) but scratch is **scheduled for
+cleanup** — the lab copy above is the durable source of truth.
 
-| Tier | What | Keep? | Where |
-| :--- | :--- | :--- | :--- |
-| **A. Source** | code, configs, splits, annotations, metrics (`eval_results/`, `cv_summary.json`), docs, figures | **In git** (~57 MB) | this repo |
-| **B. Precious inputs + reported checkpoints** | TAL features (933 MB), classification clips (4.0 GB), TAL window clips (37 GB), SAM3 pose caches; the 12 OpenTAD `best.pth` (1.9 GB) + the reported V-JEPA/pyskl/fusion finals | **Keep, git-ignored** | lab project space (inputs) + repo `exps/`,`runs/`,`work_dirs/` (finals) |
-| **C. Regenerable bulk** | full training dumps: all non-final per-run checkpoints, optimizer states, prediction pickles, logs | **Safe to archive/delete** | `v-jepa/runs/` (83 GB), `pyskl/work_dirs/` (43 GB), `OpenTAD/exps/` (40 GB, of which only 1.9 GB is finals) |
-| **D. Disposable** | `__pycache__/`, `rendered_videos/*.mp4` (890 MB), smoke-test dirs, local backups | **Delete** | various |
+---
 
-> **Note on `v-jepa/runs/` (83 GB, 59 `.safetensors`):** this is dominated by *experimental*
-> runs. Only the reported classifier is precious — the 4-class CV model at
-> `v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_{0,1,2}` (see
-> `paths.py --get vjepa_4class_ckpt`). The rest is Tier C.
+## 2. Trained checkpoints — git-ignored, with a durable shared copy
 
-## Reported-result checkpoints (for the no-retrain path)
+**None of the checkpoints are in git or on GitHub** (see §3). In this working tree they sit,
+git-ignored, under the repo output roots:
 
 ```
-OpenTAD/exps/sails_rmm/{actionformer,tridet}_vjepa_{binary,balanced}_fold{0,1,2}/gpu1_id*/checkpoint/best.pth
-v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_{0,1,2}/     # V-JEPA classifier finals
-pyskl/work_dirs/.../                                                            # PoseC3D / STGCN++ finals
+OpenTAD/exps/sails_rmm/.../gpu1_id0/checkpoint/best.pth     # + gpu1_id99/result_detection.json
+v-jepa/runs/vjepa2_rmm_cv/... , v-jepa/runs/vjepa2_tal_cv_*/...
+pyskl/work_dirs/{posec3d,stgcnpp}/...
+fusion/runs/...
 ```
 
-## Recommended actions for handoff
+A **~24 GB lean copy of just the reported-result finals** is mirrored to the durable lab
+project space at `checkpoints_root` — using the **same repo-relative layout** inside:
 
-1. **Tier B backup — DONE.** Inputs are mirrored to the durable lab project space above and
-   `config.yaml` points there; the scratch copies are now redundant. Keep the durable copy;
-   scratch may be cleaned at any time.
-2. **Archive or delete Tier C.** Everything in `v-jepa/runs/` / `pyskl/work_dirs/` /
-   `OpenTAD/exps/` other than the finals above (and the `metrics.json` / `cv_summary.json`
-   already in git) is regenerable from code + Tier-B inputs. Reclaims ~160 GB.
-3. **Delete Tier D** outright.
-4. Everything in Tier A is tracked in git under the scoped `.gitignore`; the artifact
-   directories above are git-ignored so they can never be committed by accident.
+```
+/orcd/data/satra/002/projects/SAILS/checkpoints/
+  OpenTAD/exps/sails_rmm/.../best.pth        (12) + result_detection.json (16)
+  v-jepa/runs/...                            (14 model.safetensors across 5 reported runs)
+  pyskl/work_dirs/...                        (157 best_*.pth)
+  fusion/runs/...                            (fusion MLPs)
+```
 
-> All reported mAP / accuracy numbers can be re-derived from Tier A (`metrics.json`,
-> `cv_summary.json`, `insights/tables/*.json`) without touching Tier B/C, so analysis/paper
-> work needs only the repo.
+**To reproduce from a fresh clone**, overlay the copy into the working tree (drops each file
+at the exact path the scripts expect):
+
+```bash
+rsync -a "$(python paths.py --get checkpoints_root)"/ .
+```
+
+### What the shared copy contains (the reported-result finals)
+
+| Reported model(s) | Path prefix | Files | Size |
+| :--- | :--- | ---: | ---: |
+| OpenTAD ActionFormer + TriDet (binary+balanced × 3 folds) | `OpenTAD/exps/sails_rmm/` | 12 `best.pth` + 16 `result_detection.json` | 1.9 GB |
+| V-JEPA2 (cls 4/5-cls; TAL 5cls-balanced, 5cls-bgsub, binary) | `v-jepa/runs/` | 14 `model.safetensors` | 19.6 GB |
+| PoseC3D + STGCN++ 4-stream (cls + TAL) | `pyskl/work_dirs/` | 157 `best_*.pth` | 2.1 GB |
+| Late-fusion MLPs (2-way / 3-way) | `fusion/runs/` | — | 0.01 GB |
+
+> `vjepa2_tal_cv_5class_bgsub` has 2 folds (fold_2 was not saved) — reflected in the tables.
+> The full training dumps (all epochs / experimental runs) are **not** copied; see §5.
+
+---
+
+## 3. What is git-ignored (and therefore not on GitHub)
+
+| Path | Ignored by |
+| :--- | :--- |
+| `v-jepa/runs/` | `.gitignore` (`runs/`) |
+| `pyskl/work_dirs/` | `pyskl/.gitignore` (`work_dirs/`) |
+| `OpenTAD/exps/` | `OpenTAD/.gitignore` (`/exps/`, inside the submodule) |
+
+`OpenTAD` is a **submodule** pinned to upstream `sming256/OpenTAD@1aa8ca4`; the SAILS delta
+is `opentad_sails/sails_changes.patch`, not a pushed fork. So on GitHub the `OpenTAD` folder
+links to upstream and contains **no** `exps/`. The small tracked weights that *are* in git
+(pretrained inits) are the NTU60 STGCN++ files under `pyskl/checkpoints/` (allow-listed in
+`.gitignore`).
+
+---
+
+## 4. Regenerable bulk and disposable
+
+Everything below is derivable from code + the §1 inputs + the §2 finals, and is **not**
+copied to the shared space:
+
+| What | Where | Size |
+| :--- | :--- | ---: |
+| Experimental / per-epoch checkpoints, optimizer states, logs | `v-jepa/runs/`, `pyskl/work_dirs/`, `OpenTAD/exps/` | 83 / 43 / 40 GB |
+| Rendered demo videos | `rendered_videos/*.mp4` | 890 MB |
+| Caches, smoke dirs | `__pycache__/`, ad-hoc smoke output | small |
+
+Of the 40 GB `OpenTAD/exps/`, only the 1.9 GB of `best.pth` + detection JSON is a final; of
+the 83 GB `v-jepa/runs/`, only the 19.6 GB reported subset is a final.
+
+**Verification (Aug 2026).** The lab data tree is scratch-independent: `find
+/orcd/data/satra/002/projects/SAILS/rmm -type l -lname '/orcd/scratch/*' | wc -l` → 0, and 0
+broken links. The shared checkpoint copy was integrity-checked: file-count parity with the
+source, matching md5s, and every `model.safetensors` / OpenTAD `best.pth` (and sampled pyskl
+`best_*.pth`) loads.
+
+> All reported mAP / accuracy numbers can also be re-derived from the tracked metrics alone
+> (`metrics.json`, `cv_summary.json`, `insights/tables/*.json`) without any checkpoint, so
+> analysis/paper work needs only the repo.

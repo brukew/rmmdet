@@ -56,6 +56,16 @@ pyskl_work_dirs: pyskl/work_dirs
 opentad_exps:    OpenTAD/exps/sails_rmm
 fusion_runs:     fusion/runs
 
+# --- Shared, durable copy of the reported-result checkpoints -----------------
+# The output roots above hold the trained weights, but they are git-ignored and
+# live only in this personal working tree (NOT on GitHub). A ~24 GB lean copy of
+# just the reported-result finals (OpenTAD best.pth + result_detection.json,
+# V-JEPA2 model.safetensors, pyskl best_*.pth, fusion MLPs) is mirrored to the
+# shared lab project space below, using the SAME repo-relative layout inside.
+# To reproduce results from a fresh clone, overlay it into the working tree:
+#     rsync -a "$(python paths.py --get checkpoints_root)"/ .
+checkpoints_root: /orcd/data/satra/002/projects/SAILS/checkpoints
+
 # --- Frequently-referenced concrete checkpoints (relative to repo_root) ------
 # The 4-class V-JEPA2 classifier used as the default two-stage Stage-2 model.
 vjepa_4class_ckpt: v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls

@@ -200,17 +200,28 @@ Full detail: [`two-stg/README.md`](two-stg/README.md).
 
 ## Where the checkpoints live
 
-For the no-retrain path (run only the eval/test steps of stages 3–6):
+The trained checkpoints are **git-ignored** — a `git clone` does **not** include them. A
+~24 GB lean copy of the reported-result finals lives in the durable lab project space at
+`checkpoints_root`, using the same repo-relative layout. **For the no-retrain path, overlay
+it into the working tree first:**
 
-| Artifact | Location |
+```bash
+rsync -a "$(python paths.py --get checkpoints_root)"/ .   # -> /orcd/data/satra/002/projects/SAILS/checkpoints
+```
+
+This populates the git-ignored output roots so every eval/test step below finds its weights
+at the path it already expects:
+
+| Artifact | Location (after overlay) |
 | :--- | :--- |
-| V-JEPA2 classifiers (`.safetensors`) | `v-jepa/runs/vjepa2_rmm_cv/.../fold_{0,1,2}` |
+| V-JEPA2 classifiers (`model.safetensors`) | `v-jepa/runs/vjepa2_rmm_cv/...`, `v-jepa/runs/vjepa2_tal_cv_*/fold_{0,1,2}` |
 | OpenTAD detectors (`best.pth` + `result_detection.json`) | `OpenTAD/exps/sails_rmm/{actionformer,tridet}_vjepa_{binary,balanced}_fold{0,1,2}/gpu1_id*/` |
-| PoseC3D / STGCN++ (`.pth`) | `pyskl/work_dirs/` |
-| Fusion runs | `fusion/runs/` |
-| Materialized metrics/tables | `tal/eval_results/*/cv_summary.json`, `two-stg/eval_results/cv_summary.json`, `insights/tables/*.json` |
+| PoseC3D / STGCN++ (`best_*.pth`) | `pyskl/work_dirs/{posec3d,stgcnpp}/...` |
+| Fusion MLPs | `fusion/runs/` |
+| Materialized metrics/tables (already in git) | `tal/eval_results/*/cv_summary.json`, `two-stg/eval_results/cv_summary.json`, `insights/tables/*.json` |
 
-`docs/ARTIFACTS.md` has the full retention policy and the data-preservation risk list.
+`docs/ARTIFACTS.md` has the full inventory (what's copied vs. regenerable) and the git-ignore
+rules.
 
 ---
 
