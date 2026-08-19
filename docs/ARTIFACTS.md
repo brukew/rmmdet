@@ -21,13 +21,22 @@ Shared SAILS data has been **mirrored to the lab's durable project space**, and
   feature_processing/pipeline_outputs/
 ```
 
-The original **scratch** copies still exist but are **shared and impermanent** (subject to
-cluster cleanup) — treat them as disposable now that the durable mirror exists:
+The original **scratch** copies still exist but are **shared and impermanent** (scheduled
+for cleanup) — treat them as disposable now that the durable mirror exists:
 
 ```
 /orcd/scratch/bcs/001/sensein/sails/    # 2.0 TB shared lab scratch (many users; original inputs)
 /orcd/scratch/bcs/001/brukew/sails/     # 36 GB — tal_windows_4class (duplicate of the lab copy)
 ```
+
+> **Scratch-independence — verified (Aug 2026).** The lab tree is self-contained: the
+> per-fold split dirs under `rmm/classification_clips/` and `rmm/vjepa2_finetune_clips/` are
+> **relative** symlinks into their own sibling `canonical_clips/` (which holds the real 654 /
+> 558 clips), and `tal_windows_4class/` symlinks are likewise relative. A full scan of
+> `rmm/`, `cache_for_tracking/`, and `feature_processing/` finds **0 symlinks pointing into
+> `/orcd/scratch`** and **0 broken links**, so the scratch purge will not affect any input
+> required to reproduce results. *(Re-check with:
+> `find /orcd/data/satra/002/projects/SAILS/rmm -type l -lname '/orcd/scratch/*' | wc -l`.)*
 
 > Two `config.yaml` paths are **absent everywhere** and non-blocking:
 > `classification_clips_cropped` (output-only crop target; nothing reads it) and `rmm/videos`
