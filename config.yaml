@@ -37,7 +37,7 @@ pipeline_outputs:             /orcd/data/satra/002/projects/SAILS/feature_proces
 vjepa2_finetune_clips:        /orcd/data/satra/002/projects/SAILS/rmm/vjepa2_finetune_clips
 rmm_sam_numbered:             /orcd/data/satra/002/projects/SAILS/rmm/rmm_sam_numbered
 rmm_numbered_target:          /orcd/data/satra/002/projects/SAILS/rmm/rmm_numbered_target
-# NOTE: absent (purged), but only a FALLBACK. It is referenced solely as the argparse
+# NOTE: absent (not present in the lab mirror), but only a FALLBACK. It is referenced solely as the argparse
 # default `--videos-root` in v-jepa/tools/extract_vjepa_features.py, which resolves each
 # clip from the window-split CSV's absolute `video_path` (under `dataset_root`/Phase_III_Videos,
 # which EXISTS) and only falls back to this dir when a row lacks `video_path`. Since the

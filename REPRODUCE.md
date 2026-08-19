@@ -7,9 +7,10 @@ README that has the detailed commands. Data/artifact locations are documented in
 
 > **Filesystem locations** are resolved from a single source of truth,
 > [`config.yaml`](config.yaml) via [`paths.py`](paths.py). Shared SAILS data lives in the
-> lab's durable project space under `/orcd/data/satra/002/projects/SAILS/` (migrated off
-> `/orcd/scratch`, which has been purged). Run `python paths.py` to print every resolved
-> path, or `python paths.py --export` to emit `export KEY=VALUE` lines for shell scripts.
+> lab's durable project space under `/orcd/data/satra/002/projects/SAILS/` (mirrored off the
+> shared, impermanent `/orcd/scratch`, which may be cleaned at any time). Run `python
+> paths.py` to print every resolved path, or `python paths.py --export` to emit
+> `export KEY=VALUE` lines for shell scripts.
 
 > **Do the reported numbers require retraining?** No. Trained weights and materialized
 > metrics are committed/on-disk (see [Expected results](#expected-results) and
