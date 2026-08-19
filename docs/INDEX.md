@@ -6,25 +6,15 @@ live in their own directories; cross-cutting/handoff docs live under `docs/`.
 ## Start here (handoff / reproducibility)
 
 - `@actreg/README.md`: Main project README (two tasks: classification + TAL; methods, commands, directory overview, results).
-- `@actreg/REPRODUCE.md`: End-to-end pipeline map (setup → data prep → classifiers → window TAL → OpenTAD E2E/binary → two-stage → analysis).
-- `@actreg/REPRODUCIBILITY_TODO.md`: Remaining handoff tasks (path config migration, etc.).
+- `@actreg/REPRODUCE.md`: End-to-end pipeline map (setup → data prep → classifiers → window TAL → OpenTAD E2E/binary → two-stage → analysis), including expected results and checkpoint locations.
 - `@actreg/docs/ARTIFACTS.md`: Data/artifact retention policy and where inputs/checkpoints live.
 - `@actreg/config.yaml` + `@actreg/paths.py`: Central path configuration (single source of truth; env-overridable).
-- `@actreg/envs/`: Pinned conda environments (`pyskl`, `vjepa2`, `opentad`).
+- `@actreg/envs/`: Pinned conda environments (`dataprep`, `pyskl`, `vjepa2`, `opentad`).
 - `@actreg/opentad_sails/`: OpenTAD fork delta — pinned upstream commit + verified-applicable SAILS patch (OpenTAD is a git submodule).
-
-## Progress logs (archived)
-
-- `@actreg/docs/archive/updates_1.md`: Progress update (initial classification + location classification results and next steps).
-- `@actreg/docs/archive/updates_2.md`: Progress update (fusion classification results summary + next steps).
-- `@actreg/docs/archive/updates_3.md`: Progress update focused on TAL (window-level detection, window→segment TAL, segment-level TAL, and binary broad-localization + recall metrics).
-
----
 
 ## Classification / Action Recognition (clip/video-level)
 
 - `@actreg/MODEL_COMPARISON.md`: Central comparison doc for **classification** across methods (PoseC3D, STGCN++, V-JEPA2, Qwen) + fusion variants; includes tables, per-class P/R, and output locations.
-- `@actreg/ANALYSIS.md`: Earlier narrative analysis of classification results (4-class vs 5-class), confusion patterns, and recommendations.
 
 ---
 
@@ -34,7 +24,6 @@ live in their own directories; cross-cutting/handoff docs live under `docs/`.
 
 - `@actreg/tal/TAL_MODEL_COMPARISON.md`: Main TAL comparison (window-based postprocessing vs fusion vs ActionFormer/OpenTAD; includes balanced/binary variants and recall tables).
 - `@actreg/tal/TAL_DET_MODEL_COMPARISON.md`: Window-level **5-class detection** (incl. background) comparison; balancing strategies and binary (BG vs RMM) detection metrics.
-- `@actreg/tal/TAL_RESULTS_ANALYSIS.md`: Training-results analysis for early TAL experiments (class imbalance, per-class behavior, failure modes).
 - `@actreg/insights/tal/TAL_INSIGHTS_SUMMARY.md`: Deeper behavioral analysis (top-2 gap, fusion paradox, FP characteristics) to explain observed TAL behavior.
 
 ### TAL evaluation pipeline (segment mAP@tIoU)
@@ -151,10 +140,4 @@ live in their own directories; cross-cutting/handoff docs live under `docs/`.
 - `@actreg/docs/writeup/METRICS.md`: Metrics definitions outline (classification + TAL).
 - `@actreg/docs/writeup/METHODS.md`: Methods outline (models, imbalance strategies, fusion, TAL variants).
 - `@actreg/docs/writeup/RESULTS.md`: Results section outline (tables + analysis per task).
-
-## Retraining / planning notes
-
-- `@actreg/docs/notes/retraining/1_E2E_Plan_Initial.md`: Initial end-to-end TAL plan.
-- `@actreg/docs/notes/retraining/2_Data_Splits_Review.md`: Data-splits review for paper-ready retraining.
-- `@actreg/docs/notes/retraining/3_Binary_VJEPA_TAL_Feature_Model.md`: Binary V-JEPA TAL feature-model notes.
 

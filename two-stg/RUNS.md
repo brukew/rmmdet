@@ -101,7 +101,7 @@ These numbers used an export that trained the fusion MLP on **the same fold's va
 - **Eval:** `two-stg/run_three_way_live_fold_gpu.sh` → default `two-stg/eval_results_3way_live/fold{N}/`
 - **SLURM jobs:** 10716918 (fold 0), 10883900 (fold 1), 10884982 (fold 2)
 
-**Finding:** 3-fold CV mean (16.78% avg_mAP) is **8.5 pp below** skeleton-index baseline 3b (25.25%). The 3-way MLP was trained on GT-clip-level PoseC3D/STGCN++ scores but receives noisier proposal-level scores at eval — a **train/test distribution mismatch**. Additionally, ~8% of proposals lack skeleton scores (pose cache truncation) and fall back to skeleton_index. See `two-stg/3-way/PROPOSAL_COVERAGE_AUDIT.md` for full audit.
+**Finding:** 3-fold CV mean (16.78% avg_mAP) is **8.5 pp below** skeleton-index baseline 3b (25.25%). The 3-way MLP was trained on GT-clip-level PoseC3D/STGCN++ scores but receives noisier proposal-level scores at eval — a **train/test distribution mismatch**. Additionally, ~8% of proposals lack skeleton scores (pose cache truncation) and fall back to skeleton_index.
 
 **Next step:** Retrain MLP on proposal-style skeleton scores to close the distribution gap.
 

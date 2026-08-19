@@ -1,8 +1,7 @@
 # Analysis Notes — Classifier Effect & Two-Stage TAL
 
 **Date:** 2026-03-26
-**Script:** `two-stg/analyze_classifier_effect.py`
-**Output:** `two-stg/analysis_classifier_effect.md`
+**Script:** `two-stg/analyze_classifier_effect.py` (regenerates the full per-class / AUROC report)
 
 ---
 

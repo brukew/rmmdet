@@ -31,7 +31,6 @@ fusion_checkpoints/
 *.hdf5
 # Keep the small pretrained init weights that the pipeline needs
 !pyskl/checkpoints/**
-!pyskl/demo/hagrid.pth
 
 # --- Media files ---
 *.mp4
