@@ -56,6 +56,9 @@ from tal_map_eval import (
 )
 
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 def main():
     parser = argparse.ArgumentParser(
         description="Evaluate TAL from window-level predictions.",
@@ -94,7 +97,7 @@ Examples:
     parser.add_argument(
         "--splits-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"),
+        default=_REPO_ROOT / "dataprep/splits",
         help="Root directory containing split CSVs (default: actreg/dataprep/splits).",
     )
     parser.add_argument(

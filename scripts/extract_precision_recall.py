@@ -21,8 +21,13 @@ from dataclasses import dataclass
 
 
 # Base paths
-ACTREG_ROOT = Path("/orcd/data/satra/001/users/brukew/actreg")
-QWEN_ROOT = Path("/orcd/data/satra/001/users/brukew/qwen_rmm_outputs")
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
+ACTREG_ROOT = _REPO_ROOT
+# Qwen-VL baseline outputs (metrics/predictions only, ~1.3 MB) are vendored into
+# the repo so this comparison reproduces without the original scratch run dir.
+QWEN_ROOT = _REPO_ROOT / "insights/vlm/qwen_outputs"
 
 
 @dataclass

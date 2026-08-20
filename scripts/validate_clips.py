@@ -31,7 +31,7 @@ if str(_REPO_ROOT) not in sys.path:
 from paths import PATHS  # noqa: E402
 
 DEFAULT_CLIPS_ROOT = str(PATHS.vjepa2_finetune_clips)
-DEFAULT_CSV_DIR = "/orcd/data/satra/001/users/brukew/actreg/dataprep/cv_folds"
+DEFAULT_CSV_DIR = str(PATHS.repo_root / "dataprep/cv_folds")
 
 
 def test_clip_with_decord(clip_path: Path, num_frames: int = 16) -> Tuple[bool, str, Dict]:

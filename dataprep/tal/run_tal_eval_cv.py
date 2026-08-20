@@ -51,6 +51,9 @@ from tal_map_eval import (
 )
 from export_pyskl_window_preds import export_window_preds
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 
 @dataclass
 class FoldResult:
@@ -333,19 +336,19 @@ def main():
     parser.add_argument(
         "--splits-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"),
+        default=_REPO_ROOT / "dataprep/splits",
         help="Root directory containing split CSVs.",
     )
     parser.add_argument(
         "--ann-pkl-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/pyskl/data/sails/tal/cv_4class/5class_windows_conf04"),
+        default=_REPO_ROOT / "pyskl/data/sails/tal/cv_4class/5class_windows_conf04",
         help="Root directory for pyskl annotation pickles.",
     )
     parser.add_argument(
         "--window-csv-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class"),
+        default=_REPO_ROOT / "dataprep/tal/splits_cv_4class",
         help="Root directory for TAL window CSVs.",
     )
     parser.add_argument(

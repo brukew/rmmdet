@@ -17,7 +17,10 @@ import numpy as np
 import pandas as pd
 
 # Import shared pose helpers (same H5 paths, FPS lookup, etc.)
-ACTREG = Path("/orcd/data/satra/001/users/brukew/actreg")
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
+ACTREG = _REPO_ROOT
 sys.path.insert(0, str(ACTREG / "two-stg"))
 from pose_filter_eval import (  # noqa: E402
     ARM_KEYPOINT_INDICES,

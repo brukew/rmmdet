@@ -1,0 +1,96 @@
+{
+  "aggregate_clip_level": {
+    "top1_accuracy": 0.3767228177641654,
+    "top2_accuracy": 0.6355283307810107,
+    "macro_f1": 0.12200510629692358,
+    "weighted_f1": 0.2211766037562596,
+    "macro_precision": 0.2084507042253521,
+    "macro_recall": 0.20297719087635055,
+    "cohen_kappa": 0.0077210563062137805,
+    "n_samples": 654,
+    "n_valid_predictions": 653
+  },
+  "aggregate_video_level": {
+    "top1_accuracy": 0.3422818791946309,
+    "top2_accuracy": 0.610738255033557,
+    "macro_f1": 0.10670149578629848,
+    "weighted_f1": 0.17907965387101415,
+    "macro_precision": 0.2682432432432432,
+    "macro_recall": 0.20249999999999999,
+    "cohen_kappa": 0.006294872231106807,
+    "n_samples": 298,
+    "n_valid_predictions": 298
+  },
+  "per_fold_mean": {
+    "top1_accuracy_mean": 0.37685142124325316,
+    "top2_accuracy_mean": 0.6355430600769458,
+    "macro_f1_mean": 0.12264502512244829,
+    "weighted_f1_mean": 0.22342962100296906,
+    "macro_precision_mean": 0.20842745567022483,
+    "macro_recall_mean": 0.20347289840960728,
+    "cohen_kappa_mean": 0.008271290310355858
+  },
+  "per_fold_std": {
+    "top1_accuracy_std": 0.059852069929908734,
+    "top2_accuracy_std": 0.021693367030828678,
+    "macro_f1_std": 0.0191948192142113,
+    "weighted_f1_std": 0.05820007866322533,
+    "macro_precision_std": 0.06325344839967494,
+    "macro_recall_std": 0.009623591728145054,
+    "cohen_kappa_std": 0.021843445588095062
+  },
+  "per_fold": [
+    {
+      "fold": 0,
+      "clip_metrics": {
+        "top1_accuracy": 0.4608294930875576,
+        "top2_accuracy": 0.6451612903225806,
+        "macro_f1": 0.1497588424437299,
+        "weighted_f1": 0.30476054647561746,
+        "macro_precision": 0.2906542056074766,
+        "macro_recall": 0.21333333333333332,
+        "cohen_kappa": 0.030806229958772358,
+        "n_samples": 218,
+        "n_valid_predictions": 217
+      }
+    },
+    {
+      "fold": 1,
+      "clip_metrics": {
+        "top1_accuracy": 0.3440366972477064,
+        "top2_accuracy": 0.6559633027522935,
+        "macro_f1": 0.10795131845841785,
+        "weighted_f1": 0.1937110370880399,
+        "macro_precision": 0.13680884676145338,
+        "macro_recall": 0.19041869522882182,
+        "cohen_kappa": -0.021294718909710575,
+        "n_samples": 218,
+        "n_valid_predictions": 218
+      }
+    },
+    {
+      "fold": 2,
+      "clip_metrics": {
+        "top1_accuracy": 0.3256880733944954,
+        "top2_accuracy": 0.6055045871559633,
+        "macro_f1": 0.11022491446519715,
+        "weighted_f1": 0.17181727944524977,
+        "macro_precision": 0.19781931464174454,
+        "macro_recall": 0.2066666666666667,
+        "cohen_kappa": 0.01530235988200579,
+        "n_samples": 218,
+        "n_valid_predictions": 218
+      }
+    }
+  ],
+  "labels": [
+    "hands flapping",
+    "jumping",
+    "one hand flap",
+    "rocking",
+    "spinning"
+  ],
+  "n_folds": 3,
+  "n_clips_total": 654,
+  "n_videos_total": 298
+}

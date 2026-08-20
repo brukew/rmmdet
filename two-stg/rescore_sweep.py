@@ -21,7 +21,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ACTREG = Path("/orcd/data/satra/001/users/brukew/actreg")
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
+ACTREG = _REPO_ROOT
 
 RUN_CONFIG = {
     "5": {

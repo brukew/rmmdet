@@ -31,6 +31,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 
 # Class label definitions
 LABEL_MAP_4CLASS = {
@@ -604,25 +607,25 @@ def main():
     parser.add_argument(
         "--video-meta",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json"),
+        default=_REPO_ROOT / "dataprep/video_meta.json",
         help="Path to video_meta.json",
     )
     parser.add_argument(
         "--splits-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"),
+        default=_REPO_ROOT / "dataprep/splits",
         help="Root directory containing existing segment split CSVs.",
     )
     parser.add_argument(
         "--assignment-dir",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/video_assignment"),
+        default=_REPO_ROOT / "dataprep/tal/video_assignment",
         help="Directory containing video_to_split CSVs.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal"),
+        default=_REPO_ROOT / "dataprep/tal",
         help="Output directory for TAL splits.",
     )
     parser.add_argument(
@@ -658,13 +661,13 @@ def main():
     parser.add_argument(
         "--mask-info",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/video_mask_info.json"),
+        default=_REPO_ROOT / "dataprep/video_mask_info.json",
         help="Path to video_mask_info.json for coverage info.",
     )
     parser.add_argument(
         "--pose-info",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/video_pose_info.json"),
+        default=_REPO_ROOT / "dataprep/video_pose_info.json",
         help="Path to video_pose_info.json for coverage info.",
     )
     args = parser.parse_args()

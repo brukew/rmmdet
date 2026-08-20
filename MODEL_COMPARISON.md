@@ -389,7 +389,9 @@ MLP fusion was evaluated for 5-class task, combining V-JEPA2 with the best skele
 
 Zero-shot prompting with no training. Uses multi-window voting (4 windows × 16 frames).
 
-**Output Directory**: `/orcd/data/satra/001/users/brukew/qwen_rmm_outputs/`
+**Output Directory**: `insights/vlm/qwen_outputs/` — metrics, per-clip/per-video
+predictions and raw generations are vendored into the repo (~1.3 MB), so
+`scripts/extract_precision_recall.py` reproduces these numbers from a clone.
 
 ### 4-Class Results
 

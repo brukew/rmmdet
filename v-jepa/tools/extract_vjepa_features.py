@@ -53,8 +53,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 # SAILS paths
-BASE_DIR = Path("/orcd/data/satra/001/users/brukew")
-DATAPREP_DIR = BASE_DIR / "actreg/dataprep"
+DATAPREP_DIR = PATHS.repo_root / "dataprep"
 VIDEOS_ROOT = PATHS.rmm_videos
 OUTPUT_ROOT = PATHS.rmm_features
 
@@ -128,7 +127,7 @@ try:
 except ImportError:
     h5py = None
 
-DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
+DEFAULT_PARSED_CSV = PATHS.repo_root / "dataprep/rmm_sam3_parsed.csv"
 DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_MASK_MODEL = "facebook-sam3"
 DEFAULT_MASK_PROMPT = "person"

@@ -37,13 +37,13 @@ Writes a CSV where each row is a merged segment:
 
 Examples
 --------
-Analyze a CV directory for 4-class task:
-    python analyze_multilabel_overlap_segments.py \
-        --split-dir /orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class \
-        --label-map /orcd/data/satra/001/users/brukew/actreg/dataprep/tal/label_maps/label_map_4class.json \
+Analyze a CV directory for 4-class task (run from the repo root):
+    python dataprep/tal/analyze_multilabel_overlap_segments.py \
+        --split-dir dataprep/tal/splits_cv_4class \
+        --label-map dataprep/tal/label_maps/label_map_4class.json \
         --min-k 2 \
         --require-same-combo \
-        --output-csv /orcd/data/satra/001/users/brukew/actreg/dataprep/tal/overlap_segments/multilabel_ge2_cv_4class_samecombo.csv
+        --output-csv dataprep/tal/overlap_segments/multilabel_ge2_cv_4class_samecombo.csv
 """
 
 from __future__ import annotations

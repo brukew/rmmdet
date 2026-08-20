@@ -16,6 +16,9 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 
 def parse_timestamp(ts: str) -> Optional[float]:
     """
@@ -387,7 +390,7 @@ def main():
     parser.add_argument(
         '--output',
         type=Path,
-        default=Path('/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv'),
+        default=_REPO_ROOT / "dataprep/rmm_sam3_parsed.csv",
         help='Output CSV with parsed time intervals',
     )
     args = parser.parse_args()

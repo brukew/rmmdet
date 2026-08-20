@@ -1,0 +1,299 @@
+id,label,prediction,correct,score_hands flapping,score_jumping,score_rocking,score_spinning,n_clips
+L5V8G4A3K7_14_month_0,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+S2C4T1Y7V7_36_month_4,jumping,hands flapping,False,0.95,0.05,0.0,0.0,5
+S2C4T1Y7V7_36_month_5,jumping,hands flapping,False,1.0,0.0,0.0,0.0,2
+S2C4T1Y7V7_36_month_6,jumping,hands flapping,False,1.0,0.0,0.0,0.0,2
+S2C4T1Y7V7_36_month_7,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+S2C4T1Y7V7_36_month_8,jumping,hands flapping,False,1.0,0.0,0.0,0.0,3
+S2C4T1Y7V7_36_month_9,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+S2C4T1Y7V7_36_month_10,jumping,jumping,True,0.0,1.0,0.0,0.0,1
+S2C4T1Y7V7_36_month_11,hands flapping,hands flapping,True,0.6875,0.3125,0.0,0.0,4
+A6S0V1J3G6_14_month_16,rocking,hands flapping,False,0.5,0.5,0.0,0.0,1
+Z3H6O7C3O9_36_month_29,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+M5O1K4W9O1_14_month_39,hands flapping,hands flapping,True,0.875,0.125,0.0,0.0,2
+M5H7X4O2M2_36_month_43,rocking,hands flapping,False,0.625,0.375,0.0,0.0,2
+Z6Z0I5G6A6_36_month_62,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+H3B5L5F8T1_14_month_65,jumping,hands flapping,False,0.5,0.5,0.0,0.0,1
+H3B5L5F8T1_14_month_66,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+J2P8I1O3Q0_36_month_72,jumping,hands flapping,False,0.8333333333333334,0.16666666666666666,0.0,0.0,3
+H7B1M3P5D9_14_month_73,jumping,hands flapping,False,0.875,0.125,0.0,0.0,2
+V7D7K3H8B4_36_month_79,spinning,hands flapping,False,0.75,0.25,0.0,0.0,2
+V7D7K3H8B4_36_month_82,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+D9N0U7M9X3_14_month_83,rocking,hands flapping,False,1.0,0.0,0.0,0.0,2
+C0O6X3N5Y7_14_month_87,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+C0O6X3N5Y7_14_month_88,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+C0O6X3N5Y7_14_month_89,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+C0O6X3N5Y7_14_month_90,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+C0O6X3N5Y7_36_month_91,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+C0O6X3N5Y7_36_month_92,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,4
+G4J8F6F4X0_36_month_108,jumping,hands flapping,False,0.75,0.25,0.0,0.0,1
+G4J8F6F4X0_36_month_109,rocking,hands flapping,False,0.75,0.25,0.0,0.0,1
+G4J8F6F4X0_36_month_110,jumping,jumping,True,0.25,0.75,0.0,0.0,1
+G4J8F6F4X0_36_month_111,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+G4J8F6F4X0_36_month_112,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+M5F7G8S4F0_14_month_126,hands flapping,hands flapping,True,0.9375,0.0625,0.0,0.0,4
+M5F7G8S4F0_14_month_128,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,3
+M5F7G8S4F0_14_month_131,hands flapping,hands flapping,True,0.875,0.125,0.0,0.0,2
+E7Z4G3O5K2_14_month_139,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,2
+F8N7H3T0O1_14_month_166,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,3
+F8N7H3T0O1_14_month_167,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+L4K0P3T4Q8_14_month_183,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+L4K0P3T4Q8_36_month_184,rocking,hands flapping,False,0.5,0.5,0.0,0.0,3
+L4K0P3T4Q8_36_month_185,hands flapping,hands flapping,True,0.25,0.25,0.25,0.25,1
+G7P6U6U2J5_14_month_196,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+G7P6U6U2J5_14_month_197,hands flapping,hands flapping,True,0.8409090909090909,0.1590909090909091,0.0,0.0,11
+G7P6U6U2J5_14_month_198,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+G7P6U6U2J5_36_month_200,jumping,hands flapping,False,0.875,0.125,0.0,0.0,4
+W3P0N4W0X9_36_month_204,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+H9T5Y8D3A1_36_month_223,jumping,hands flapping,False,0.5,0.5,0.0,0.0,1
+M2N1C8G1C8_36_month_224,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+M2N1C8G1C8_36_month_225,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+M2N1C8G1C8_36_month_226,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+C1G1X2G4C6_14_month_227,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+C1G1X2G4C6_14_month_228,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,2
+C1G1X2G4C6_14_month_229,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,4
+C1G1X2G4C6_14_month_230,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+C1G1X2G4C6_14_month_231,hands flapping,hands flapping,True,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+J4J6X7C4D9_36_month_243,rocking,hands flapping,False,1.0,0.0,0.0,0.0,2
+J4J6X7C4D9_36_month_244,jumping,jumping,True,0.0,1.0,0.0,0.0,1
+Z7I5F2E1L4_36_month_247,spinning,hands flapping,False,0.7083333333333334,0.2916666666666667,0.0,0.0,6
+Z7I5F2E1L4_36_month_248,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+T4R5V7C3L6_unknown_253,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+T4R5V7C3L6_unknown_255,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+T4R5V7C3L6_unknown_256,jumping,hands flapping,False,0.5,0.5,0.0,0.0,3
+T4R5V7C3L6_unknown_258,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,3
+O6F1J9U1J2_36_month_260,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+O6F1J9U1J2_36_month_261,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,4
+H7C3T0K5E5_36_month_264,rocking,jumping,False,0.25,0.75,0.0,0.0,2
+Z3C2V9T0V1_unknown_274,jumping,hands flapping,False,0.5833333333333334,0.4166666666666667,0.0,0.0,3
+L4M8P2T7S0_36_month_278,spinning,hands flapping,False,0.75,0.25,0.0,0.0,1
+L4M8P2T7S0_36_month_279,spinning,hands flapping,False,0.5,0.5,0.0,0.0,1
+L4M8P2T7S0_36_month_281,hands flapping,jumping,False,0.0,1.0,0.0,0.0,2
+L4M8P2T7S0_36_month_282,rocking,hands flapping,False,0.5,0.5,0.0,0.0,3
+N5I9D3R2M1_36_month_284,spinning,hands flapping,False,1.0,0.0,0.0,0.0,1
+Q9W9P7Z3J7_36_month_291,jumping,jumping,True,0.0,1.0,0.0,0.0,2
+Q9W9P7Z3J7_36_month_292,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+D4Y7P4G2V4_36_month_293,jumping,hands flapping,False,0.5,0.5,0.0,0.0,2
+D4Y7P4G2V4_36_month_294,jumping,hands flapping,False,0.9375,0.0625,0.0,0.0,4
+D4Y7P4G2V4_36_month_295,jumping,jumping,True,0.25,0.75,0.0,0.0,1
+D4Y7P4G2V4_36_month_296,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,4
+D4Y7P4G2V4_36_month_297,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,3
+D4Y7P4G2V4_36_month_299,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+D4Y7P4G2V4_36_month_301,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,3
+D4Y7P4G2V4_36_month_302,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+D4Y7P4G2V4_36_month_303,jumping,hands flapping,False,1.0,0.0,0.0,0.0,5
+D4Y7P4G2V4_36_month_304,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+D4Y7P4G2V4_14_month_305,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+B9P5V1I5O5_14_month_307,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+L4M1H7J7G3_14_month_312,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,3
+L4M1H7J7G3_14_month_313,jumping,jumping,True,0.0,1.0,0.0,0.0,3
+E2P5Q8S5A7_14_month_318,rocking,hands flapping,False,1.0,0.0,0.0,0.0,3
+E2P5Q8S5A7_unknown_319,jumping,hands flapping,False,0.75,0.25,0.0,0.0,1
+S4C2W1M7Q0_36_month_322,rocking,hands flapping,False,1.0,0.0,0.0,0.0,2
+E3O3H8O7H4_14_month_326,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+K2F6S2Q7M8_14_month_332,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+K2F6S2Q7M8_36_month_333,spinning,jumping,False,0.2,0.8,0.0,0.0,5
+Q0Q8H5A0D0_unknown_335,spinning,jumping,False,0.25,0.75,0.0,0.0,2
+Y6Z4H0C5U2_14_month_343,jumping,hands flapping,False,0.875,0.125,0.0,0.0,2
+N1B1A2T8S1_14_month_352,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+N1B1A2T8S1_14_month_353,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,4
+L7Z6Q2U6Y6_36_month_357,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+L7Z6Q2U6Y6_36_month_359,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+D8O8B2C4X2_14_month_362,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,7
+S2C4T1Y7V7_14_month_1,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+S2C4T1Y7V7_14_month_2,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+S2C4T1Y7V7_14_month_3,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+X2N4R2N5V8_14_month_12,hands flapping,hands flapping,True,0.6666666666666666,0.3333333333333333,0.0,0.0,3
+X2N4R2N5V8_36_month_13,spinning,jumping,False,0.25,0.75,0.0,0.0,1
+X2N4R2N5V8_36_month_14,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,2
+X2N4R2N5V8_36_month_15,spinning,hands flapping,False,0.5,0.5,0.0,0.0,1
+B4Q3G8H2N3_36_month_22,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+A1H3H9Y3T1_36_month_24,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+A1H3H9Y3T1_36_month_25,jumping,hands flapping,False,0.75,0.25,0.0,0.0,1
+Z3H6O7C3O9_14_month_27,jumping,hands flapping,False,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+L0B0Q5O3Q3_14_month_37,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,3
+J3J0V4T8C3_14_month_49,jumping,jumping,True,0.25,0.75,0.0,0.0,1
+J3J0V4T8C3_14_month_50,rocking,hands flapping,False,1.0,0.0,0.0,0.0,4
+J3J0V4T8C3_14_month_51,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+J3J0V4T8C3_14_month_52,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+J3J0V4T8C3_36_month_53,jumping,jumping,True,0.375,0.625,0.0,0.0,2
+J3J0V4T8C3_36_month_54,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+J3J0V4T8C3_36_month_55,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+J3J0V4T8C3_36_month_56,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+J3J0V4T8C3_36_month_57,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+J3J0V4T8C3_36_month_58,jumping,hands flapping,False,1.0,0.0,0.0,0.0,10
+J3J0V4T8C3_36_month_59,hands flapping,hands flapping,True,0.5,0.5,0.0,0.0,1
+J3J0V4T8C3_36_month_60,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+I8T4E2J3M6_14_month_63,spinning,jumping,False,0.0,1.0,0.0,0.0,1
+J2P8I1O3Q0_unknown_68,hands flapping,hands flapping,True,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+J2P8I1O3Q0_unknown_69,hands flapping,hands flapping,True,0.8928571428571429,0.10714285714285714,0.0,0.0,14
+J2P8I1O3Q0_unknown_70,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+G3A6S5R9F7_14_month_76,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+N4U1A5H1W0_36_month_95,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+Z1J6X4Y3Z4_36_month_100,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+Z1J6X4Y3Z4_36_month_101,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+L0C6T6H2C6_36_month_102,jumping,hands flapping,False,0.8888888888888888,0.1111111111111111,0.0,0.0,9
+G4J8F6F4X0_unknown_106,rocking,hands flapping,False,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+W9K7Y8Y0V6_36_month_113,spinning,hands flapping,False,1.0,0.0,0.0,0.0,2
+W9K7Y8Y0V6_36_month_114,jumping,hands flapping,False,1.0,0.0,0.0,0.0,3
+L6F2P7K8P1_14_month_115,jumping,hands flapping,False,0.5,0.5,0.0,0.0,2
+L6F2P7K8P1_14_month_116,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+L6F2P7K8P1_14_month_117,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+I1H5K9K8V1_unknown_123,spinning,hands flapping,False,0.75,0.25,0.0,0.0,1
+I1H5K9K8V1_unknown_125,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+M5F7G8S4F0_36_month_133,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+X2V2P0U5X4_36_month_136,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+W7P7J6H1H6_14_month_137,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+C5L2D6N1W6_36_month_141,spinning,hands flapping,False,0.5,0.5,0.0,0.0,2
+C5L2D6N1W6_36_month_142,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+C5L2D6N1W6_36_month_143,spinning,hands flapping,False,1.0,0.0,0.0,0.0,1
+C5L2D6N1W6_36_month_145,jumping,hands flapping,False,0.75,0.25,0.0,0.0,5
+R6R8Q6A7K0_14_month_148,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+R6R8Q6A7K0_14_month_149,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+R6R8Q6A7K0_36_month_150,rocking,hands flapping,False,1.0,0.0,0.0,0.0,2
+R6R8Q6A7K0_36_month_152,jumping,jumping,True,0.0,1.0,0.0,0.0,3
+T1G8F8W8Y8_36_month_161,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+F8N7H3T0O1_36_month_168,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+F8N7H3T0O1_36_month_169,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+V9X2Q7S1E1_14_month_182,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,6
+F3N4H0K1Z1_36_month_193,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+F3N4H0K1Z1_36_month_194,hands flapping,hands flapping,True,0.5,0.5,0.0,0.0,1
+A2L1R9Y7C8_36_month_195,rocking,hands flapping,False,0.75,0.25,0.0,0.0,1
+E7G3N4A1K5_14_month_205,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+C1G1X2G4C6_36_month_232,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,11
+L3F0P2N3D1_14_month_233,rocking,hands flapping,False,0.75,0.25,0.0,0.0,1
+L3F0P2N3D1_36_month_234,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+L3F0P2N3D1_36_month_235,hands flapping,hands flapping,True,0.9375,0.0625,0.0,0.0,4
+A2M5H0V6E3_36_month_241,hands flapping,jumping,False,0.375,0.625,0.0,0.0,4
+A2M5H0V6E3_36_month_242,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,2
+Z7I5F2E1L4_14_month_249,jumping,hands flapping,False,1.0,0.0,0.0,0.0,4
+H7C3T0K5E5_14_month_263,rocking,hands flapping,False,0.75,0.25,0.0,0.0,2
+S9B3J7I4R1_36_month_265,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+S9B3J7I4R1_36_month_266,spinning,hands flapping,False,0.75,0.25,0.0,0.0,1
+S9B3J7I4R1_36_month_267,hands flapping,hands flapping,True,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+S9B3J7I4R1_36_month_268,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,6
+S9B3J7I4R1_36_month_269,hands flapping,hands flapping,True,0.5,0.5,0.0,0.0,2
+S9B3J7I4R1_36_month_270,jumping,jumping,True,0.3333333333333333,0.6666666666666666,0.0,0.0,3
+S9B3J7I4R1_36_month_271,jumping,jumping,True,0.45,0.55,0.0,0.0,5
+F6J0V8B6S4_36_month_283,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+G2N1M4K2S0_14_month_285,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+G2N1M4K2S0_14_month_286,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+Q9W9P7Z3J7_14_month_290,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+G8Q8I6N0I3_14_month_306,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+B2R3Q8L2Y3_36_month_308,spinning,hands flapping,False,0.875,0.125,0.0,0.0,2
+B2R3Q8L2Y3_36_month_309,jumping,hands flapping,False,0.7083333333333334,0.2916666666666667,0.0,0.0,6
+S4C2W1M7Q0_14_month_320,hands flapping,hands flapping,True,0.875,0.125,0.0,0.0,2
+S4C2W1M7Q0_14_month_321,hands flapping,jumping,False,0.08333333333333333,0.9166666666666666,0.0,0.0,3
+W2E0Z9B7Z8_36_month_331,jumping,jumping,True,0.0,1.0,0.0,0.0,1
+X1U1P0D1X3_36_month_336,jumping,hands flapping,False,0.875,0.125,0.0,0.0,2
+B1L0B3F6F1_14_month_338,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+B1L0B3F6F1_14_month_339,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+B1L0B3F6F1_14_month_341,hands flapping,hands flapping,True,0.8333333333333334,0.16666666666666666,0.0,0.0,3
+K6O1J5K7Z0_36_month_348,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+K6O1J5K7Z0_36_month_349,jumping,jumping,True,0.375,0.625,0.0,0.0,2
+K6O1J5K7Z0_36_month_351,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+L7Z6Q2U6Y6_14_month_356,rocking,hands flapping,False,1.0,0.0,0.0,0.0,6
+D8O8B2C4X2_36_month_363,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+D7O9E3F9P9_14_month_18,hands flapping,hands flapping,True,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+B4Q3G8H2N3_14_month_19,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+B4Q3G8H2N3_14_month_20,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+B4Q3G8H2N3_14_month_21,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+S7V5F9U7N6_unknown_32,rocking,jumping,False,0.3333333333333333,0.6666666666666666,0.0,0.0,3
+S7V5F9U7N6_unknown_33,rocking,rocking,True,0.0625,0.25,0.6875,0.0,4
+S7V5F9U7N6_unknown_34,jumping,hands flapping,False,1.0,0.0,0.0,0.0,4
+S7V5F9U7N6_unknown_35,jumping,hands flapping,False,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+L0B0Q5O3Q3_36_month_36,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+M5H7X4O2M2_14_month_40,rocking,jumping,False,0.4166666666666667,0.5833333333333334,0.0,0.0,3
+M5H7X4O2M2_14_month_41,hands flapping,jumping,False,0.25,0.75,0.0,0.0,1
+M5H7X4O2M2_14_month_42,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+A3G3T7I1A5_36_month_44,jumping,hands flapping,False,0.5,0.5,0.0,0.0,1
+B8I6G9P2G8_14_month_45,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+B8I6G9P2G8_unknown_46,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+B8I6G9P2G8_unknown_47,spinning,hands flapping,False,0.5,0.5,0.0,0.0,2
+B8I6G9P2G8_unknown_48,spinning,jumping,False,0.25,0.75,0.0,0.0,1
+Z6Z0I5G6A6_14_month_61,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+H3B5L5F8T1_36_month_67,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+H7B1M3P5D9_36_month_74,rocking,hands flapping,False,0.5357142857142857,0.4642857142857143,0.0,0.0,7
+H7B1M3P5D9_36_month_75,spinning,hands flapping,False,0.625,0.375,0.0,0.0,2
+G3A6S5R9F7_36_month_77,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+S4O9O2E5Z0_36_month_78,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+V7D7K3H8B4_14_month_81,rocking,hands flapping,False,1.0,0.0,0.0,0.0,4
+D9N0U7M9X3_36_month_84,jumping,hands flapping,False,0.75,0.25,0.0,0.0,2
+O2U2C6W2S9_14_month_93,spinning,hands flapping,False,1.0,0.0,0.0,0.0,2
+N4U1A5H1W0_14_month_94,rocking,jumping,False,0.0,1.0,0.0,0.0,1
+Z1J6X4Y3Z4_14_month_96,hands flapping,hands flapping,True,0.8333333333333334,0.16666666666666666,0.0,0.0,3
+Z1J6X4Y3Z4_14_month_97,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+Z1J6X4Y3Z4_14_month_98,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+G4J8F6F4X0_14_month_103,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+G4J8F6F4X0_14_month_104,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+G4J8F6F4X0_14_month_105,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+L6F2P7K8P1_36_month_120,jumping,hands flapping,False,0.625,0.375,0.0,0.0,2
+L6F2P7K8P1_36_month_121,jumping,hands flapping,False,0.75,0.25,0.0,0.0,4
+E7Z4G3O5K2_unknown_140,jumping,hands flapping,False,1.0,0.0,0.0,0.0,3
+N3L7A1I2B9_14_month_153,hands flapping,hands flapping,True,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+N3L7A1I2B9_14_month_154,hands flapping,hands flapping,True,0.8125,0.1875,0.0,0.0,8
+N3L7A1I2B9_14_month_155,jumping,jumping,True,0.3333333333333333,0.6666666666666666,0.0,0.0,3
+N3L7A1I2B9_14_month_156,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+N3L7A1I2B9_14_month_157,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+N3L7A1I2B9_14_month_158,rocking,jumping,False,0.0,1.0,0.0,0.0,1
+N3L7A1I2B9_14_month_159,rocking,jumping,False,0.0,1.0,0.0,0.0,1
+N3L7A1I2B9_14_month_160,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+C1I8N8L4Q4_14_month_162,spinning,hands flapping,False,0.5,0.5,0.0,0.0,1
+C1I8N8L4Q4_14_month_163,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+B1S3L8Q7Y6_14_month_170,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+B1S3L8Q7Y6_14_month_171,hands flapping,hands flapping,True,0.9166666666666666,0.08333333333333333,0.0,0.0,3
+B1S3L8Q7Y6_14_month_172,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1
+B1S3L8Q7Y6_14_month_173,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+B1S3L8Q7Y6_14_month_174,hands flapping,hands flapping,True,0.5,0.5,0.0,0.0,1
+B1S3L8Q7Y6_14_month_176,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+B1S3L8Q7Y6_14_month_177,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+V7G3E2O2E6_14_month_178,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+A6Z2B3J2A9_14_month_179,spinning,hands flapping,False,0.75,0.25,0.0,0.0,3
+A6Z2B3J2A9_14_month_180,hands flapping,hands flapping,True,0.9375,0.0625,0.0,0.0,4
+A6Z2B3J2A9_36_month_181,jumping,hands flapping,False,0.75,0.25,0.0,0.0,4
+F3N4H0K1Z1_14_month_188,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+F3N4H0K1Z1_14_month_189,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+S7Y0I2P0S8_14_month_202,jumping,jumping,True,0.0,1.0,0.0,0.0,2
+W3P0N4W0X9_14_month_203,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+E7G3N4A1K5_36_month_206,rocking,hands flapping,False,0.75,0.25,0.0,0.0,4
+E7G3N4A1K5_36_month_207,jumping,hands flapping,False,0.78125,0.21875,0.0,0.0,8
+E7G3N4A1K5_36_month_208,jumping,hands flapping,False,0.5,0.5,0.0,0.0,1
+C3A8Q4J6E5_14_month_210,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+C3A8Q4J6E5_14_month_211,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+D8G5K7I0D6_14_month_212,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,3
+D8G5K7I0D6_14_month_213,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,4
+D8G5K7I0D6_14_month_215,hands flapping,hands flapping,True,0.75,0.25,0.0,0.0,1
+D8G5K7I0D6_14_month_216,hands flapping,hands flapping,True,0.625,0.375,0.0,0.0,4
+D8G5K7I0D6_14_month_217,spinning,hands flapping,False,0.75,0.25,0.0,0.0,1
+D8G5K7I0D6_14_month_218,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+D8G5K7I0D6_14_month_219,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+D8G5K7I0D6_14_month_220,hands flapping,hands flapping,True,0.8333333333333334,0.16666666666666666,0.0,0.0,3
+D8G5K7I0D6_36_month_221,jumping,hands flapping,False,0.5833333333333334,0.4166666666666667,0.0,0.0,3
+D8G5K7I0D6_36_month_222,rocking,hands flapping,False,0.625,0.375,0.0,0.0,2
+A2M5H0V6E3_14_month_238,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+A2M5H0V6E3_14_month_239,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+A2M5H0V6E3_14_month_240,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+M5Y0K3C9L0_36_month_250,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,3
+M5Y0K3C9L0_36_month_251,spinning,hands flapping,False,1.0,0.0,0.0,0.0,1
+M5Y0K3C9L0_36_month_252,jumping,hands flapping,False,1.0,0.0,0.0,0.0,2
+O7X6W5O8E0_36_month_272,spinning,hands flapping,False,0.875,0.125,0.0,0.0,2
+O7X6W5O8E0_14_month_273,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,3
+L4M8P2T7S0_14_month_275,jumping,jumping,True,0.0,1.0,0.0,0.0,3
+L4M8P2T7S0_14_month_276,jumping,jumping,True,0.25,0.75,0.0,0.0,2
+L4M8P2T7S0_14_month_277,jumping,jumping,True,0.0,1.0,0.0,0.0,2
+G2N1M4K2S0_unknown_287,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+C5U1P3X9F0_14_month_310,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,8
+L4M1H7J7G3_36_month_314,jumping,hands flapping,False,1.0,0.0,0.0,0.0,2
+L4M1H7J7G3_36_month_315,jumping,hands flapping,False,0.5,0.5,0.0,0.0,1
+O5Q7I1O6N2_14_month_316,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+O5Q7I1O6N2_14_month_317,rocking,hands flapping,False,1.0,0.0,0.0,0.0,1
+L5Q0Z1W8S2_14_month_334,jumping,hands flapping,False,0.75,0.25,0.0,0.0,1
+Y6Z4H0C5U2_36_month_344,jumping,hands flapping,False,0.875,0.125,0.0,0.0,4
+Y6Z4H0C5U2_36_month_345,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+S6U9Q8G6M0_14_month_346,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,1
+N1B1A2T8S1_36_month_354,hands flapping,hands flapping,True,1.0,0.0,0.0,0.0,2
+N2H7T0A7U5_14_month_364,hands flapping,jumping,False,0.25,0.75,0.0,0.0,1
+N2H7T0A7U5_36_month_365,jumping,hands flapping,False,0.5,0.5,0.0,0.0,1
+N2H7T0A7U5_36_month_366,jumping,hands flapping,False,0.75,0.25,0.0,0.0,1
+W3O7N1N8U2_14_month_371,jumping,hands flapping,False,0.5,0.5,0.0,0.0,2
+W3O7N1N8U2_36_month_372,jumping,hands flapping,False,1.0,0.0,0.0,0.0,1

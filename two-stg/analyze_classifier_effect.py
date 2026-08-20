@@ -30,7 +30,10 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
-ACTREG = Path("/orcd/data/satra/001/users/brukew/actreg")
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
+ACTREG = _REPO_ROOT
 TWO_STG = ACTREG / "two-stg"
 OPENTAD = ACTREG / "OpenTAD"
 ANNO_DIR = OPENTAD / "data/sails_rmm/annotations"

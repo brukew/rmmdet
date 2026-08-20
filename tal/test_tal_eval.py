@@ -43,6 +43,9 @@ from window_to_segments import (
     window_scores_to_segments,
 )
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 
 # ============================================================================
 # Unit tests for tIoU
@@ -560,7 +563,7 @@ def main():
     parser.add_argument(
         "--splits-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"),
+        default=_REPO_ROOT / "dataprep/splits",
         help="Root directory for split CSVs (for oracle check).",
     )
     parser.add_argument(

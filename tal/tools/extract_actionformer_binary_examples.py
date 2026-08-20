@@ -22,15 +22,18 @@ from typing import Dict, Iterable, List, Optional, Tuple
 import pandas as pd
 import shutil
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 
 # -----------------------------------------------------------------------------
 # Defaults
 # -----------------------------------------------------------------------------
 
-DEFAULT_OUTPUT_DIR = Path("/orcd/data/satra/001/users/brukew/tal_binary_examples")
-DEFAULT_SEGMENTS_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_segments.csv")
-DEFAULT_TAL_SPLITS_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class")
-DEFAULT_ACTIONFORMER_EXPS = Path("/orcd/data/satra/001/users/brukew/actreg/OpenTAD/exps/sails_rmm")
+DEFAULT_OUTPUT_DIR = _REPO_ROOT / "insights/tal_binary_examples"
+DEFAULT_SEGMENTS_CSV = _REPO_ROOT / "dataprep/rmm_segments.csv"
+DEFAULT_TAL_SPLITS_DIR = _REPO_ROOT / "dataprep/tal/splits_cv_4class"
+DEFAULT_ACTIONFORMER_EXPS = _REPO_ROOT / "OpenTAD/exps/sails_rmm"
 
 FOLD_PRED_PATH = "actionformer_vjepa_binary_fold{fold}/gpu1_id99/result_detection.json"
 

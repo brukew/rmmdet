@@ -85,11 +85,11 @@ BINARY_LABEL_MAP = {
 BINARY_ID2LABEL = BINARY_LABEL_MAP.copy()
 BINARY_LABEL2ID = {v: k for k, v in BINARY_LABEL_MAP.items()}
 
-DEFAULT_TAL_CSV_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class")
+DEFAULT_TAL_CSV_DIR = PATHS.repo_root / "dataprep/tal/splits_cv_4class"
 DEFAULT_TAL_CLIPS_ROOT = PATHS.tal_clips_root
 
 # Cropping defaults (same as original)
-DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
+DEFAULT_PARSED_CSV = PATHS.repo_root / "dataprep/rmm_sam3_parsed.csv"
 DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_MASK_MODEL = "facebook-sam3"
 DEFAULT_MASK_PROMPT = "person"
@@ -838,20 +838,12 @@ def evaluate_with_loss(
     num_batches = 0
     total_batches = len(loader)
     
-    # #region agent log
-    import json as _json; _log_path = "/orcd/data/satra/001/users/brukew/.cursor/debug.log"
-    with open(_log_path, "a") as _f: _f.write(_json.dumps({"hypothesisId": "A", "location": "evaluate_with_loss:entry", "message": "Starting validation", "data": {"total_batches": total_batches}, "timestamp": int(__import__('time').time()*1000)}) + "\n")
-    # #endregion
-    
     logger.info("  Starting validation (%d batches)...", total_batches)
     
     with torch.no_grad():
         for batch_idx, (inputs, labels, metas) in enumerate(loader):
-            # #region agent log
             if batch_idx % 500 == 0:
-                with open(_log_path, "a") as _f: _f.write(_json.dumps({"hypothesisId": "B", "location": "evaluate_with_loss:loop", "message": "Val batch progress", "data": {"batch_idx": batch_idx, "total": total_batches}, "timestamp": int(__import__('time').time()*1000)}) + "\n")
                 logger.info("    Val progress: %d/%d batches", batch_idx, total_batches)
-            # #endregion
             
             if inputs is None or labels is None:
                 continue
@@ -871,10 +863,7 @@ def evaluate_with_loss(
     
     acc = correct / max(total, 1)
     avg_loss = total_loss / max(num_batches, 1)
-    
-    # #region agent log
-    with open(_log_path, "a") as _f: _f.write(_json.dumps({"hypothesisId": "A", "location": "evaluate_with_loss:exit", "message": "Validation complete", "data": {"acc": acc, "avg_loss": avg_loss, "total_samples": total}, "timestamp": int(__import__('time').time()*1000)}) + "\n")
-    # #endregion
+    logger.info("  Validation complete: acc=%.4f avg_loss=%.4f (%d samples)", acc, avg_loss, total)
     
     return acc, avg_loss
 
@@ -1338,7 +1327,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--video-meta-json",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json"),
+        default=PATHS.repo_root / "dataprep/video_meta.json",
         help="JSON from save_video_metadata_cache for reuse (rotation/cache info).",
     )
     

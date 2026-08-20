@@ -21,6 +21,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 
 def normalize_video_file(video_file: str) -> str:
     """
@@ -261,7 +264,7 @@ def main():
     parser.add_argument(
         "--splits-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"),
+        default=_REPO_ROOT / "dataprep/splits",
         help="Root directory containing existing segment split CSVs.",
     )
     parser.add_argument(
@@ -279,7 +282,7 @@ def main():
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/video_assignment"),
+        default=_REPO_ROOT / "dataprep/tal/video_assignment",
         help="Output directory for video assignment CSV.",
     )
     parser.add_argument(

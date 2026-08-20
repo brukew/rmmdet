@@ -135,6 +135,7 @@ All of these write git-ignored `runs/` / `work_dirs/` / `exps/`. Submit from rep
 | V-JEPA2 4-class CV | `v-jepa/slurm/run_vjepa_cv.sh` | `vjepa2` | crop on by default; `ENABLE_CROP=0` to disable. 256 GB, 48 h |
 | V-JEPA2 single split | `v-jepa/slurm/run_vjepa_single.sh` | `vjepa2` | |
 | V-JEPA2 TAL windows | `v-jepa/slurm/tal/train_tal_cv_binary_balanced.sh`, `train_tal_cv_5class_balanced.sh` | `vjepa2` | |
+| V-JEPA2 TAL 5-class + bg-subsample | `sbatch v-jepa/finetune_tal_cv.sbatch` | `vjepa2` | reads clips from `$TAL_CLIPS_ROOT` |
 | V-JEPA2 feature extract | `v-jepa/slurm/extract_features.sh` | `vjepa2` | OpenTAD input `.npy` |
 | PoseC3D weighted (reported) | `bash pyskl/scripts/slurm/posec3d/submit_all_weighted.sh` | `pyskl` | submits 4 jobs |
 | STGCN++ weighted | `bash pyskl/scripts/slurm/stgcnpp/submit_all_weighted.sh` | `pyskl` | |
@@ -152,9 +153,12 @@ pre-existing unbalanced quote in a Python `-c` block (`bash -n` fails) — use t
 
 | Script | Env | What |
 | :--- | :--- | :--- |
+| `dataprep/tal/make_tal_video_assignments.py` | `dataprep` | per-fold video assignment |
 | `dataprep/tal/make_tal_window_splits.py` | `dataprep` | 2 s / 1 s window CSVs |
 | `dataprep/tal/validate_tal_splits.py` | `dataprep` | split QA |
-| `dataprep/tal/create_tal_pose_pickles.sbatch` | `dataprep` | TAL window pickles for pyskl |
+| `dataprep/tal/cut_tal_windows.sbatch` | `dataprep` | cuts window clips to `$TAL_CLIPS_ROOT` |
+| `dataprep/tal/create_tal_pose_pickles.sbatch` | `dataprep` | TAL window pickles for pyskl (all 4 configs) |
+| `dataprep/tal/create_tal_pose_pickles_4class_only.sbatch` | `dataprep` | same, CV 4-class only |
 | `pyskl/tools/data/create_sails_annotations.py` | `pyskl` | classification pose pickles |
 | `dataprep/clip_gen/create_clip_segments.py` | `dataprep` | clip cutting |
 | `dataprep/pose_gen/batch_sam_pose.py` | **mmpose/mmdet, not `dataprep`** | pose H5 caches (already in lab space) |
@@ -166,17 +170,26 @@ pre-existing unbalanced quote in a Python `-c` block (`bash -n` fails) — use t
 1. **Conda path.** Wrappers `source ~/miniconda3/etc/profile.d/conda.sh`. If conda lives
    elsewhere, export `REPO_ROOT` and edit that line, or `conda activate` before a
    non-sbatch run.
-2. **Python defaults vs wrappers.** SLURM `*.sh` pass `${REPO_ROOT}` paths. Several
-   analysis `*.py` files still have `/orcd/data/satra/001/users/brukew/...` **argparse
-   defaults** (two-stg analysis, some v-jepa finetune CLIs). Calling them with no args
-   from another clone will miss. Use the `sbatch` wrapper or pass flags.
+2. **Path defaults are clone-relative.** Every launcher (`*.sh`, `*.sbatch`) resolves
+   `REPO_ROOT` by walking up to the directory holding `paths.py`, and every Python
+   argparse default now derives from that same root, so no-arg invocations work from
+   any clone. Submit from the repo root so `#SBATCH --output=slurm-logs/...` resolves.
 3. **Fusion CSV names.** V-JEPA classification writes `clip_level_preds.csv`; PoseC3D
    writes `eval_val/predictions_clip.csv`. `fusion/train_fusion_cv.py` looks for both.
 4. **`predictions_clip.csv` is gitignored** (`runs/`, plus the filename). Overlay now
    includes those CSVs so fusion can run without re-eval.
 5. **pyskl DDP** is broken on the pinned `envs/pyskl.yml` (Torch 2.9 + mmcv 1.7). Fix the
    env before PoseC3D/STGCN++ `test.py`.
-6. **Qwen** outputs live outside this repo (`README.md`); not part of the overlay.
+6. **Qwen VLM baseline.** Metrics/predictions are vendored at
+   `insights/vlm/qwen_outputs/` (~1.3 MB), so `scripts/extract_precision_recall.py`
+   runs from a clone with no overlay. The source videos/model are not included.
+7. **`tal/` vs `dataprep/tal/` overlap.** Both hold `run_tal_eval_cv.py`,
+   `tal_map_eval.py`, and `test_tal_eval.py`, and the copies have **drifted**. The
+   reported TAL numbers come from the `tal/` copies; treat `dataprep/tal/` as the
+   split-generation side and edit the two deliberately.
+8. **`tal/analyze_tal_results.py` needs `--stgcn-log`.** It scrapes per-class metrics
+   from an ST-GCN++ training `.err` log, which is a SLURM artifact not shipped here;
+   pass a log from your own run.
 
 Pipeline map and expected numbers: [`REPRODUCE.md`](../REPRODUCE.md). File catalog:
 [`INDEX.md`](INDEX.md). Data/checkpoint locations: [`ARTIFACTS.md`](ARTIFACTS.md).

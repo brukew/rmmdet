@@ -426,7 +426,7 @@ Each clip is named `{segment_id}.mp4` (654 total clips).
 | STGCN++ | `pyskl/work_dirs/stgcnpp/` |
 | V-JEPA2 | `v-jepa/runs/` |
 | Late Fusion | `fusion/runs/` |
-| Qwen VLM | `/orcd/data/satra/001/users/brukew/qwen_rmm_outputs/` |
+| Qwen VLM | `insights/vlm/qwen_outputs/` (metrics + predictions, vendored) |
 
 ### Generated Files (per experiment)
 

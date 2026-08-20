@@ -55,9 +55,9 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 from paths import PATHS  # noqa: E402
 
-DEFAULT_SPLIT_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits/single_split")
+DEFAULT_SPLIT_DIR = PATHS.repo_root / "dataprep/splits/single_split"
 DEFAULT_CLIPS_ROOT = PATHS.vjepa2_finetune_clips
-DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
+DEFAULT_PARSED_CSV = PATHS.repo_root / "dataprep/rmm_sam3_parsed.csv"
 DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_MASK_MODEL = "facebook-sam3"
 DEFAULT_MASK_PROMPT = "person"

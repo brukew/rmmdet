@@ -20,6 +20,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 
 def normalize_video_file(video_file: str) -> str:
     """Normalize video_file path for consistent matching."""
@@ -388,13 +391,13 @@ def main():
     parser.add_argument(
         "--tal-dir",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal"),
+        default=_REPO_ROOT / "dataprep/tal",
         help="TAL output directory.",
     )
     parser.add_argument(
         "--splits-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"),
+        default=_REPO_ROOT / "dataprep/splits",
         help="Original segment splits directory.",
     )
     parser.add_argument(

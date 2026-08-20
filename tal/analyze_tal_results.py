@@ -4,12 +4,16 @@ Analyze TAL training results across models and modalities.
 Extracts per-class metrics, confusion patterns, and cross-model comparisons.
 """
 
+import argparse
 import json
 import pandas as pd
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
 import re
+
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
 
 # Class names
 CLASS_NAMES = ['hands flapping', 'jumping', 'rocking', 'spinning', 'background']
@@ -301,11 +305,33 @@ def create_summary_table(posec3d_results, stgcn_results):
             print("   → STGCN++ outperforms PoseC3D on joint modality")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--posec3d-dir",
+        default=str(_REPO_ROOT / "pyskl/work_dirs/posec3d/tal/cv_4class_5class_bgsub"),
+        help="PoseC3D TAL work_dir containing per-fold metrics.",
+    )
+    parser.add_argument(
+        "--stgcn-dir",
+        default=str(_REPO_ROOT / "pyskl/work_dirs/stgcnpp/tal/cv_4class_5class_bgsub"),
+        help="ST-GCN++ TAL work_dir containing per-fold metrics.",
+    )
+    parser.add_argument(
+        "--stgcn-log",
+        required=True,
+        help="ST-GCN++ TAL training log (.err) to scrape per-class metrics from. "
+             "This is a SLURM job artifact and is not shipped with the repo; pass "
+             "the log from your own training run (see slurm-logs/).",
+    )
+    return parser.parse_args()
+
+
 def main():
-    # Paths
-    posec3d_dir = "/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs/posec3d/tal/cv_4class_5class_bgsub"
-    stgcn_log = "/orcd/data/satra/001/users/brukew/pyskl_logs/stgcnpp/tal/stgcnpp_tal_4class_cv_bgsub_7664640.err"
-    stgcn_dir = "/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs/stgcnpp/tal/cv_4class_5class_bgsub"
+    args = parse_args()
+    posec3d_dir = args.posec3d_dir
+    stgcn_log = args.stgcn_log
+    stgcn_dir = args.stgcn_dir
     
     # Load results
     print("Loading results...")

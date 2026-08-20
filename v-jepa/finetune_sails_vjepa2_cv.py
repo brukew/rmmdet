@@ -47,7 +47,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 from paths import PATHS  # noqa: E402
 
-DEFAULT_ISSUE_CLIPS_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/issue_clips.csv")
+DEFAULT_ISSUE_CLIPS_CSV = PATHS.repo_root / "dataprep/issue_clips.csv"
 
 
 def setup_logging(log_level: str = "INFO") -> None:
@@ -70,7 +70,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--csv-dir",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/cv_folds"),
+        default=PATHS.repo_root / "dataprep/cv_folds",
         help="Directory containing fold_*_train.csv and fold_*_val.csv files.",
     )
     parser.add_argument(

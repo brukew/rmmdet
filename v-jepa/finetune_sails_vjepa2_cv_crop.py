@@ -54,12 +54,12 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 from paths import PATHS  # noqa: E402
 
-DEFAULT_PARSED_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv")
+DEFAULT_PARSED_CSV = PATHS.repo_root / "dataprep/rmm_sam3_parsed.csv"
 DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
 DEFAULT_MASK_MODEL = "facebook-sam3"
 DEFAULT_MASK_PROMPT = "person"
 DEFAULT_CROP_PADDING = 20
-DEFAULT_ISSUE_CLIPS_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/issue_clips.csv")
+DEFAULT_ISSUE_CLIPS_CSV = PATHS.repo_root / "dataprep/issue_clips.csv"
 
 
 @dataclass
@@ -272,7 +272,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--csv-dir",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/cv_folds"),
+        default=PATHS.repo_root / "dataprep/cv_folds",
         help="Directory containing fold_*_train.csv and fold_*_val.csv files.",
     )
     parser.add_argument(

@@ -106,7 +106,7 @@ class BatchConfig:
     output: OutputConfig = field(default_factory=OutputConfig)
     
     # Video metadata
-    video_meta_json: str = "/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json"
+    video_meta_json: str = str(PATHS.repo_root / "dataprep/video_meta.json")
 
 
 # ================== HELPER FUNCTIONS ==================
@@ -719,7 +719,7 @@ Examples:
                        default=str(PATHS.cache_for_tracking),
                        help='Base cache directory')
     parser.add_argument('--video-meta', type=str,
-                       default='/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json',
+                       default=str(PATHS.repo_root / "dataprep/video_meta.json"),
                        help='Path to video_meta.json')
     parser.add_argument('--no-video', action='store_true',
                        help='Skip video generation (cache poses only)')

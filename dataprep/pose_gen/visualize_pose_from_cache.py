@@ -38,14 +38,14 @@ COCO_KPT_NAMES = [
     "left_knee", "right_knee", "left_ankle", "right_ankle"
 ]
 
-# Default paths
-DEFAULT_VIDEO_META_JSON = "/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json"
 # Resolve filesystem locations from the repo's single source of truth (config.yaml).
 _REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 from paths import PATHS  # noqa: E402
 
+# Default paths
+DEFAULT_VIDEO_META_JSON = str(PATHS.repo_root / "dataprep/video_meta.json")
 DEFAULT_POSE_CACHE_BASE = str(PATHS.cache_for_tracking)
 POSE_CACHE_FILENAME = "dino-5scale_swin-l_8xb2-36e_coco_0.5_td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288_sam3guided.h5"
 

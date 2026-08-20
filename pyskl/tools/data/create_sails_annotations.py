@@ -122,7 +122,7 @@ from paths import PATHS  # noqa: E402
 
 DEFAULT_POSE_CACHE_BASE = str(PATHS.cache_for_tracking)
 DEFAULT_VIDEO_ROOT = "/orcd/data/satra/002/datasets/SAILS/Phase_III_Videos/Videos_from_external_standardized"
-DEFAULT_VIDEO_META_JSON = "/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json"
+DEFAULT_VIDEO_META_JSON = str(PATHS.repo_root / "dataprep/video_meta.json")
 
 # Pose cache filename pattern (from batch_sam_pose.py)
 # Format: {det_config}_{det_thresh}_{pose_config}_sam3guided.h5

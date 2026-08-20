@@ -6,17 +6,45 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=64G
 #SBATCH --time=12:00:00
-#SBATCH --output=/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/logs/create_tal_pose_pickles_4class_%j.out
-#SBATCH --error=/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/logs/create_tal_pose_pickles_4class_%j.err
+#SBATCH --output=slurm-logs/create_tal_pose_pickles_4class_%j.out
+#SBATCH --error=slurm-logs/create_tal_pose_pickles_4class_%j.err
 
 # ============================================================================
 # Create pyskl annotation pickle files for TAL windows - CV 4-class ONLY
-# Completes fold2 (fold0 and fold1 already exist)
+# (a narrower variant of create_tal_pose_pickles.sbatch, which does all 4 configs)
+#
+# Submit from the repo root:
+#   sbatch dataprep/tal/create_tal_pose_pickles_4class_only.sbatch
 # ============================================================================
+
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
 
 set -eo pipefail
 source ~/.bashrc
-cd /orcd/data/satra/001/users/brukew
+cd "${REPO_ROOT}"
 conda activate dataprep
 
 # Disable Python output buffering so logs appear in real-time
@@ -29,9 +57,9 @@ echo "Job ID: ${SLURM_JOB_ID}"
 echo "=========================================="
 
 # Paths
-SCRIPT="/orcd/data/satra/001/users/brukew/actreg/pyskl/tools/data/create_sails_annotations.py"
-TAL_SPLITS_BASE="/orcd/data/satra/001/users/brukew/actreg/dataprep/tal"
-OUTPUT_BASE="/orcd/data/satra/001/users/brukew/actreg/pyskl/data/sails/tal"
+SCRIPT="${REPO_ROOT}/pyskl/tools/data/create_sails_annotations.py"
+TAL_SPLITS_BASE="${REPO_ROOT}/dataprep/tal"
+OUTPUT_BASE="${REPO_ROOT}/pyskl/data/sails/tal"
 
 # Configuration
 MIN_CONF=0.4

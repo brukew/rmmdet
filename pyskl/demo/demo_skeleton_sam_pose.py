@@ -76,7 +76,7 @@ DEFAULT_DET_CONF_THRESH = 0.5
 DEFAULT_POSE_CONFIG = "td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288"
 
 # Default video metadata path
-DEFAULT_VIDEO_META_JSON = "/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json"
+DEFAULT_VIDEO_META_JSON = str(PATHS.repo_root / "dataprep/video_meta.json")
 
 # Default output directory for row-based processing
 DEFAULT_OUTPUT_DIR = str(PATHS.pipeline_outputs / "skeleton_recognition")
@@ -164,7 +164,7 @@ Examples:
         help='path to video_meta.json')
     parser.add_argument(
         '--config',
-        default='/orcd/data/satra/001/users/brukew/actreg/pyskl/configs/posec3d/slowonly_r50_ntu120_xsub/joint.py',
+        default=str(PATHS.repo_root / "pyskl/configs/posec3d/slowonly_r50_ntu120_xsub/joint.py"),
         help='skeleton action recognition config file path')
     parser.add_argument(
         '--checkpoint',
@@ -205,7 +205,7 @@ Examples:
         help='Pose config name used in cache filename')
     parser.add_argument(
         '--label-map',
-        default='/orcd/data/satra/001/users/brukew/actreg/pyskl/tools/data/label_map/nturgbd_120.txt',
+        default=str(PATHS.repo_root / "pyskl/tools/data/label_map/nturgbd_120.txt"),
         help='label map file')
     parser.add_argument(
         '--device', type=str, default='cuda:0', help='CPU/CUDA device option')

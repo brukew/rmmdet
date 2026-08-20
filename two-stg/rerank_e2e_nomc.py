@@ -18,6 +18,9 @@ from pathlib import Path
 
 import numpy as np
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 
 # ── Soft NMS (pure NumPy, no GPU / compiled extension needed) ────────────────
 
@@ -70,7 +73,7 @@ def soft_nms_1d(
 
 # ── OpenTAD-style mAP evaluation (identical to analyse_classifier_effect.py) ─
 
-ACTREG = Path("/orcd/data/satra/001/users/brukew/actreg")
+ACTREG = _REPO_ROOT
 ANNO_DIR = ACTREG / "OpenTAD/data/sails_rmm/annotations"
 FOLDS = [0, 1, 2]
 LABEL2ID = {"hands flapping": 0, "jumping": 1, "rocking": 2, "spinning": 3}

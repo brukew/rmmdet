@@ -19,6 +19,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Resolve paths relative to the repo root so this runs from any clone location.
+_REPO_ROOT = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+
 # =============================================================================
 # Color Palette (consistent with existing project plots)
 # =============================================================================
@@ -326,13 +329,13 @@ def main():
     parser.add_argument(
         '--output-dir', 
         type=str, 
-        default='/orcd/data/satra/001/users/brukew/actreg/insights/figs',
+        default=str(_REPO_ROOT / "insights/figs"),
         help='Output directory for figures'
     )
     parser.add_argument(
         '--tables-dir',
         type=str,
-        default='/orcd/data/satra/001/users/brukew/actreg/insights/tables',
+        default=str(_REPO_ROOT / "insights/tables"),
         help='Output directory for JSON data'
     )
     args = parser.parse_args()
