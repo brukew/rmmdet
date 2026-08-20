@@ -7,7 +7,7 @@ ambiguity with model prediction errors to identify systematic failure modes.
 
 Usage:
     python tal_failure_analysis.py
-    python tal_failure_analysis.py --output-dir insights/writeup
+    python tal_failure_analysis.py --output-dir insights/tal
 """
 
 import argparse
@@ -32,7 +32,7 @@ SAM3_PARSED_PATH = ACTREG_ROOT / "dataprep" / "rmm_sam3_parsed.csv"
 TAL_PREDICTIONS_DIR = ACTREG_ROOT / "tal" / "eval_results" / "vjepa_balanced"
 
 # Output paths
-OUTPUT_DIR = ACTREG_ROOT / "insights" / "writeup"
+OUTPUT_DIR = ACTREG_ROOT / "insights" / "tal"
 FIGS_DIR = ACTREG_ROOT / "insights" / "figs"
 TABLES_DIR = ACTREG_ROOT / "insights" / "tables"
 

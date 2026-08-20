@@ -55,9 +55,10 @@ in `vjepa2` or `opentad`.
 ## Expected results
 
 Confirm a successful reproduction against these committed headline numbers (3-fold CV).
-The authoritative tables are [`insights/tables/*.json`](insights/tables/) (see also the
-[caveat](#known-gaps-for-the-next-maintainer) on the table generator); per-fold metrics are
-under each component's `eval_results/`.
+The authoritative tables are [`insights/tables/*.json`](insights/tables/). Do not
+overwrite those JSON files with `insights/paper_plots/generate_all_table_jsons.py` — that
+generator currently emits a thinner subset. Per-fold metrics live under each component's
+`eval_results/`.
 
 **Clip classification — CV macro-F1** (`table_5_1`/`table_5_2`):
 
@@ -148,8 +149,7 @@ python scripts/eval_best_postprocess.py       # final per-model mAP
 
 The final tables are re-derivable from the committed per-fold `tal_format_preds.csv` via
 `grid_search_postprocessing.py` → `eval_best_postprocess.py`, without re-running GPU jobs.
-See the [known gaps](#known-gaps-for-the-next-maintainer) for two stale from-scratch paths.
-Full detail: [`tal/README.md`](tal/README.md).
+Full detail: [`tal/README.md`](tal/README.md) and [`docs/ENTRYPOINTS.md`](docs/ENTRYPOINTS.md).
 
 ---
 
@@ -304,60 +304,6 @@ every reported eval input passed. GPU inference:
 
 CPU stages (TAL split validation, TAL oracle `test_tal_eval.py` mAP≈1.0, convert) pass.
 
-**Not a clean clone pass:** PoseC3D/STGCN++ `pyskl/tools/test.py` — see known gaps
-(env torch/mmcv DDP mismatch; CV pickles have `train`/`val` only while configs set
-`split='test'`; `--cfg-options` is not accepted by this `test.py`). Classification
-numbers in the tables were produced before that env drift. Overlay includes
-`pyskl/work_dirs/**/best_*.pth` but **not** `pyskl/data/sails/**/*.pkl` (generate with
-`pyskl/tools/data/create_sails_annotations.py`, see
-`pyskl/configs/posec3d/slowonly_r50_sails_k400p/README.md`).
-
----
-
-## Known gaps for the next maintainer
-
-- **Paper tables are the source of truth.** The committed `insights/tables/table_5_*.json`
-  were finalized from richer per-model metrics than
-  `insights/paper_plots/generate_all_table_jsons.py` currently reads. Re-running that
-  generator today produces a *subset* (nulls `cohens_kappa`/`macro_f1`/`top2_acc`, drops
-  `per_class_ap` and some stds). Treat the committed tables as authoritative and do **not**
-  overwrite them with the current generator output.
-- **From-scratch V-JEPA window TAL path is stale.** V-JEPA `window_level_preds.csv` files do
-  not carry per-window `start_sec`/`end_sec` (must be joined from
-  `dataprep/tal/splits_cv_*/fold_{N}_val_windows.csv` before `window_to_segments`).
-  Regenerate V-JEPA segment predictions from the committed `tal_format_preds.csv` instead.
-  The `posec3d`/`stgcn` branches (which export timing from the pyskl annotation pickle) are
-  unaffected.
-- **`tal/` vs `dataprep/tal/` duplication.** Both hold parallel copies of the eval helpers
-  (`run_tal_eval_cv.py`, `window_to_segments.py`, `tal_map_eval.py`); `tal_map_eval.py`
-  differs between them. Treat `tal/` as the eval entry point (its `run_tal_eval_cv.py` loads
-  the shared `export_pyskl_window_preds` helper from `dataprep/tal/` by explicit path).
-- `OpenTAD/tools/prepare_data/sails_rmm/README.md` documents convert `--fold`/`--task`
-  (`binary` \| `4class`) and the `4class` ↔ SLURM `balanced` name mismatch.
-- Filesystem paths are centralized in [`config.yaml`](config.yaml) + [`paths.py`](paths.py)
-  (the earlier hardcoded-`/orcd/scratch` paths were migrated to the lab project space).
-- **pyskl eval env has drifted to an incompatible PyTorch.** `envs/pyskl.yml` pins
-  `torch==2.9.0` with `mmcv-full==1.7.0`; the mmcv-1.7 `MMDistributedDataParallel` wrapper
-  reads a Torch-1.x internal (`_use_replicated_tensor_module`) that Torch 2.x removed, so
-  `pyskl/tools/test.py` (which always runs through `init_dist`) aborts *after* the model +
-  pose pickle load and the forward pass starts:
-  `AttributeError: 'MMDistributedDataParallel' object has no attribute '_use_replicated_tensor_module'`.
-  `--launcher none` is also rejected (`Invalid launcher type: none`). Path resolution,
-  checkpoint loading, and data loading are verified from a fresh clone; only the DDP eval
-  wrapper is affected. **Fix for the next maintainer:** recreate the `pyskl` env with a
-  Torch/mmcv pair that mmcv-full 1.7.0 supports (Torch ≤ ~1.13), or upgrade mmcv, before
-  re-running PoseC3D/STGCN++ eval. The reported classification numbers were generated
-  before this Torch upgrade.
-- **`pyskl/tools/test.py` indentation fix.** Two `dist.barrier()` calls under `if distributed:`
-  were unindented (committed syntax error); fixed on `clean-repo`. This `test.py` also does
-  **not** accept `--cfg-options`.
-- **PoseC3D CV configs test a split the pickle does not have.** Fold pickles
-  (`pyskl/data/sails/cv/4class_conf04/fold0.pkl`) expose `train` and `val` only (val = the
-  held-out fold). The dumped `work_dirs/.../joint.py` sets `data.test.split = 'test'`.
-  Point test at `val` (or add a `test` key to the pickle) before eval. Classification
-  pickles are tracked in git (~15 MB each) and in `checkpoints_root`. TAL window pickles
-  (`pyskl/data/sails/tal/`, ~149 MB each) cannot go on GitHub (100 MB file limit) — get
-  them from the overlay only.
-- There was no `OpenTAD/slurm/test_actionformer_cv.sh` until `clean-repo`; only
-  `test_tridet_cv.sh` existed, which is why ActionFormer eval is easy to miss. Use the
-  ActionFormer wrapper (same args as TriDet: `<task> <fold>`).
+**Not a clean clone pass:** PoseC3D/STGCN++ `pyskl/tools/test.py` (pinned `envs/pyskl.yml`
+is Torch 2.9 + mmcv-full 1.7, which breaks DDP). See [`docs/ENTRYPOINTS.md`](docs/ENTRYPOINTS.md).
+Classification headline numbers were produced before that env drift.

@@ -34,7 +34,7 @@ SAM3_PARSED_PATH = ACTREG_ROOT / "dataprep" / "rmm_sam3_parsed.csv"
 TAL_SPLITS_DIR = ACTREG_ROOT / "dataprep" / "tal" / "splits_cv_4class"
 
 # Output paths
-OUTPUT_DIR = ACTREG_ROOT / "insights" / "writeup"
+OUTPUT_DIR = ACTREG_ROOT / "insights" / "tal"
 FIGS_DIR = ACTREG_ROOT / "insights" / "figs"
 TABLES_DIR = ACTREG_ROOT / "insights" / "tables"
 

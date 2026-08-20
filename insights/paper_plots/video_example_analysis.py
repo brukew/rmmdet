@@ -47,7 +47,7 @@ OPENTAD_DIR = ACTREG_ROOT / "OpenTAD" / "exps" / "sails_rmm"
 
 # Output
 OUTPUT_JSON = ACTREG_ROOT / "insights" / "tables" / "video_example_analysis.json"
-OUTPUT_MD = ACTREG_ROOT / "insights" / "writeup" / "video_example_analysis.md"
+OUTPUT_MD = ACTREG_ROOT / "insights" / "tal" / "video_example_analysis.md"
 
 # Class names
 CLASS_NAMES_4 = ["hands_flapping", "jumping", "rocking", "spinning"]
