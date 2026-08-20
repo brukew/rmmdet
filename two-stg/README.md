@@ -25,7 +25,7 @@ For 5-class, background predictions naturally downweight proposals where the cla
 **All folds (GPU):**
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg
+cd <this-repo>
 bash two-stg/run_two_stage_cv_gpu.sh
 ```
 
@@ -44,7 +44,7 @@ python two-stg/eval_two_stage_tal.py \
 Export per-fold fusion weights and skeleton index once (CPU/GPU):
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg
+cd <this-repo>
 conda activate vjepa2
 python fusion/export_three_way_deploy_checkpoint.py --all-folds
 ```
@@ -120,7 +120,7 @@ You can also set `CLASSIFIER_BACKEND=three_way` with `run_single_fold_gpu.sh` (s
 **All folds (GPU):**
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg
+cd <this-repo>
 bash two-stg/run_5class_cv_gpu.sh
 ```
 

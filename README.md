@@ -5,7 +5,10 @@ Automated classification **and temporal localization** of **Repetitive Motor Mov
 1. **Clip classification** — given a trimmed clip, predict the RMM class. Approaches: skeleton-based CNN (PoseC3D), skeleton-based GCN (STGCN++), video encoder finetuning (V-JEPA2), late fusion, and zero-shot VLM (Qwen2.5-VL).
 2. **Temporal Action Localization (TAL)** — given an untrimmed video, find *when* RMMs occur and classify them. Approaches: window-based scoring + postprocessing, OpenTAD end-to-end detectors (ActionFormer/TriDet), and a two-stage (binary detector → classifier) pipeline.
 
-> **New here / picking this up?** Start with [`REPRODUCE.md`](REPRODUCE.md) for the end-to-end pipeline (incl. expected results and where checkpoints live), [`docs/INDEX.md`](docs/INDEX.md) for a catalog of all docs and entry points, and [`docs/ARTIFACTS.md`](docs/ARTIFACTS.md) for where data/checkpoints live.
+> **New here / picking this up?** Start with [`REPRODUCE.md`](REPRODUCE.md) for the pipeline
+> and expected numbers, [`docs/ENTRYPOINTS.md`](docs/ENTRYPOINTS.md) for **which script to
+> run** (env, args, inputs, outputs), [`docs/INDEX.md`](docs/INDEX.md) for the full file
+> catalog, and [`docs/ARTIFACTS.md`](docs/ARTIFACTS.md) for where data/checkpoints live.
 
 ---
 

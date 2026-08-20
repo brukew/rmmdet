@@ -7,6 +7,7 @@ live in their own directories; cross-cutting/handoff docs live under `docs/`.
 
 - `@actreg/README.md`: Main project README (two tasks: classification + TAL; methods, commands, directory overview, results).
 - `@actreg/REPRODUCE.md`: End-to-end pipeline map (setup → data prep → classifiers → window TAL → OpenTAD E2E/binary → two-stage → analysis), including expected results and checkpoint locations.
+- `@actreg/docs/ENTRYPOINTS.md`: **What to run** — every launch/eval script, env, args, inputs, and output path.
 - `@actreg/docs/ARTIFACTS.md`: Data/artifact retention policy and where inputs/checkpoints live.
 - `@actreg/config.yaml` + `@actreg/paths.py`: Central path configuration (single source of truth; env-overridable).
 - `@actreg/envs/`: Pinned conda environments (`dataprep`, `pyskl`, `vjepa2`, `opentad`).

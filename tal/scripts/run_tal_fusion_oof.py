@@ -43,8 +43,9 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 # Root directories
-TAL_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/tal")
-DATAPREP_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal")
+_REPO = Path(__file__).resolve().parents[2]
+TAL_DIR = _REPO / "tal"
+DATAPREP_DIR = _REPO / "dataprep" / "tal"
 EVAL_RESULTS_DIR = TAL_DIR / "eval_results"
 
 # Window splits (val windows with labels)

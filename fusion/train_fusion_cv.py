@@ -51,13 +51,19 @@ logger = logging.getLogger(__name__)
 # Configuration
 # =============================================================================
 
-DEFAULT_VJEPA_ROOT = Path("/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls")
+# Resolve the repo root (directory containing paths.py) so defaults work from any clone.
+try:
+    _REPO = next(p for p in Path(__file__).resolve().parents if (p / "paths.py").exists())
+except StopIteration:
+    _REPO = Path(__file__).resolve().parent.parent
+
+DEFAULT_VJEPA_ROOT = _REPO / "v-jepa" / "runs" / "vjepa2_rmm_cv" / "f64_lr1e-5_bs1_acc8_ep20_crop_4cls"
 # Use non-weighted PoseC3D which has full val set coverage (205 clips vs 52 for weighted)
-DEFAULT_POSEC3D_ROOT = Path("/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs/posec3d/cv/4class_conf04")
+DEFAULT_POSEC3D_ROOT = _REPO / "pyskl" / "work_dirs" / "posec3d" / "cv" / "4class_conf04"
 # STGCN++ 4-stream fusion (best performing skeleton model)
-DEFAULT_STGCN_ROOT = Path("/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs/stgcnpp/cv/4class_conf04_4stream")
-DEFAULT_OUTPUT_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/fusion/runs/4class_cv")
-DEFAULT_ISSUE_CLIPS_CSV = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/issue_clips.csv")
+DEFAULT_STGCN_ROOT = _REPO / "pyskl" / "work_dirs" / "stgcnpp" / "cv" / "4class_conf04_4stream"
+DEFAULT_OUTPUT_DIR = _REPO / "fusion" / "runs" / "4class_cv"
+DEFAULT_ISSUE_CLIPS_CSV = _REPO / "dataprep" / "issue_clips.csv"
 
 CLASS_NAMES_4CLASS = ["hands flapping", "jumping", "rocking", "spinning"]
 CLASS_NAMES_5CLASS = ["hands flapping", "jumping", "one hand flap", "rocking", "spinning"]

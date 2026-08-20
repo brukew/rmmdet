@@ -89,9 +89,12 @@ rsync -a "$(python paths.py --get checkpoints_root)"/ .
 | Reported model(s) | Path prefix | Files | Size |
 | :--- | :--- | ---: | ---: |
 | OpenTAD ActionFormer + TriDet (binary+balanced × 3 folds) | `OpenTAD/exps/sails_rmm/` | 12 `best.pth` + 16 `result_detection.json` | 1.9 GB |
-| V-JEPA2 (cls 4/5-cls; TAL 5cls-balanced, 5cls-bgsub, binary) | `v-jepa/runs/` | 14 `model.safetensors` | 19.6 GB |
-| PoseC3D + STGCN++ 4-stream (cls + TAL) | `pyskl/work_dirs/` | 157 `best_*.pth` | 2.1 GB |
+| V-JEPA2 (cls 4/5-cls; TAL 5cls-balanced, 5cls-bgsub, binary) | `v-jepa/runs/` | 14 `model.safetensors` + clip-level CSVs | 19.6 GB |
+| PoseC3D + STGCN++ 4-stream (cls + TAL) | `pyskl/work_dirs/` | 157 `best_*.pth` + `predictions_clip.csv` | 2.2 GB |
 | Late-fusion MLPs (2-way / 3-way) | `fusion/runs/` | — | 0.01 GB |
+
+Prediction CSVs (`predictions_clip.csv`, `clip_level_preds.csv`) are gitignored but **are**
+in the overlay so fusion can run without re-eval.
 
 > `vjepa2_tal_cv_5class_bgsub` has 2 folds (fold_2 was not saved) — reflected in the tables.
 > The full training dumps (all epochs / experimental runs) are **not** copied; see §5.

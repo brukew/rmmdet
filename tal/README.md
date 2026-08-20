@@ -43,8 +43,9 @@ actreg/dataprep/tal/                 # Data preparation (separate)
 ### 1. Run unit tests first
 
 ```bash
-cd actreg/tal
+cd tal
 python test_tal_eval.py
+# or from repo root: python tal/test_tal_eval.py
 ```
 
 ### 2. Evaluate V-JEPA
@@ -60,17 +61,16 @@ python eval_tal_from_window_preds.py \
 ### 3. Evaluate PoseC3D or ST-GCN
 
 ```bash
-# 1. Export pyskl test results to common format
-python export_pyskl_window_preds.py \
-    --ann-pkl ../pyskl/data/sails/tal/cv_4class/5class_windows_conf04/fold0.pkl \
-    --scores-pkl ../pyskl/work_dirs/posec3d/tal/fold0/result.pkl \
-    --window-csv ../dataprep/tal/splits_cv_4class/fold_0_val_windows.csv \
-    --out-csv posec3d_fold0_preds.csv
+# from repo root (helper lives in dataprep/tal/)
+python dataprep/tal/export_pyskl_window_preds.py \
+    --ann-pkl pyskl/data/sails/tal/cv_4class/5class_windows_conf04/fold0.pkl \
+    --scores-pkl pyskl/work_dirs/posec3d/tal/fold0/result.pkl \
+    --window-csv dataprep/tal/splits_cv_4class/fold_0_val_windows.csv \
+    --out-csv tal/posec3d_fold0_preds.csv
 
-# 2. Evaluate
-python eval_tal_from_window_preds.py \
-    --window-preds posec3d_fold0_preds.csv \
-    --out-dir eval_results/posec3d_fold0
+python tal/eval_tal_from_window_preds.py \
+    --window-preds tal/posec3d_fold0_preds.csv \
+    --out-dir tal/eval_results/posec3d_fold0
 ```
 
 ### 4. CV Evaluation (all folds)

@@ -532,7 +532,7 @@ def main():
     parser.add_argument(
         "--splits-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"),
+        default=Path(__file__).resolve().parents[2] / "dataprep" / "splits",
         help="Root directory for GT segment CSVs.",
     )
     parser.add_argument(

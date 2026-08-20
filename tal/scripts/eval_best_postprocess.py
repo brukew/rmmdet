@@ -51,9 +51,9 @@ from scripts.grid_search_postprocessing import MODELS, CLASS_IDS, TIOU_THRESHOLD
 # Path Configuration
 # =============================================================================
 
-TAL_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/tal")
+TAL_DIR = Path(__file__).resolve().parent.parent
 EVAL_RESULTS_DIR = TAL_DIR / "eval_results"
-SPLITS_ROOT = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits")
+SPLITS_ROOT = TAL_DIR.parent / "dataprep" / "splits"
 
 
 # =============================================================================

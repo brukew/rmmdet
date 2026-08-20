@@ -353,19 +353,19 @@ def main():
     parser.add_argument(
         "--splits-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"),
+        default=Path(__file__).resolve().parent.parent / "dataprep" / "splits",
         help="Root directory containing split CSVs.",
     )
     parser.add_argument(
         "--ann-pkl-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/pyskl/data/sails/tal/cv_4class/5class_windows_conf04"),
+        default=Path(__file__).resolve().parent.parent / "pyskl" / "data" / "sails" / "tal" / "cv_4class" / "5class_windows_conf04",
         help="Root directory for pyskl annotation pickles.",
     )
     parser.add_argument(
         "--window-csv-root",
         type=Path,
-        default=Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class"),
+        default=Path(__file__).resolve().parent.parent / "dataprep" / "tal" / "splits_cv_4class",
         help="Root directory for TAL window CSVs.",
     )
     parser.add_argument(

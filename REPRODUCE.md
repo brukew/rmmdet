@@ -2,8 +2,9 @@
 
 End-to-end map of the project, in dependency order. Each stage links to the component
 README that has the detailed commands. Data/artifact locations are documented in
-[`docs/ARTIFACTS.md`](docs/ARTIFACTS.md); a catalog of every doc/entry point is in
-[`docs/INDEX.md`](docs/INDEX.md).
+[`docs/ARTIFACTS.md`](docs/ARTIFACTS.md); a catalog of every launch/eval script (env, args,
+inputs, outputs) is [`docs/ENTRYPOINTS.md`](docs/ENTRYPOINTS.md); a catalog of every
+doc/file is [`docs/INDEX.md`](docs/INDEX.md).
 
 > **Filesystem locations** are resolved from a single source of truth,
 > [`config.yaml`](config.yaml) via [`paths.py`](paths.py). Shared SAILS data lives in the
@@ -227,7 +228,7 @@ Binary detector (Stage 1) + V-JEPA2 / 3-way-fusion-MLP / 5-class classifier (Sta
 evaluated with native OpenTAD mAP.
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg
+cd <this-repo>
 sbatch two-stg/run_two_stage_cv_gpu.sh        # 4-class V-JEPA2 Stage-2
 sbatch two-stg/run_three_way_cv_gpu.sh        # 3-way fusion MLP Stage-2
 sbatch two-stg/run_5class_cv_gpu.sh           # 5-class (+ background) Stage-2
