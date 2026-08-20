@@ -245,7 +245,7 @@ Full detail: [`two-stg/README.md`](two-stg/README.md).
 ## 6. Analysis & paper artifacts
 
 - Classifier-effect / two-stage-vs-E2E analysis: `two-stg/analyze_classifier_effect.py`,
-  `two-stg/ANALYSIS_NOTES.md`, `two-stg/RUNS.md`.
+  `insights/tal/two_stage_analysis.md`.
 - Failure analysis, figures, tables: `insights/`.
 - Headline numbers are re-derivable from committed `metrics*.json` / `cv_summary.json` /
   `insights/tables/*.json` without re-running GPU jobs (see [Expected results](#expected-results)).

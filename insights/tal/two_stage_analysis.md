@@ -7,7 +7,7 @@
 
 ## Bug Fix: ID2LABEL Mapping
 
-The `ID2LABEL` mapping in `analyze_runs_5_5c.py` and the new analysis script had **spinning (class_id=3) and rocking (class_id=2) swapped** compared to `tal/tal_map_eval.py:LABEL_MAP_4CLASS`. The correct mapping is:
+The `ID2LABEL` mapping in `two-stg/analyze_runs_5_5c.py` and the new analysis script had **spinning (class_id=3) and rocking (class_id=2) swapped** compared to `tal/tal_map_eval.py:LABEL_MAP_4CLASS`. The correct mapping is:
 
 ```
 {0: "hands flapping", 1: "jumping", 2: "rocking", 3: "spinning"}
@@ -120,10 +120,10 @@ The pattern is consistent across both detectors: two-stage doubles the correct r
 
 TriDet E2E was originally trained with `save_dict=False`, so no `result_detection.json` was generated. Re-ran test with `--cfg-options post_processing.save_dict=True`.
 
-SLURM jobs 11018241–43 completed successfully (2026-03-26). Note: `best.pth` is saved at the val loss minimum, not peak mAP epoch, so fold-level mAP differs slightly from RUNS.md:
+SLURM jobs 11018241–43 completed successfully (2026-03-26). Note: `best.pth` is saved at the val loss minimum, not the peak mAP epoch, so fold-level mAP from the checkpoint differs slightly from the best epoch seen during training:
 
-| Fold | best.pth mAP | RUNS.md (peak epoch) |
-|------|:------------:|:--------------------:|
+| Fold | best.pth mAP | peak epoch (training log) |
+|------|:------------:|:-------------------------:|
 | 0 | 18.46% | 20.89% |
 | 1 | 18.56% | 22.90% |
 | 2 | 15.17% | 15.37% |

@@ -13,7 +13,7 @@ Binary ActionFormer detection followed by V-JEPA2 classification on each detecte
 | Variant | Classes | Checkpoint | Description |
 |---------|---------|------------|-------------|
 | **4-class** | hands_flapping, jumping, rocking, spinning | `vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls` | Standard RMM classifier |
-| **3-way fusion** | 4 RMM | V-JEPA2 + `two-stg/fusion_checkpoints/three_way/fold_N` | Live V-JEPA2 RGB + MLP fusion. **Default:** PoseC3D/STGCN++ via `skeleton_index.csv` (nearest val clip by tIoU). **Optional:** `--posec3d-proposal-scores` + `--stgcn-proposal-scores` from `build_proposal_poses.py` + `run_proposal_skeleton_inference.sh` (true per-proposal skeleton scores). Fusion MLP is trained with **cross-fold val predictions** (decontaminated); see `RUNS.md`. |
+| **3-way fusion** | 4 RMM | V-JEPA2 + `two-stg/fusion_checkpoints/three_way/fold_N` | Live V-JEPA2 RGB + MLP fusion. **Default:** PoseC3D/STGCN++ via `skeleton_index.csv` (nearest val clip by tIoU). **Optional:** `--posec3d-proposal-scores` + `--stgcn-proposal-scores` from `build_proposal_poses.py` + `run_proposal_skeleton_inference.sh` (true per-proposal skeleton scores). Fusion MLP is trained with **cross-fold val predictions** (decontaminated). |
 | **5-class** | 4 RMM + background | `vjepa2_tal_cv_5class_balanced` | Includes background; scores use RMM probs only |
 
 For 5-class, background predictions naturally downweight proposals where the classifier thinks it's not an RMM event (the max RMM probability will be lower), but proposals are **not filtered out** — this provides a soft rejection signal.

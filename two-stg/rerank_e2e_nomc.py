@@ -254,14 +254,14 @@ def main():
         "actionformer_vjepa_balanced",
     )
     # Print original mAP from AF result for reference
-    print("\n  [Reference: original multiclass=True mAP from RUNS.md: avg 16.70%]")
+    print("\n  [Reference: original multiclass=True mAP: avg 16.70%]")
 
     process_model(
         "TriDet E2E (multiclass=True → class-agnostic)",
         "tridet",
         "tridet_vjepa_balanced",
     )
-    print("\n  [Reference: original multiclass=True mAP from RUNS.md: avg 19.72%]")
+    print("\n  [Reference: original multiclass=True mAP: avg 19.72%]")
 
 
 if __name__ == "__main__":

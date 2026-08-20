@@ -56,8 +56,7 @@ live in their own directories; cross-cutting/handoff docs live under `docs/`.
 
 - `@actreg/two-stg/README.md`: Pipeline overview + usage (4-class V-JEPA2, 3-way fusion MLP, 5-class Stage-2 variants).
 - `@actreg/two-stg/eval_two_stage_tal.py`: Main driver (load Stage-1 detections, run Stage-2 classifier, OpenTAD mAP eval).
-- `@actreg/two-stg/RUNS.md`: Run log / leaderboard for two-stage experiments.
-- `@actreg/two-stg/ANALYSIS_NOTES.md`: Two-stage vs E2E analysis (mAP tables, balanced accuracy, NMS caveat).
+- `@actreg/insights/tal/two_stage_analysis.md`: Two-stage vs E2E analysis (mAP tables, balanced accuracy, NMS caveat).
 - `@actreg/two-stg/analyze_classifier_effect.py`: Classifier-effect analysis (per-class accuracy, AUROC, error taxonomy).
 - `@actreg/OpenTAD/`: (submodule, pinned upstream + SAILS patch) ActionFormer/TriDet E2E and binary detectors; see `@actreg/opentad_sails/README.md`.
 

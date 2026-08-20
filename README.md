@@ -365,7 +365,7 @@ Beyond clip classification, the repo localizes RMMs in untrimmed video. There ar
 | **OpenTAD E2E** | `OpenTAD/` (submodule) | ActionFormer / TriDet trained end-to-end on V-JEPA2 features. Also trains **binary** detectors (single "action" class) used as Stage 1 below. |
 | **Two-stage** | `two-stg/` | Binary detector (Stage 1) → V-JEPA2 / 3-way-fusion-MLP / 5-class classifier (Stage 2). |
 
-**Headline finding:** TriDet E2E and ActionFormer E2E reach the highest avg_mAP (~19.5–19.7%), but classify near chance — their advantage is better-calibrated detection *ranking*. The two-stage pipeline classifies far better per-class (V-JEPA2 lifts per-class accuracy from ~29% to 51–84%) and closes most of the mAP gap; under class-agnostic NMS the E2E edge largely disappears. See `two-stg/ANALYSIS_NOTES.md` and `tal/TAL_MODEL_COMPARISON.md`.
+**Headline finding:** TriDet E2E and ActionFormer E2E reach the highest avg_mAP (~19.5–19.7%), but classify near chance — their advantage is better-calibrated detection *ranking*. The two-stage pipeline classifies far better per-class (V-JEPA2 lifts per-class accuracy from ~29% to 51–84%) and closes most of the mAP gap; under class-agnostic NMS the E2E edge largely disappears. See `insights/tal/two_stage_analysis.md` and `tal/TAL_MODEL_COMPARISON.md`.
 
 **Where to look:**
 - Pipeline + commands: [`REPRODUCE.md`](REPRODUCE.md) §3–5
