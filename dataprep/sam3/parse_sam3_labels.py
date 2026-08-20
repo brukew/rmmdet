@@ -384,7 +384,7 @@ def main():
     parser.add_argument(
         '--input',
         type=Path,
-        default=Path('/orcd/data/satra/001/users/brukew/sailsprep/subset_data/rmm_sam3.csv'),
+        default=_REPO_ROOT / 'dataprep/sam3/rmm_sam3.csv',
         help='Input CSV with SAM3 labels',
     )
     parser.add_argument(

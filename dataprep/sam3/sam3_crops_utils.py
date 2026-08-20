@@ -32,9 +32,10 @@ DEFAULT_ORIGINAL_VIDEO_BASE = Path(
 )
 DEFAULT_SAM3_OUTPUT_BASE = PATHS.rmm_sam_numbered
 DEFAULT_MASK_CACHE_BASE = PATHS.cache_for_tracking
-DEFAULT_ROTATION_REPORT = Path(
-    "/orcd/data/satra/001/users/brukew/sailsprep/feature_processing/tracker/sam3/rotation_inconsistencies_report.csv"
-)
+# Optional: rotation metadata emitted by the upstream sailsprep SAM3 tracker. It is
+# not shipped here; load_rotation_report() returns {} when absent, which only means
+# no rotation correction is applied. Drop the CSV at this path to enable it.
+DEFAULT_ROTATION_REPORT = PATHS.repo_root / "dataprep/sam3/rotation_inconsistencies_report.csv"
 
 
 def _slugify(text: str) -> str:

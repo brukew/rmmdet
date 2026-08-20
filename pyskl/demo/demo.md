@@ -1,5 +1,13 @@
 # Demo
 
+> **SAILS note.** This is upstream pyskl documentation. The `demo_skeleton.py`,
+> `demo_with_cache.py` and `test_cached_demo.py` scripts it refers to were removed
+> from this fork: they had been modified to import a `cache_manager` module from a
+> separate `sailsprep` tracking repo that is not shipped here, so they failed at
+> import. The SAILS demo that does work is `demo/demo_skeleton_sam_pose.py`, which
+> reads pose from the SAM3-guided H5 caches. To use the upstream demos, take them
+> from [kennymckormick/pyskl](https://github.com/kennymckormick/pyskl).
+
 We currently provide an offline GPU-demo for skeleton action recognition and an online CPU-demo for gesture recognition. Details are provided below.
 
 ## Preparation
