@@ -26,7 +26,7 @@ This configuration finetunes PoseC3D on the SAILS Repetitive Motor Movements (RM
 ## Quick Start
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg/pyskl
+cd <repo root>/pyskl
 
 # 1. Generate annotations (all splits)
 bash scripts/generate_all_pickles.sh
@@ -80,7 +80,7 @@ mkdir -p $LOG_DIR
 # 4-class single split
 python tools/data/create_sails_annotations.py \
     --mode single \
-    --splits-dir /orcd/data/satra/001/users/brukew/actreg/dataprep/splits/single_split_4class/ \
+    --splits-dir ../dataprep/splits/single_split_4class/ \
     --output-dir data/sails/single \
     --num-classes 4 \
     --min-keypoint-conf 0.4 2>&1 | tee $LOG_DIR/4class_single.log
@@ -88,7 +88,7 @@ python tools/data/create_sails_annotations.py \
 # 4-class CV splits
 python tools/data/create_sails_annotations.py \
     --mode cv \
-    --splits-dir /orcd/data/satra/001/users/brukew/actreg/dataprep/splits/cv_splits_4class/ \
+    --splits-dir ../dataprep/splits/cv_splits_4class/ \
     --output-dir data/sails/cv \
     --num-classes 4 \
     --min-keypoint-conf 0.4 2>&1 | tee $LOG_DIR/4class_cv.log
@@ -96,7 +96,7 @@ python tools/data/create_sails_annotations.py \
 # 5-class single split
 python tools/data/create_sails_annotations.py \
     --mode single \
-    --splits-dir /orcd/data/satra/001/users/brukew/actreg/dataprep/splits/single_split/ \
+    --splits-dir ../dataprep/splits/single_split/ \
     --output-dir data/sails/single \
     --num-classes 5 \
     --min-keypoint-conf 0.4 2>&1 | tee $LOG_DIR/5class_single.log
@@ -104,7 +104,7 @@ python tools/data/create_sails_annotations.py \
 # 5-class CV splits
 python tools/data/create_sails_annotations.py \
     --mode cv \
-    --splits-dir /orcd/data/satra/001/users/brukew/actreg/dataprep/splits/cv_splits/ \
+    --splits-dir ../dataprep/splits/cv_splits/ \
     --output-dir data/sails/cv \
     --num-classes 5 \
     --min-keypoint-conf 0.4 2>&1 | tee $LOG_DIR/5class_cv.log
@@ -130,7 +130,7 @@ python tools/data/create_sails_annotations.py \
 Submit all 4 training jobs to the cluster:
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg/pyskl
+cd <repo root>/pyskl
 bash scripts/slurm/submit_all.sh
 ```
 
@@ -147,8 +147,8 @@ squeue -u $USER
 
 **Logs:**
 ```
-/orcd/data/satra/001/users/brukew/logs/posec3d_*.out
-/orcd/data/satra/001/users/brukew/logs/posec3d_*.err
+slurm-logs/posec3d_*.out
+slurm-logs/posec3d_*.err
 ```
 
 ### Local Training (Single GPU)
@@ -285,8 +285,8 @@ python tools/train_weighted.py configs/posec3d/slowonly_r50_sails_k400p/joint.py
 Submit all weighted training jobs:
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg/pyskl/scripts/slurm/posec3d
-bash submit_all_weighted.sh
+cd <repo root>
+bash pyskl/scripts/slurm/posec3d/submit_all_weighted.sh
 ```
 
 | Script | Description |

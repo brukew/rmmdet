@@ -1,6 +1,6 @@
 {
-  "window_preds": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa/fold1/tal_format_preds.csv",
-  "splits_root": "/orcd/data/satra/001/users/brukew/actreg/dataprep/splits",
+  "window_preds": "tal/eval_results/vjepa/fold1/tal_format_preds.csv",
+  "splits_root": "dataprep/splits",
   "task": "4class",
   "mode": "cv",
   "tiou_thresholds": [

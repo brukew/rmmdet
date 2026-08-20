@@ -327,7 +327,7 @@ Learned late fusion combining V-JEPA2 (RGB) and PoseC3D (skeleton) predictions u
 
 **Usage:**
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg
+cd <repo root>
 
 # Run 3-fold CV fusion training
 sbatch fusion/slurm/run_fusion_cv.sh
@@ -349,7 +349,7 @@ python fusion/train_fusion_cv.py \
 | 2 | 80.5% | 82.6% | 84.2% | 83.8% | 0.59 |
 | **Mean** | **79.8%** | **78.8%** | **80.6%** | **77.6%** | **0.71** |
 
-**Logs**: `/orcd/data/satra/001/users/brukew/fusion_logs/fusion_cv_7584880.out`
+**Logs**: this run predates the standardised log location; new jobs write to `slurm-logs/`.
 
 > **Note**: α = 0.71 means V-JEPA2 contributes ~71% weight (RGB appearance dominates over skeleton motion).
 

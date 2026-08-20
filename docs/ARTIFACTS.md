@@ -35,7 +35,7 @@ Two `config.yaml` paths are **absent everywhere and non-blocking**:
 (a dead `--videos-root` fallback). See the data-availability table in `REPRODUCE.md`.
 
 The originals still exist on **shared scratch** (`/orcd/scratch/bcs/001/sensein/sails`,
-~2.0 TB; `/orcd/scratch/bcs/001/brukew/sails`, 36 GB) but scratch is **scheduled for
+~2.0 TB, plus a 36 GB per-user staging area) but scratch is **scheduled for
 cleanup** — the lab copy above is the durable source of truth.
 
 ---

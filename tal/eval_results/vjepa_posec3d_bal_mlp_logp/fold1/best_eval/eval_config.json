@@ -1,5 +1,5 @@
 {
-  "pred_csv": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp/fold1/tal_format_preds.csv",
+  "pred_csv": "tal/eval_results/vjepa_posec3d_bal_mlp_logp/fold1/tal_format_preds.csv",
   "postprocess": {
     "thr": 0.4,
     "smooth_k": 3,

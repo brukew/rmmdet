@@ -1,43 +1,43 @@
 {
   "generated_at_utc": "2026-03-20T08:31:35.978370+00:00",
   "fold": 0,
-  "output_dir": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way_live/fold0",
+  "output_dir": "two-stg/eval_results_3way_live/fold0",
   "pipeline": {
     "name": "two-stage-tal",
     "description": "Binary ActionFormer proposal generation followed by stage-2 classification (three_way).",
     "stage1": {
       "model_name": "ActionFormer + V-JEPA Binary",
       "task": "binary TAL proposal generation (rmm vs background)",
-      "detection_json": "/orcd/data/satra/001/users/brukew/actreg/OpenTAD/exps/sails_rmm/actionformer_vjepa_binary_fold0/gpu1_id99/result_detection.json"
+      "detection_json": "OpenTAD/exps/sails_rmm/actionformer_vjepa_binary_fold0/gpu1_id99/result_detection.json"
     },
     "stage2": {
       "model_name": "V-JEPA2 4-class + ThreeWayMLPFusion (PoseC3D/STGCN++ via skeleton index) + live proposal skeleton CSVs",
       "task": "clip classification into hands flapping / jumping / rocking / spinning; Live V-JEPA2 4-class softmax vectors + 3-way MLP fusion with PoseC3D and STGCN++ score vectors from exported skeleton_index.csv (nearest training clip by half-open tIoU; uniform fallback if no overlap). Optional per-proposal PoseC3D/STGCN++ scores from live inference CSVs (see two-stg/build_proposal_poses.py); missing proposal_ids fall back to skeleton index.",
-      "checkpoint_dir": "/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_0",
+      "checkpoint_dir": "v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_0",
       "frames_per_clip": 64,
       "score_combination": "final_score = detection_score * max(stage2_class_probs) (stage2 is fused softmax for three_way; V-JEPA-only softmax for vjepa2).",
       "classifier_backend": "three_way",
-      "vjepa_checkpoint_dir": "/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_0",
-      "fusion_bundle_dir": "/orcd/data/satra/001/users/brukew/actreg/two-stg/fusion_checkpoints/three_way/fold_0",
+      "vjepa_checkpoint_dir": "v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_0",
+      "fusion_bundle_dir": "two-stg/fusion_checkpoints/three_way/fold_0",
       "fusion_artifacts": {
-        "mlp_state": "/orcd/data/satra/001/users/brukew/actreg/two-stg/fusion_checkpoints/three_way/fold_0/mlp_state.pt",
-        "config": "/orcd/data/satra/001/users/brukew/actreg/two-stg/fusion_checkpoints/three_way/fold_0/config.json",
-        "skeleton_index": "/orcd/data/satra/001/users/brukew/actreg/two-stg/fusion_checkpoints/three_way/fold_0/skeleton_index.csv",
+        "mlp_state": "two-stg/fusion_checkpoints/three_way/fold_0/mlp_state.pt",
+        "config": "two-stg/fusion_checkpoints/three_way/fold_0/config.json",
+        "skeleton_index": "two-stg/fusion_checkpoints/three_way/fold_0/skeleton_index.csv",
         "posec3d_proposal_scores": {
-          "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/proposal_scores/posec3d/fold0/predictions_clip.csv",
+          "path": "two-stg/proposal_scores/posec3d/fold0/predictions_clip.csv",
           "exists": true,
           "size_bytes": 707070,
           "modified_at_utc": "2026-03-20T05:32:51.055098+00:00"
         },
         "stgcn_proposal_scores": {
-          "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/proposal_scores/stgcnpp_fused_4stream/fold0/predictions_clip.csv",
+          "path": "two-stg/proposal_scores/stgcnpp_fused_4stream/fold0/predictions_clip.csv",
           "exists": true,
           "size_bytes": 1803781,
           "modified_at_utc": "2026-03-20T05:37:05.526001+00:00"
         }
       },
-      "proposal_posec3d_scores_csv": "/orcd/data/satra/001/users/brukew/actreg/two-stg/proposal_scores/posec3d/fold0/predictions_clip.csv",
-      "proposal_stgcn_scores_csv": "/orcd/data/satra/001/users/brukew/actreg/two-stg/proposal_scores/stgcnpp_fused_4stream/fold0/predictions_clip.csv"
+      "proposal_posec3d_scores_csv": "two-stg/proposal_scores/posec3d/fold0/predictions_clip.csv",
+      "proposal_stgcn_scores_csv": "two-stg/proposal_scores/stgcnpp_fused_4stream/fold0/predictions_clip.csv"
     },
     "evaluation": {
       "primary_metrics_file": "metrics.json",
@@ -55,7 +55,7 @@
         0.5,
         0.7
       ],
-      "annotation_json": "/orcd/data/satra/001/users/brukew/actreg/OpenTAD/data/sails_rmm/annotations/fold0_anno.json"
+      "annotation_json": "OpenTAD/data/sails_rmm/annotations/fold0_anno.json"
     }
   },
   "environments": {
@@ -64,8 +64,8 @@
     "stage2_backend": "three_way"
   },
   "invocation": {
-    "window_splits_dir": "/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class",
-    "splits_root": "/orcd/data/satra/001/users/brukew/actreg/dataprep/splits",
+    "window_splits_dir": "dataprep/tal/splits_cv_4class",
+    "splits_root": "dataprep/splits",
     "source_job_ids": null,
     "postprocess_job_id": null,
     "postprocess_dependency": null,
@@ -73,31 +73,31 @@
   },
   "artifacts": {
     "predictions_csv": {
-      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way_live/fold0/predictions.csv",
+      "path": "two-stg/eval_results_3way_live/fold0/predictions.csv",
       "exists": true,
       "size_bytes": 1127490,
       "modified_at_utc": "2026-03-20T08:31:01.416991+00:00"
     },
     "result_detection_json": {
-      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way_live/fold0/result_detection.json",
+      "path": "two-stg/eval_results_3way_live/fold0/result_detection.json",
       "exists": true,
       "size_bytes": 1199867,
       "modified_at_utc": "2026-03-20T08:31:35.236040+00:00"
     },
     "metrics_json": {
-      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way_live/fold0/metrics.json",
+      "path": "two-stg/eval_results_3way_live/fold0/metrics.json",
       "exists": true,
       "size_bytes": 1180,
       "modified_at_utc": "2026-03-20T08:31:35.237040+00:00"
     },
     "metrics_opentad_json": {
-      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way_live/fold0/metrics_opentad.json",
+      "path": "two-stg/eval_results_3way_live/fold0/metrics_opentad.json",
       "exists": true,
       "size_bytes": 1180,
       "modified_at_utc": "2026-03-20T08:31:35.237040+00:00"
     },
     "metrics_custom_json": {
-      "path": "/orcd/data/satra/001/users/brukew/actreg/two-stg/eval_results_3way_live/fold0/metrics_custom.json",
+      "path": "two-stg/eval_results_3way_live/fold0/metrics_custom.json",
       "exists": true,
       "size_bytes": 3362,
       "modified_at_utc": "2026-03-20T08:31:01.417991+00:00"

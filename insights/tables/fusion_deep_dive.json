@@ -187,7 +187,7 @@
   },
   "window_level": {
     "V-JEPA": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa",
+      "model_dir": "tal/eval_results/vjepa",
       "folds": [
         0,
         1
@@ -286,7 +286,7 @@
       }
     },
     "V-JEPA (Balanced)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced",
+      "model_dir": "tal/eval_results/vjepa_balanced",
       "folds": [
         0,
         1,
@@ -386,7 +386,7 @@
       }
     },
     "PoseC3D (CE)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce",
+      "model_dir": "tal/eval_results/posec3d_ce",
       "folds": [
         0,
         1
@@ -485,7 +485,7 @@
       }
     },
     "PoseC3D (CE Balanced)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced",
+      "model_dir": "tal/eval_results/posec3d_ce_balanced",
       "folds": [
         0,
         1,
@@ -585,7 +585,7 @@
       }
     },
     "STGCN++ (CE, 4-stream)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/stgcnpp_ce_4stream",
+      "model_dir": "tal/eval_results/stgcnpp_ce_4stream",
       "folds": [
         0,
         1
@@ -684,7 +684,7 @@
       }
     },
     "Fusion: V-JEPA + PoseC3D (MLP)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_mlp_logp",
+      "model_dir": "tal/eval_results/vjepa_posec3d_mlp_logp",
       "folds": [
         0,
         1
@@ -783,7 +783,7 @@
       }
     },
     "Fusion: V-JEPA + STGCN++ (MLP)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_stgcnpp_mlp_logp",
+      "model_dir": "tal/eval_results/vjepa_stgcnpp_mlp_logp",
       "folds": [
         0,
         1
@@ -882,7 +882,7 @@
       }
     },
     "Fusion: V-JEPA + PoseC3D Bal (MLP)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp",
+      "model_dir": "tal/eval_results/vjepa_posec3d_bal_mlp_logp",
       "folds": [
         0,
         1
@@ -981,7 +981,7 @@
       }
     },
     "Fusion: V-JEPA Bal + PoseC3D (MLP)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp",
+      "model_dir": "tal/eval_results/vjepa_balanced_posec3d_mlp_logp",
       "folds": [
         0,
         1
@@ -1160,7 +1160,7 @@
   },
   "postprocessing_hpo": {
     "vjepa_balanced": {
-      "grid_search_csv": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced/grid_search_results.csv",
+      "grid_search_csv": "tal/eval_results/vjepa_balanced/grid_search_results.csv",
       "best_params": {
         "thr": 0.3,
         "smooth_k": 1,
@@ -1169,7 +1169,7 @@
       "best_avg_mAP": 0.0594709795345546
     },
     "vjepa_binary": {
-      "grid_search_csv": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_binary/grid_search_results.csv",
+      "grid_search_csv": "tal/eval_results/vjepa_binary/grid_search_results.csv",
       "best_params": {
         "thr": 0.6,
         "smooth_k": 1,
@@ -1178,7 +1178,7 @@
       "best_avg_mAP": 0.0666489090451648
     },
     "vjepa_balanced_posec3d_mlp_logp": {
-      "grid_search_csv": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/grid_search_results.csv",
+      "grid_search_csv": "tal/eval_results/grid_search_results.csv",
       "model_name": "V-JEPA Balanced + PoseC3D (CE)",
       "n_folds": 2,
       "best_params": {
@@ -1191,25 +1191,25 @@
   },
   "tal_best_eval_postprocess": {
     "V-JEPA (Balanced)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced",
+      "model_dir": "tal/eval_results/vjepa_balanced",
       "fold_params": [
         {
           "fold": 0,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced/fold0/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_balanced/fold0/best_eval/eval_config.json",
           "thr": 0.3,
           "smooth_k": 1,
           "merge_gap_sec": 0.5
         },
         {
           "fold": 1,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced/fold1/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_balanced/fold1/best_eval/eval_config.json",
           "thr": 0.3,
           "smooth_k": 1,
           "merge_gap_sec": 0.5
         },
         {
           "fold": 2,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced/fold2/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_balanced/fold2/best_eval/eval_config.json",
           "thr": 0.3,
           "smooth_k": 1,
           "merge_gap_sec": 0.5
@@ -1231,25 +1231,25 @@
       }
     },
     "PoseC3D (CE Balanced)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced",
+      "model_dir": "tal/eval_results/posec3d_ce_balanced",
       "fold_params": [
         {
           "fold": 0,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced/fold0/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/posec3d_ce_balanced/fold0/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 1,
           "merge_gap_sec": 1.0
         },
         {
           "fold": 1,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced/fold1/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/posec3d_ce_balanced/fold1/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 1,
           "merge_gap_sec": 1.0
         },
         {
           "fold": 2,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced/fold2/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/posec3d_ce_balanced/fold2/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 1,
           "merge_gap_sec": 1.0
@@ -1271,18 +1271,18 @@
       }
     },
     "Fusion: V-JEPA + PoseC3D (MLP)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_mlp_logp",
+      "model_dir": "tal/eval_results/vjepa_posec3d_mlp_logp",
       "fold_params": [
         {
           "fold": 0,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_mlp_logp/fold0/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_posec3d_mlp_logp/fold0/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 1,
           "merge_gap_sec": 1.0
         },
         {
           "fold": 1,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_mlp_logp/fold1/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_posec3d_mlp_logp/fold1/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 1,
           "merge_gap_sec": 1.0
@@ -1304,18 +1304,18 @@
       }
     },
     "Fusion: V-JEPA + STGCN++ (MLP)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_stgcnpp_mlp_logp",
+      "model_dir": "tal/eval_results/vjepa_stgcnpp_mlp_logp",
       "fold_params": [
         {
           "fold": 0,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_stgcnpp_mlp_logp/fold0/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_stgcnpp_mlp_logp/fold0/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 1,
           "merge_gap_sec": 1.0
         },
         {
           "fold": 1,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_stgcnpp_mlp_logp/fold1/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_stgcnpp_mlp_logp/fold1/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 1,
           "merge_gap_sec": 1.0
@@ -1337,18 +1337,18 @@
       }
     },
     "Fusion: V-JEPA + PoseC3D Bal (MLP)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp",
+      "model_dir": "tal/eval_results/vjepa_posec3d_bal_mlp_logp",
       "fold_params": [
         {
           "fold": 0,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp/fold0/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_posec3d_bal_mlp_logp/fold0/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 3,
           "merge_gap_sec": 0.5
         },
         {
           "fold": 1,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_posec3d_bal_mlp_logp/fold1/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_posec3d_bal_mlp_logp/fold1/best_eval/eval_config.json",
           "thr": 0.4,
           "smooth_k": 3,
           "merge_gap_sec": 0.5
@@ -1370,18 +1370,18 @@
       }
     },
     "Fusion: V-JEPA Bal + PoseC3D (MLP)": {
-      "model_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp",
+      "model_dir": "tal/eval_results/vjepa_balanced_posec3d_mlp_logp",
       "fold_params": [
         {
           "fold": 0,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp/fold0/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_balanced_posec3d_mlp_logp/fold0/best_eval/eval_config.json",
           "thr": 0.5,
           "smooth_k": 1,
           "merge_gap_sec": 0.5
         },
         {
           "fold": 1,
-          "eval_config": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp/fold1/best_eval/eval_config.json",
+          "eval_config": "tal/eval_results/vjepa_balanced_posec3d_mlp_logp/fold1/best_eval/eval_config.json",
           "thr": 0.5,
           "smooth_k": 1,
           "merge_gap_sec": 0.5

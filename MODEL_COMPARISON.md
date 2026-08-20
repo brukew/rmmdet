@@ -272,7 +272,7 @@ MLP fusion was evaluated for 5-class task, combining V-JEPA2 with the best skele
 | 2 | 73.9% | 95.4% | 76.2% | 81.6% | 83.2% | 0.723 |
 | **Mean** | **76.0%** | **93.7%** | **75.1%** | **78.6%** | **76.7%** | **0.657** |
 
-**Output**: `/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/`
+**Output**: `v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/`
 
 ### 5-Class CV with SAM3 Cropping
 
@@ -296,7 +296,7 @@ MLP fusion was evaluated for 5-class task, combining V-JEPA2 with the best skele
 | 2 | 76.7% | 91.5% | 74.2% | 76.7% | 74.2% | 0.618 |
 | **Mean** | **74.6%** | **91.3%** | **70.4%** | **74.6%** | **70.4%** | **0.580** |
 
-**Output**: `/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs/posec3d/cv/4class_conf04/`
+**Output**: `pyskl/work_dirs/posec3d/cv/4class_conf04/`
 
 ### 5-Class CV + Weighted 🏆
 
@@ -346,7 +346,7 @@ MLP fusion was evaluated for 5-class task, combining V-JEPA2 with the best skele
 | 2 | 76.2% | 94.7% | 71.8% | 85.2% | 80.2% | 0.616 |
 | **Mean** | **77.9%** | **95.1%** | **72.7%** | **82.4%** | **75.9%** | **0.635** |
 
-**Output**: `/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs/stgcnpp/cv/4class_conf04/`
+**Output**: `pyskl/work_dirs/stgcnpp/cv/4class_conf04/`
 
 ### 5-Class CV (Non-Weighted)
 
@@ -574,6 +574,7 @@ Comparison of precision (P) and recall (R) for each class across the best model 
 | STGCN++ 4-stream + Focal (5-class) | `pyskl/work_dirs/stgcnpp/cv/5class_conf04_focal_4stream/` | `~/pyskl_logs/` |
 | STGCN++ 4-stream (5-class) | `pyskl/work_dirs/stgcnpp/cv/5class_conf04_4stream/` | `~/pyskl_logs/` |
 
-*All paths relative to `/orcd/data/satra/001/users/brukew/actreg/` unless otherwise noted.*
-*`~` refers to `/orcd/data/satra/001/users/brukew/`*
+*All paths are relative to the repo root unless otherwise noted.*
+*`~/…_logs/` entries were the author's personal SLURM log directories and are not
+shipped; current jobs write to `slurm-logs/` in the repo root.*
 

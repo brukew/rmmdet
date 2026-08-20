@@ -196,9 +196,9 @@ weight[class_i] = total_samples / (num_classes * class_count[class_i])
 > Note: For 4-class, we recommend using the **unweighted** scripts instead.
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg/pyskl/scripts/slurm/stgcnpp
-bash submit_all_weighted.sh  # Runs weighted versions
-bash submit_all.sh           # Runs unweighted (recommended for 4-class)
+cd <repo root>
+bash pyskl/scripts/slurm/stgcnpp/submit_all_weighted.sh  # weighted
+bash pyskl/scripts/slurm/stgcnpp/submit_all.sh           # unweighted (recommended for 4-class)
 ```
 
 | Script | Description | Recommended? |
@@ -301,7 +301,7 @@ checkpoints/stgcnpp/
 ### 1. Test Configuration
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg/pyskl
+cd <repo root>/pyskl
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate pyskl
 
@@ -499,7 +499,7 @@ print(f"4-Stream Fused Top-1 Accuracy: {accuracy:.2%}")
 
 SLURM logs are saved to:
 ```
-/orcd/data/satra/001/users/brukew/pyskl_logs/stgcnpp/
+slurm-logs/
 ├── 4class_single_4stream_*.out   # 4-class single split (all 4 modalities)
 ├── 4class_single_4stream_*.err
 ├── 5class_single_4stream_*.out   # 5-class single split

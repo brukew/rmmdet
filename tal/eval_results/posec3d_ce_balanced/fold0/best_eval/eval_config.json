@@ -1,5 +1,5 @@
 {
-  "pred_csv": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/posec3d_ce_balanced/fold0/tal_format_preds.csv",
+  "pred_csv": "tal/eval_results/posec3d_ce_balanced/fold0/tal_format_preds.csv",
   "postprocess": {
     "thr": 0.4,
     "smooth_k": 1,

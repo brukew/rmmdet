@@ -4,7 +4,7 @@ Binary ActionFormer detects RMM segments → V-JEPA2 **5-class** classifier (4 R
 
 ## Models Used
 
-All paths relative to `/orcd/data/satra/001/users/brukew/actreg/`.
+All paths are relative to the repo root.
 
 - **Detector:** `OpenTAD/exps/sails_rmm/actionformer_vjepa_binary_fold{0,1,2}/gpu1_id99/result_detection.json`
 - **Classifier:** `v-jepa/runs/vjepa2_tal_cv_5class_balanced/fold_{0,1,2}` (V-JEPA2, 5-class with background)

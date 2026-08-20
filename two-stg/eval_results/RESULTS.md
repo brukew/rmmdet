@@ -33,7 +33,7 @@ Fine-tuned `VJEPA2ForVideoClassification` checkpoints (64 frames, lr=1e-5, batch
 | 1 | `v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_1` |
 | 2 | `v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls/fold_2` |
 
-All paths are relative to `actreg/` (`/orcd/data/satra/001/users/brukew/actreg/`).
+All paths are relative to the repo root.
 
 ## Results (3-Fold Cross-Validation)
 
@@ -85,7 +85,7 @@ Cross-validation summary: `cv_summary.json` (in this directory)
 ## Reproducing
 
 ```bash
-cd /orcd/data/satra/001/users/brukew/actreg
+cd <repo root>
 
 # Single fold
 sbatch --export=FOLD=0 --partition=mit_normal_gpu two-stg/run_single_fold_gpu.sh

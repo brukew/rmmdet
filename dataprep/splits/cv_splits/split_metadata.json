@@ -9,8 +9,8 @@
       "val_segments": 218,
       "train_lcto_groups": 101,
       "val_lcto_groups": 50,
-      "train_file": "/Users/brukewossenseged/Desktop/projects/sails/cv_splits/fold_0_train.csv",
-      "val_file": "/Users/brukewossenseged/Desktop/projects/sails/cv_splits/fold_0_val.csv",
+      "train_file": "dataprep/splits/cv_splits/fold_0_train.csv",
+      "val_file": "dataprep/splits/cv_splits/fold_0_val.csv",
       "train_lcto_group_list": [
         "A1H3H9Y3T1_36_month",
         "A2L1R9Y7C8_36_month",
@@ -173,8 +173,8 @@
       "val_segments": 218,
       "train_lcto_groups": 101,
       "val_lcto_groups": 50,
-      "train_file": "/Users/brukewossenseged/Desktop/projects/sails/cv_splits/fold_1_train.csv",
-      "val_file": "/Users/brukewossenseged/Desktop/projects/sails/cv_splits/fold_1_val.csv",
+      "train_file": "dataprep/splits/cv_splits/fold_1_train.csv",
+      "val_file": "dataprep/splits/cv_splits/fold_1_val.csv",
       "train_lcto_group_list": [
         "A2M5H0V6E3_14_month",
         "A3G3T7I1A5_36_month",
@@ -337,8 +337,8 @@
       "val_segments": 218,
       "train_lcto_groups": 100,
       "val_lcto_groups": 51,
-      "train_file": "/Users/brukewossenseged/Desktop/projects/sails/cv_splits/fold_2_train.csv",
-      "val_file": "/Users/brukewossenseged/Desktop/projects/sails/cv_splits/fold_2_val.csv",
+      "train_file": "dataprep/splits/cv_splits/fold_2_train.csv",
+      "val_file": "dataprep/splits/cv_splits/fold_2_val.csv",
       "train_lcto_group_list": [
         "A1H3H9Y3T1_36_month",
         "A2L1R9Y7C8_36_month",

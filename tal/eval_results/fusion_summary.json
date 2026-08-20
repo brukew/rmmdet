@@ -2,7 +2,7 @@
   "vjepa_balanced_posec3d": {
     "pair": "vjepa_balanced_posec3d",
     "description": "V-JEPA Balanced + PoseC3D (CE)",
-    "output_dir": "/orcd/data/satra/001/users/brukew/actreg/tal/eval_results/vjepa_balanced_posec3d_mlp_logp",
+    "output_dir": "tal/eval_results/vjepa_balanced_posec3d_mlp_logp",
     "folds_processed": [
       0,
       1
