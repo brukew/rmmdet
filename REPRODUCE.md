@@ -90,11 +90,10 @@ cd OpenTAD && git apply --whitespace=nowarn ../opentad_sails/sails_changes.patch
 > **Most common setup failures (clone check, Aug 2026):**
 > 1. OpenTAD's `align1d` CUDA op is not built — TriDet cannot import. Build it on a GPU
 >    node after applying the patch (`opentad_sails/README.md`). ActionFormer does not need it.
-> 2. Annotation JSONs are missing — `tools/test.py` raises `FileNotFoundError` under
->    `OpenTAD/data/sails_rmm/annotations/`. Generate them with convert `--task binary` and
->    `--task 4class` (not `balanced`); see §4.
-> 3. Checkpoints are git-ignored — overlay `checkpoints_root` before any test script.
-> 4. Submit `sbatch` from the **repo root**, not from `OpenTAD/`, so logs land in
+> 2. Checkpoints are git-ignored — overlay `checkpoints_root` before any test script
+>    (weights, OpenTAD annotation JSONs, and pyskl pickles all live there; classification
+>    pickles and the JSONs are also in git / the SAILS patch after `git apply`).
+> 3. Submit `sbatch` from the **repo root**, not from `OpenTAD/`, so logs land in
 >    `slurm-logs/`.
 
 ```bash
@@ -166,8 +165,10 @@ These four steps are easy to skip or mix up; each failed during the Aug 2026 clo
    op; ActionFormer is anchor-free and does not need it. Build on a GPU node
    (`opentad_sails/README.md`). Without the `.so`, TriDet dies at import.
 2. **Overlay checkpoints** (`rsync` in [Where the checkpoints live](#where-the-checkpoints-live)).
-   `best.pth` is git-ignored; test scripts exit if it is missing.
-3. **Generate annotation JSONs** (not in git, not in the overlay). From the repo root:
+   `best.pth` is git-ignored; test scripts exit if it is missing. The overlay also carries
+   annotation JSONs and pyskl pickles.
+3. **Annotation JSONs** ship with `git apply opentad_sails/sails_changes.patch` (and with
+   the overlay). Re-run convert only if you change splits:
 
    ```bash
    cd OpenTAD && conda activate opentad
@@ -352,9 +353,10 @@ numbers in the tables were produced before that env drift. Overlay includes
 - **PoseC3D CV configs test a split the pickle does not have.** Fold pickles
   (`pyskl/data/sails/cv/4class_conf04/fold0.pkl`) expose `train` and `val` only (val = the
   held-out fold). The dumped `work_dirs/.../joint.py` sets `data.test.split = 'test'`.
-  Point test at `val` (or add a `test` key to the pickle) before eval. Those pickles are
-  **not** in git and **not** in `checkpoints_root` — generate them with
-  `pyskl/tools/data/create_sails_annotations.py`.
+  Point test at `val` (or add a `test` key to the pickle) before eval. Classification
+  pickles are tracked in git (~15 MB each) and in `checkpoints_root`. TAL window pickles
+  (`pyskl/data/sails/tal/`, ~149 MB each) cannot go on GitHub (100 MB file limit) — get
+  them from the overlay only.
 - There was no `OpenTAD/slurm/test_actionformer_cv.sh` until `clean-repo`; only
   `test_tridet_cv.sh` existed, which is why ActionFormer eval is easy to miss. Use the
   ActionFormer wrapper (same args as TriDet: `<task> <fold>`).

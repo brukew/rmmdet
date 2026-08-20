@@ -98,11 +98,20 @@ venv.bak/
 .mypy_cache/
 
 # custom
-/data
+# Ignore pyskl/data/* but keep the SAILS pose-annotation pickles eval needs.
+/data/*
+!/data/sails/
+!/data/sails/**
 .vscode
 .idea
 *.pkl
 *.pkl.json
+# Classification / clip-level pose pickles (eval inputs). TAL window pickles
+# under data/sails/tal/ stay ignored (each ~149 MB; GitHub max file is 100 MB).
+!/data/sails/*.pkl
+!/data/sails/cv/**/*.pkl
+!/data/sails/single/**/*.pkl
+/data/sails/tal/
 *.log.json
 benchlist.txt
 work_dirs/

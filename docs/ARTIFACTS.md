@@ -70,12 +70,18 @@ at the exact path the scripts expect):
 rsync -a "$(python paths.py --get checkpoints_root)"/ .
 ```
 
-This is weights + `result_detection.json` only. It does **not** include:
+This is weights, OpenTAD annotation JSONs, pyskl pose pickles, and
+`result_detection.json`. Overlay into the working tree:
 
-- OpenTAD annotation JSONs (`OpenTAD/data/sails_rmm/annotations/`) — generate with
-  `convert_cv_splits_to_opentad_json.py` (§4 of `REPRODUCE.md`).
-- pyskl pose-annotation pickles (`pyskl/data/sails/**/*.pkl`) — generate with
-  `pyskl/tools/data/create_sails_annotations.py`.
+```bash
+rsync -a "$(python paths.py --get checkpoints_root)"/ .
+```
+
+| Extra eval input (not a trained weight) | In git? | In overlay? |
+| :--- | :--- | :--- |
+| `OpenTAD/data/sails_rmm/annotations/*.json` | yes (SAILS patch) | yes |
+| `pyskl/data/sails/{cv,single,*.pkl}` classification pickles | yes (~15 MB each) | yes |
+| `pyskl/data/sails/tal/**/*.pkl` TAL window pickles | **no** (~149 MB each; GitHub file limit is 100 MB) | yes |
 
 
 ### What the shared copy contains (the reported-result finals)
