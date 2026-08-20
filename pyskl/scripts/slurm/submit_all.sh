@@ -6,7 +6,33 @@
 #   bash scripts/slurm/submit_all.sh
 #
 
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${REPO_ROOT}"   # submit from repo root so child slurm-logs/ resolves
 
 echo "=============================================="
 echo "Submitting PoseC3D Training Jobs"
@@ -39,7 +65,7 @@ echo "Monitor with:"
 echo "  squeue -u $USER"
 echo ""
 echo "Logs will be saved to:"
-echo "  /orcd/data/satra/001/users/brukew/pyskl_logs/posec3d/"
+echo "  ${REPO_ROOT}/pyskl_logs/posec3d/"
 echo ""
 echo "Results will be in:"
 echo "  work_dirs/posec3d/single/4class_conf04/"

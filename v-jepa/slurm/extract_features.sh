@@ -18,6 +18,31 @@
 #   TOTAL_WORKERS: Total number of workers (default: 1)
 # =============================================================================
 
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
+
 set -eo pipefail
 
 echo "=========================================="
@@ -28,7 +53,7 @@ echo "Started: $(date)"
 echo "=========================================="
 
 # Ensure logs directory exists
-mkdir -p /orcd/data/satra/001/users/brukew/vjepa_logs
+mkdir -p ${REPO_ROOT}/vjepa_logs
 
 # Activate conda
 source ~/.bashrc
@@ -47,7 +72,7 @@ echo "Enable crop: ${ENABLE_CROP}"
 echo "Worker: ${WORKER_INDEX}/${TOTAL_WORKERS}"
 
 # Navigate to V-JEPA directory
-cd /orcd/data/satra/001/users/brukew/actreg/v-jepa
+cd ${REPO_ROOT}/v-jepa
 
 # Build command
 CMD="python tools/extract_vjepa_features.py \

@@ -2028,14 +2028,14 @@ index 3a9089a..5c5e236 100644
 -    print(output)
 diff --git a/slurm/test_e2e_nomc_cv.sh b/slurm/test_e2e_nomc_cv.sh
 new file mode 100755
-index 0000000..7e46406
+index 0000000..ca48c5c
 --- /dev/null
 +++ b/slurm/test_e2e_nomc_cv.sh
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,93 @@
 +#!/bin/bash
 +#SBATCH --job-name=e2e_nomc
-+#SBATCH --output=slurm_logs/test_e2e_nomc_%j.out
-+#SBATCH --error=slurm_logs/test_e2e_nomc_%j.err
++#SBATCH --output=slurm-logs/test_e2e_nomc_%j.out
++#SBATCH --error=slurm-logs/test_e2e_nomc_%j.err
 +#SBATCH --time=00:10:00
 +#SBATCH --partition=ou_bcs_low
 +#SBATCH --gres=gpu:1
@@ -2052,6 +2052,31 @@ index 0000000..7e46406
 +#     done
 +#   done
 +
++# --- Portable repo-root resolution (auto-inserted) --------------------------
++# Locate the repo root (the directory containing paths.py) so this script runs
++# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
++# script to a spool dir, so if the script path does not resolve we fall back to
++# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
++_rmm_find_root() {
++  local d="$1"
++  while [ -n "$d" ] && [ "$d" != "/" ]; do
++    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
++    d="$(dirname "$d")"
++  done
++  return 1
++}
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
++  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
++    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
++    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
++fi
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
++  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
++  exit 1
++fi
++export REPO_ROOT
++# --- end repo-root resolution ----------------------------------------------
++
 +set -e
 +
 +MODEL=${1:-actionformer}
@@ -2065,12 +2090,12 @@ index 0000000..7e46406
 +echo "Job ID: ${SLURM_JOB_ID:-local}  Node: $(hostname)  $(date)"
 +echo "=============================================="
 +
-+cd /orcd/data/satra/001/users/brukew/actreg/OpenTAD
++cd ${REPO_ROOT}/OpenTAD
 +
 +source ~/miniconda3/etc/profile.d/conda.sh
 +conda activate opentad
 +
-+mkdir -p slurm_logs
++mkdir -p slurm-logs
 +
 +CONFIG="configs/${MODEL}/sails_rmm_vjepa_${TASK}_fold${FOLD}.py"
 +
@@ -2102,14 +2127,14 @@ index 0000000..7e46406
 +echo "Results: ${WORK_DIR}/gpu1_id98/result_detection.json"
 diff --git a/slurm/test_tridet_cv.sh b/slurm/test_tridet_cv.sh
 new file mode 100755
-index 0000000..e34d7f9
+index 0000000..fff67c3
 --- /dev/null
 +++ b/slurm/test_tridet_cv.sh
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,87 @@
 +#!/bin/bash
 +#SBATCH --job-name=td_test
-+#SBATCH --output=slurm_logs/test_td_%j.out
-+#SBATCH --error=slurm_logs/test_td_%j.err
++#SBATCH --output=slurm-logs/test_td_%j.out
++#SBATCH --error=slurm-logs/test_td_%j.err
 +#SBATCH --time=00:30:00
 +#SBATCH --partition=ou_bcs_low
 +#SBATCH --gres=gpu:1
@@ -2119,6 +2144,31 @@ index 0000000..e34d7f9
 +# Generate result_detection.json from TriDet best checkpoint.
 +# Usage:
 +#   for fold in 0 1 2; do sbatch slurm/test_tridet_cv.sh binary $fold; done
++
++# --- Portable repo-root resolution (auto-inserted) --------------------------
++# Locate the repo root (the directory containing paths.py) so this script runs
++# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
++# script to a spool dir, so if the script path does not resolve we fall back to
++# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
++_rmm_find_root() {
++  local d="$1"
++  while [ -n "$d" ] && [ "$d" != "/" ]; do
++    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
++    d="$(dirname "$d")"
++  done
++  return 1
++}
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
++  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
++    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
++    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
++fi
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
++  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
++  exit 1
++fi
++export REPO_ROOT
++# --- end repo-root resolution ----------------------------------------------
 +
 +set -e
 +
@@ -2132,12 +2182,12 @@ index 0000000..e34d7f9
 +echo "Job ID: ${SLURM_JOB_ID:-local}  Node: $(hostname)  $(date)"
 +echo "=============================================="
 +
-+cd /orcd/data/satra/001/users/brukew/actreg/OpenTAD
++cd ${REPO_ROOT}/OpenTAD
 +
 +source ~/miniconda3/etc/profile.d/conda.sh
 +conda activate opentad
 +
-+mkdir -p slurm_logs
++mkdir -p slurm-logs
 +
 +CONFIG="configs/tridet/sails_rmm_vjepa_${TASK}_fold${FOLD}.py"
 +
@@ -2170,14 +2220,14 @@ index 0000000..e34d7f9
 +echo "Results: ${WORK_DIR}/gpu1_id99/result_detection.json"
 diff --git a/slurm/train_actionformer_cv.sh b/slurm/train_actionformer_cv.sh
 new file mode 100644
-index 0000000..f725a7d
+index 0000000..9435c20
 --- /dev/null
 +++ b/slurm/train_actionformer_cv.sh
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,106 @@
 +#!/bin/bash
 +#SBATCH --job-name=af_train
-+#SBATCH --output=slurm_logs/train_af_%j.out
-+#SBATCH --error=slurm_logs/train_af_%j.err
++#SBATCH --output=slurm-logs/train_af_%j.out
++#SBATCH --error=slurm-logs/train_af_%j.err
 +#SBATCH --time=04:00:00
 +#SBATCH --partition=pi_satra
 +#SBATCH --gres=gpu:1
@@ -2198,6 +2248,31 @@ index 0000000..f725a7d
 +#   for fold in 0 1 2; do sbatch train_actionformer_cv.sh binary $fold; done
 +# =============================================================================
 +
++# --- Portable repo-root resolution (auto-inserted) --------------------------
++# Locate the repo root (the directory containing paths.py) so this script runs
++# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
++# script to a spool dir, so if the script path does not resolve we fall back to
++# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
++_rmm_find_root() {
++  local d="$1"
++  while [ -n "$d" ] && [ "$d" != "/" ]; do
++    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
++    d="$(dirname "$d")"
++  done
++  return 1
++}
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
++  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
++    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
++    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
++fi
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
++  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
++  exit 1
++fi
++export REPO_ROOT
++# --- end repo-root resolution ----------------------------------------------
++
 +set -e
 +
 +# Parse arguments
@@ -2212,14 +2287,14 @@ index 0000000..f725a7d
 +echo "=============================================="
 +
 +# Change to OpenTAD directory
-+cd /orcd/data/satra/001/users/brukew/actreg/OpenTAD
++cd ${REPO_ROOT}/OpenTAD
 +
 +# Activate conda environment
 +source ~/miniconda3/etc/profile.d/conda.sh
 +conda activate opentad
 +
 +# Create log directory
-+mkdir -p slurm_logs
++mkdir -p slurm-logs
 +
 +# Select config based on task and fold
 +CONFIG="configs/actionformer/sails_rmm_vjepa_${TASK}_fold${FOLD}.py"
@@ -2257,14 +2332,14 @@ index 0000000..f725a7d
 +
 diff --git a/slurm/train_tridet_cv.sh b/slurm/train_tridet_cv.sh
 new file mode 100755
-index 0000000..c9081d3
+index 0000000..7320c0a
 --- /dev/null
 +++ b/slurm/train_tridet_cv.sh
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,99 @@
 +#!/bin/bash
 +#SBATCH --job-name=td_train
-+#SBATCH --output=slurm_logs/train_td_%j.out
-+#SBATCH --error=slurm_logs/train_td_%j.err
++#SBATCH --output=slurm-logs/train_td_%j.out
++#SBATCH --error=slurm-logs/train_td_%j.err
 +#SBATCH --time=04:00:00
 +#SBATCH --partition=mit_preemptable
 +#SBATCH --gres=gpu:h200:1
@@ -2282,6 +2357,31 @@ index 0000000..c9081d3
 +#   for fold in 0 1 2; do sbatch slurm/train_tridet_cv.sh binary $fold; done
 +# =============================================================================
 +
++# --- Portable repo-root resolution (auto-inserted) --------------------------
++# Locate the repo root (the directory containing paths.py) so this script runs
++# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
++# script to a spool dir, so if the script path does not resolve we fall back to
++# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
++_rmm_find_root() {
++  local d="$1"
++  while [ -n "$d" ] && [ "$d" != "/" ]; do
++    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
++    d="$(dirname "$d")"
++  done
++  return 1
++}
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
++  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
++    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
++    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
++fi
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
++  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
++  exit 1
++fi
++export REPO_ROOT
++# --- end repo-root resolution ----------------------------------------------
++
 +set -e
 +
 +TASK=${1:-binary}
@@ -2297,12 +2397,12 @@ index 0000000..c9081d3
 +echo "Date: $(date)"
 +echo "=============================================="
 +
-+cd /orcd/data/satra/001/users/brukew/actreg/OpenTAD
++cd ${REPO_ROOT}/OpenTAD
 +
 +source ~/miniconda3/etc/profile.d/conda.sh
 +conda activate opentad
 +
-+mkdir -p slurm_logs
++mkdir -p slurm-logs
 +
 +CONFIG="configs/tridet/sails_rmm_vjepa_${TASK}_fold${FOLD}.py"
 +

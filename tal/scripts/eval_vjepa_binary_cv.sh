@@ -21,10 +21,11 @@ NUM_FOLDS=3
 # Paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TAL_DIR="$(dirname "${SCRIPT_DIR}")"
-BASE_DIR="/orcd/data/satra/001/users/brukew"
-VJEPA_RUNS="${BASE_DIR}/actreg/v-jepa/runs/vjepa2_tal_cv_binary_balanced"
+# Repo root = parent of tal/ (derived from this script's own location above).
+REPO_ROOT="$(dirname "${TAL_DIR}")"
+VJEPA_RUNS="${REPO_ROOT}/v-jepa/runs/vjepa2_tal_cv_binary_balanced"
 OUT_DIR="${TAL_DIR}/eval_results/${MODEL_NAME}"
-SPLITS_ROOT="${BASE_DIR}/actreg/dataprep/splits"
+SPLITS_ROOT="${REPO_ROOT}/dataprep/splits"
 
 echo "=============================================="
 echo "V-JEPA Binary TAL Evaluation"
@@ -100,9 +101,9 @@ from eval_binary_tal import (
 MODEL_NAME = "vjepa_binary"
 MODEL_DISPLAY_NAME = "V-JEPA Binary (RMM vs BG)"
 NUM_FOLDS = 3
-TAL_DIR = Path("/orcd/data/satra/001/users/brukew/actreg/tal")
+TAL_DIR = Path.cwd()  # script cd's into tal/ before this heredoc
 EVAL_RESULTS_DIR = TAL_DIR / "eval_results"
-SPLITS_ROOT = Path("/orcd/data/satra/001/users/brukew/actreg/dataprep/splits")
+SPLITS_ROOT = TAL_DIR.parent / "dataprep" / "splits"
 
 # Parameter grid
 PARAM_GRID = {

@@ -17,17 +17,42 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=128G
 #SBATCH --time=8:00:00
-#SBATCH --output=/orcd/data/satra/001/users/brukew/actreg/two-stg/logs/proposal_skeleton_%j.out
-#SBATCH --error=/orcd/data/satra/001/users/brukew/actreg/two-stg/logs/proposal_skeleton_%j.err
+#SBATCH --output=slurm-logs/proposal_skeleton_%j.out
+#SBATCH --error=slurm-logs/proposal_skeleton_%j.err
 
 # No `set -u`: conda hooks may reference unset variables during activate/deactivate.
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
+
 set -eo pipefail
 
 FOLD="${FOLD:?Set FOLD=0|1|2}"
 
 echo "Proposal skeleton inference — fold ${FOLD}  Job ${SLURM_JOB_ID:-local}  $(date)"
 
-mkdir -p /orcd/data/satra/001/users/brukew/actreg/two-stg/logs
+mkdir -p ${REPO_ROOT}/two-stg/logs
 export PYTHONUNBUFFERED=1
 
 if [[ -f "${HOME}/.bashrc" ]]; then
@@ -35,7 +60,7 @@ if [[ -f "${HOME}/.bashrc" ]]; then
   source "${HOME}/.bashrc"
 fi
 
-cd /orcd/data/satra/001/users/brukew/actreg
+cd ${REPO_ROOT}
 source "${HOME}/miniconda3/etc/profile.d/conda.sh"
 
 PICKLE_DIR="${PICKLE_DIR:-${PWD}/two-stg/proposal_pickles}"
@@ -97,7 +122,7 @@ for mod in j b jm bm; do
     --cfg-options data.val.ann_file="${PKL}"
 done
 
-cd /orcd/data/satra/001/users/brukew/actreg
+cd ${REPO_ROOT}
 FUSED="${SCORE_DIR}/stgcnpp_fused_4stream/fold${FOLD}/predictions_clip.csv"
 mkdir -p "$(dirname "${FUSED}")"
 echo "[7/7] Fuse STGCN++ 4-stream -> ${FUSED}"

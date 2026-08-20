@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=24:00:00
-#SBATCH --output=/orcd/data/satra/001/users/brukew/pyskl_logs/stgcnpp/tal/stgcnpp_tal_focal_continue_%j.out
-#SBATCH --error=/orcd/data/satra/001/users/brukew/pyskl_logs/stgcnpp/tal/stgcnpp_tal_focal_continue_%j.err
+#SBATCH --output=slurm-logs/stgcnpp_tal_focal_continue_%j.out
+#SBATCH --error=slurm-logs/stgcnpp_tal_focal_continue_%j.err
 
 # ============================================================================
 # Continue STGCN++ Focal Training - Remaining modalities/folds
@@ -14,6 +14,31 @@
 # Trains: jm fold 2, bm folds 0, 1, 2
 # Also runs evaluation on completed folds that didn't get evaluated
 # ============================================================================
+
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
 
 set -eo pipefail
 
@@ -23,7 +48,7 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "Started: $(date)"
 echo "=========================================="
 
-mkdir -p /orcd/data/satra/001/users/brukew/pyskl_logs/stgcnpp/tal
+mkdir -p ${REPO_ROOT}/pyskl_logs/stgcnpp/tal
 
 export PYTHONUNBUFFERED=1
 
@@ -34,7 +59,7 @@ fi
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate pyskl
 
-cd /orcd/data/satra/001/users/brukew/actreg/pyskl
+cd ${REPO_ROOT}/pyskl
 
 # Configuration
 CONFIG_DIR="configs/stgcn++/stgcnpp_sails_ntu60p"

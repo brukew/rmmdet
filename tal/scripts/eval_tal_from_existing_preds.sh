@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=2:00:00
-#SBATCH --output=/orcd/data/satra/001/users/brukew/pyskl_logs/tal_eval/eval_tal_from_existing_%j.out
-#SBATCH --error=/orcd/data/satra/001/users/brukew/pyskl_logs/tal_eval/eval_tal_from_existing_%j.err
+#SBATCH --output=slurm-logs/eval_tal_from_existing_%j.out
+#SBATCH --error=slurm-logs/eval_tal_from_existing_%j.err
 
 # ============================================================================
 # TAL Evaluation from Existing Prediction CSVs
@@ -19,6 +19,31 @@
 # No inference required - uses CSV outputs from training runs.
 # ============================================================================
 
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
+
 set -eo pipefail
 
 echo "=========================================="
@@ -29,7 +54,7 @@ echo "Started: $(date)"
 echo "=========================================="
 
 # Ensure logs directory exists
-mkdir -p /orcd/data/satra/001/users/brukew/pyskl_logs/tal_eval
+mkdir -p ${REPO_ROOT}/pyskl_logs/tal_eval
 
 export PYTHONUNBUFFERED=1
 
@@ -41,12 +66,12 @@ source ~/miniconda3/etc/profile.d/conda.sh
 conda activate pyskl
 
 # Paths
-TAL_DIR="/orcd/data/satra/001/users/brukew/actreg/tal"
-PYSKL_WORK="/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs"
-VJEPA_RUNS="/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs"
+TAL_DIR="${REPO_ROOT}/tal"
+PYSKL_WORK="${REPO_ROOT}/pyskl/work_dirs"
+VJEPA_RUNS="${REPO_ROOT}/v-jepa/runs"
 OUT_DIR="${TAL_DIR}/eval_results"
-SPLITS_ROOT="/orcd/data/satra/001/users/brukew/actreg/dataprep/splits"
-WINDOW_CSV_DIR="/orcd/data/satra/001/users/brukew/actreg/dataprep/tal/splits_cv_4class"
+SPLITS_ROOT="${REPO_ROOT}/dataprep/splits"
+WINDOW_CSV_DIR="${REPO_ROOT}/dataprep/tal/splits_cv_4class"
 
 cd "${TAL_DIR}"
 

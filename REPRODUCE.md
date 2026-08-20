@@ -12,6 +12,16 @@ README that has the detailed commands. Data/artifact locations are documented in
 > paths.py` to print every resolved path, or `python paths.py --export` to emit
 > `export KEY=VALUE` lines for shell scripts.
 
+> **Running the launch/eval scripts (location-independent).** Every `*.sh` under this repo
+> resolves its own repo root at runtime (the directory containing `paths.py`) and references
+> data/checkpoints through it, so a fresh clone of any name works out of the box. **Submit
+> SLURM jobs from the repo root** (e.g. `sbatch two-stg/run_single_fold_gpu.sh`,
+> `sbatch OpenTAD/slurm/test_tridet_cv.sh binary 0`); job logs are written to the tracked
+> `slurm-logs/` at the repo root. Under `sbatch`, root resolution falls back to
+> `$SLURM_SUBMIT_DIR`; you can also force it with `REPO_ROOT=/path/to/clone sbatch …`.
+> Trained weights are git-ignored — overlay the shared checkpoint copy first (see
+> [Where the checkpoints live](#where-the-checkpoints-live)).
+
 > **Do the reported numbers require retraining?** No. Trained weights and materialized
 > metrics are committed/on-disk (see [Expected results](#expected-results) and
 > [Where the checkpoints live](#where-the-checkpoints-live)), so **stages 3–6 can be

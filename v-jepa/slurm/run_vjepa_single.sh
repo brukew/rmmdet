@@ -6,7 +6,7 @@
 #   sbatch run_vjepa_single.sh              # with cropping (default)
 #   sbatch --export=ENABLE_CROP=0 run_vjepa_single.sh  # without cropping
 #
-# Logs: /orcd/data/satra/001/users/brukew/vjepa_rmm_logs
+# Logs: ${REPO_ROOT}/vjepa_rmm_logs
 
 #SBATCH -J vjepa2_single
 #SBATCH -p mit_preemptable
@@ -16,8 +16,33 @@
 #SBATCH -t 24:00:00
 #SBATCH --requeue
 #SBATCH --signal=TERM@120
-#SBATCH -o /orcd/data/satra/001/users/brukew/vjepa_rmm_logs/vjepa_single%j.out
-#SBATCH -e /orcd/data/satra/001/users/brukew/vjepa_rmm_logs/vjepa_single%j.err
+#SBATCH -o slurm-logs/vjepa_single%j.out
+#SBATCH -e slurm-logs/vjepa_single%j.err
+
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
 
 set -eo pipefail
 
@@ -25,13 +50,13 @@ if [ -f ~/.bashrc ]; then
   source ~/.bashrc
 fi
 
-cd /orcd/data/satra/001/users/brukew
+cd ${REPO_ROOT}
 conda activate vjepa2
 
 # Canonical filesystem paths from the repo's single source of truth (config.yaml).
-eval "$(python actreg/paths.py --export)"
+eval "$(python paths.py --export)"
 
-LOG_DIR=/orcd/data/satra/001/users/brukew/vjepa_rmm_logs
+LOG_DIR=${REPO_ROOT}/vjepa_rmm_logs
 mkdir -p "$LOG_DIR"
 
 # ============================================================================
@@ -46,16 +71,16 @@ NUM_EPOCHS=${NUM_EPOCHS:-20}
 # ============================================================================
 # Paths
 # ============================================================================
-SPLIT_DIR=${SPLIT_DIR:-/orcd/data/satra/001/users/brukew/actreg/dataprep/splits/single_split}
+SPLIT_DIR=${SPLIT_DIR:-${REPO_ROOT}/dataprep/splits/single_split}
 CLIPS_ROOT=${CLIPS_ROOT:-$CLASSIFICATION_CLIPS}
 CLIP_SUBDIR=${CLIP_SUBDIR:-canonical_clips}  # Use canonical_clips for deduplicated clips
-OUTPUT_DIR=${OUTPUT_DIR:-/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_single}
+OUTPUT_DIR=${OUTPUT_DIR:-${REPO_ROOT}/v-jepa/runs/vjepa2_rmm_single}
 MODEL_ID=${MODEL_ID:-facebook/vjepa2-vitl-fpc16-256-ssv2}
 
 # Cropping paths
 MASK_CACHE_BASE=${MASK_CACHE_BASE:-$CACHE_FOR_TRACKING}
-SAM3_PARSED_CSV=${SAM3_PARSED_CSV:-/orcd/data/satra/001/users/brukew/actreg/dataprep/rmm_sam3_parsed.csv}
-VIDEO_META_JSON=${VIDEO_META_JSON:-/orcd/data/satra/001/users/brukew/actreg/dataprep/video_meta.json}
+SAM3_PARSED_CSV=${SAM3_PARSED_CSV:-${REPO_ROOT}/dataprep/rmm_sam3_parsed.csv}
+VIDEO_META_JSON=${VIDEO_META_JSON:-${REPO_ROOT}/dataprep/video_meta.json}
 
 # W&B
 WANDB_MODE=${WANDB_MODE:-online}
@@ -85,7 +110,7 @@ echo "Clips: $CLIPS_ROOT/$CLIP_SUBDIR"
 echo "Output: $output_path"
 echo "============================================================"
 
-python actreg/v-jepa/finetune_sails_vjepa2_single.py \
+python v-jepa/finetune_sails_vjepa2_single.py \
   --split-dir "$SPLIT_DIR" \
   --clips-root "$CLIPS_ROOT" \
   --clip-subdir "$CLIP_SUBDIR" \

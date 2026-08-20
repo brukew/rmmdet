@@ -7,7 +7,7 @@
 # Usage:
 #   sbatch run_fusion_perclass_cv.sh
 #
-# Logs: /orcd/data/satra/001/users/brukew/fusion_logs
+# Logs: ${REPO_ROOT}/fusion_logs
 
 #SBATCH -J fusion_perclass
 #SBATCH -p pi_satra
@@ -15,8 +15,33 @@
 #SBATCH --mem=16G
 #SBATCH --gres=gpu:1
 #SBATCH -t 1:00:00
-#SBATCH -o /orcd/data/satra/001/users/brukew/fusion_logs/fusion_perclass_cv_%j.out
-#SBATCH -e /orcd/data/satra/001/users/brukew/fusion_logs/fusion_perclass_cv_%j.err
+#SBATCH -o slurm-logs/fusion_perclass_cv_%j.out
+#SBATCH -e slurm-logs/fusion_perclass_cv_%j.err
+
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
 
 set -eo pipefail
 
@@ -24,21 +49,21 @@ if [ -f ~/.bashrc ]; then
   source ~/.bashrc
 fi
 
-cd /orcd/data/satra/001/users/brukew
+cd ${REPO_ROOT}
 
 # Use vjepa2 env (has torch, numpy, pandas, sklearn, matplotlib)
 conda activate vjepa2
 
-LOG_DIR=/orcd/data/satra/001/users/brukew/fusion_logs
+LOG_DIR=${REPO_ROOT}/fusion_logs
 mkdir -p "$LOG_DIR"
 
 # ============================================================================
 # Paths
 # ============================================================================
-VJEPA_ROOT=${VJEPA_ROOT:-/orcd/data/satra/001/users/brukew/actreg/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls}
+VJEPA_ROOT=${VJEPA_ROOT:-${REPO_ROOT}/v-jepa/runs/vjepa2_rmm_cv/f64_lr1e-5_bs1_acc8_ep20_crop_4cls}
 # Use non-weighted PoseC3D which has full val set coverage
-POSEC3D_ROOT=${POSEC3D_ROOT:-/orcd/data/satra/001/users/brukew/actreg/pyskl/work_dirs/posec3d/cv/4class_conf04}
-OUTPUT_DIR=${OUTPUT_DIR:-/orcd/data/satra/001/users/brukew/actreg/fusion/runs/4class_cv_perclass}
+POSEC3D_ROOT=${POSEC3D_ROOT:-${REPO_ROOT}/pyskl/work_dirs/posec3d/cv/4class_conf04}
+OUTPUT_DIR=${OUTPUT_DIR:-${REPO_ROOT}/fusion/runs/4class_cv_perclass}
 
 # ============================================================================
 # Training config
@@ -60,7 +85,7 @@ echo "Output: $OUTPUT_DIR"
 echo "Config: classes=$NUM_CLASSES, folds=$NUM_FOLDS, epochs=$NUM_EPOCHS, lr=$LR"
 echo "============================================================"
 
-python actreg/fusion/train_fusion_cv.py \
+python fusion/train_fusion_cv.py \
   --vjepa-root "$VJEPA_ROOT" \
   --posec3d-root "$POSEC3D_ROOT" \
   --output-dir "$OUTPUT_DIR" \

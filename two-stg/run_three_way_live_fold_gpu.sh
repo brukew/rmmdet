@@ -25,10 +25,35 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=128G
 #SBATCH --time=12:00:00
-#SBATCH --output=/orcd/data/satra/001/users/brukew/actreg/two-stg/logs/two_stage_3way_live_%j.out
-#SBATCH --error=/orcd/data/satra/001/users/brukew/actreg/two-stg/logs/two_stage_3way_live_%j.err
+#SBATCH --output=slurm-logs/two_stage_3way_live_%j.out
+#SBATCH --error=slurm-logs/two_stage_3way_live_%j.err
 
 # No `set -u`: conda activate/deactivate hooks use unset vars (e.g. CONDA_BACKUP_GXX).
+# --- Portable repo-root resolution (auto-inserted) --------------------------
+# Locate the repo root (the directory containing paths.py) so this script runs
+# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
+# script to a spool dir, so if the script path does not resolve we fall back to
+# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
+_rmm_find_root() {
+  local d="$1"
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
+  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
+    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
+    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
+fi
+if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
+  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
+  exit 1
+fi
+export REPO_ROOT
+# --- end repo-root resolution ----------------------------------------------
+
 set -eo pipefail
 
 FOLD="${FOLD:?FOLD env var required (0, 1, or 2)}"
@@ -36,7 +61,7 @@ FOLD="${FOLD:?FOLD env var required (0, 1, or 2)}"
 echo "Two-Stage TAL (3-way LIVE skeleton scores) — Fold ${FOLD}"
 echo "Job ID: ${SLURM_JOB_ID:-local}  Node: $(hostname)  GPU: ${CUDA_VISIBLE_DEVICES:-unset}  $(date)"
 
-mkdir -p /orcd/data/satra/001/users/brukew/actreg/two-stg/logs
+mkdir -p ${REPO_ROOT}/two-stg/logs
 export PYTHONUNBUFFERED=1
 
 if [[ -f "${HOME}/.bashrc" ]]; then
@@ -44,7 +69,7 @@ if [[ -f "${HOME}/.bashrc" ]]; then
   source "${HOME}/.bashrc"
 fi
 
-cd /orcd/data/satra/001/users/brukew/actreg
+cd ${REPO_ROOT}
 source "${HOME}/miniconda3/etc/profile.d/conda.sh"
 
 BUNDLE="${FUSION_BUNDLE_DIR:-${PWD}/two-stg/fusion_checkpoints/three_way/fold_${FOLD}}"
