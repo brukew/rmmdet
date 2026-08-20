@@ -131,14 +131,3 @@ live in their own directories; cross-cutting/handoff docs live under `docs/`.
 - `@actreg/fusion/runs/`: Saved fusion run artifacts (confusion matrices, loss curves, fold outputs).
 - `@actreg/tal/eval_results/`: TAL evaluation outputs (e.g., CV summaries, per-fold reports; may be populated by eval scripts).
 
----
-
-## Writeup scaffolding
-
-- `@actreg/docs/writeup/GENERAL_OUTLINE.md`: High-level structure for the final project writeup.
-- `@actreg/docs/writeup/DATA.md`: Data section outline (class definitions, annotations, splits, tracking/pose).
-- `@actreg/docs/writeup/TASKS.md`: Task definitions outline (action recognition + TAL).
-- `@actreg/docs/writeup/METRICS.md`: Metrics definitions outline (classification + TAL).
-- `@actreg/docs/writeup/METHODS.md`: Methods outline (models, imbalance strategies, fusion, TAL variants).
-- `@actreg/docs/writeup/RESULTS.md`: Results section outline (tables + analysis per task).
-

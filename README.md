@@ -501,7 +501,7 @@ actreg/
 ├── REPRODUCE.md              # End-to-end pipeline (start here to run things)
 ├── config.yaml  paths.py     # Central path config (single source of truth)
 ├── envs/                     # Pinned conda environments (dataprep, pyskl, vjepa2, opentad)
-├── docs/                     # INDEX.md, ARTIFACTS.md, writeup/, notes/, archive/
+├── docs/                     # INDEX.md, ARTIFACTS.md, ENTRYPOINTS.md
 ├── opentad_sails/            # OpenTAD fork delta (UPSTREAM_COMMIT + patch)
 ├── pyskl/                    # Skeleton-based classification (PoseC3D + STGCN++)
 │   ├── configs/{posec3d,stgcn++}/...  # SAILS configs
