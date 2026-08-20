@@ -87,9 +87,15 @@ git submodule update --init OpenTAD
 cd OpenTAD && git apply --whitespace=nowarn ../opentad_sails/sails_changes.patch && cd ..
 ```
 
-> **Most common setup failure:** OpenTAD's `align1d` CUDA op must be rebuilt for the local
-> toolchain before any TAL train/eval. Follow the build step in
-> [`opentad_sails/README.md`](opentad_sails/README.md).
+> **Most common setup failures (clone check, Aug 2026):**
+> 1. OpenTAD's `align1d` CUDA op is not built — TriDet cannot import. Build it on a GPU
+>    node after applying the patch (`opentad_sails/README.md`). ActionFormer does not need it.
+> 2. Annotation JSONs are missing — `tools/test.py` raises `FileNotFoundError` under
+>    `OpenTAD/data/sails_rmm/annotations/`. Generate them with convert `--task binary` and
+>    `--task 4class` (not `balanced`); see §4.
+> 3. Checkpoints are git-ignored — overlay `checkpoints_root` before any test script.
+> 4. Submit `sbatch` from the **repo root**, not from `OpenTAD/`, so logs land in
+>    `slurm-logs/`.
 
 ```bash
 # Environments (see the table above)
@@ -149,21 +155,57 @@ Full detail: [`tal/README.md`](tal/README.md).
 
 ## 4. TAL — OpenTAD E2E + binary detectors (`OpenTAD/`)  ·  env: `opentad`
 
-ActionFormer / TriDet trained on V-JEPA2 features, both **balanced** (E2E multiclass) and
+ActionFormer / TriDet trained on V-JEPA2 features, both **balanced** (E2E 4-class) and
 **binary** (single "action" class, used as Stage-1 of the two-stage pipeline).
+
+### Eval from a fresh clone (order matters)
+
+These four steps are easy to skip or mix up; each failed during the Aug 2026 clone check:
+
+1. **Submodule + patch + `align1d` build** (setup §0). TriDet imports the CUDA ROI-align
+   op; ActionFormer is anchor-free and does not need it. Build on a GPU node
+   (`opentad_sails/README.md`). Without the `.so`, TriDet dies at import.
+2. **Overlay checkpoints** (`rsync` in [Where the checkpoints live](#where-the-checkpoints-live)).
+   `best.pth` is git-ignored; test scripts exit if it is missing.
+3. **Generate annotation JSONs** (not in git, not in the overlay). From the repo root:
+
+   ```bash
+   cd OpenTAD && conda activate opentad
+   for fold in 0 1 2; do
+     python tools/prepare_data/sails_rmm/convert_cv_splits_to_opentad_json.py --fold $fold --task binary
+     python tools/prepare_data/sails_rmm/convert_cv_splits_to_opentad_json.py --fold $fold --task 4class
+   done
+   ```
+
+   **Name mismatch:** convert `--task` is `binary` \| `4class`. SLURM / config `TASK` is
+   `binary` \| `balanced`. There is no `--task balanced`. `--task 4class` writes
+   `fold{N}_anno.json`, which the `*balanced*` configs read. Full table:
+   [`OpenTAD/tools/prepare_data/sails_rmm/README.md`](OpenTAD/tools/prepare_data/sails_rmm/README.md).
+4. **Submit tests from the repo root** (so `#SBATCH --output=slurm-logs/...` lands in the
+   tracked `slurm-logs/` next to `paths.py`, not inside `OpenTAD/`):
+
+   ```bash
+   # from repo root; args: <task> <fold>, task in {binary,balanced}
+   sbatch OpenTAD/slurm/test_actionformer_cv.sh binary 0
+   sbatch OpenTAD/slurm/test_actionformer_cv.sh balanced 0
+   sbatch OpenTAD/slurm/test_tridet_cv.sh       binary 0
+   sbatch OpenTAD/slurm/test_tridet_cv.sh       balanced 0
+   ```
+
+Each test writes `OpenTAD/exps/sails_rmm/<model>_vjepa_<task>_fold<N>/gpu1_id99/result_detection.json`
+and **overwrites** any existing id99 JSON. Two-stage Stage-1 reads the **ActionFormer
+binary** id99 file; re-running that test is what refreshes Stage-1 proposals.
+
+Fold-0 clone check (overlay + convert + `tools/test.py`, Aug 2026): ActionFormer binary
+avg-mAP 28.92%, ActionFormer balanced 16.55%, TriDet binary 31.72%, TriDet balanced 18.47%.
+(Reported paper numbers are 3-fold CV / peak-epoch; see below.)
+
+### Train (optional; not needed for the reported numbers)
 
 ```bash
 cd OpenTAD
-# splits -> OpenTAD annotation JSON (per fold + task; --fold and --task are REQUIRED)
-for fold in 0 1 2; do
-  python tools/prepare_data/sails_rmm/convert_cv_splits_to_opentad_json.py --fold $fold --task binary
-  python tools/prepare_data/sails_rmm/convert_cv_splits_to_opentad_json.py --fold $fold --task 4class
-done
-# train (args: <task> <fold>, task in {balanced,binary})
 for fold in 0 1 2; do sbatch slurm/train_actionformer_cv.sh balanced $fold; done
 for fold in 0 1 2; do sbatch slurm/train_tridet_cv.sh       binary   $fold; done
-# test -> result_detection.json (best.pth per fold; args: <task> <fold>)
-for fold in 0 1 2; do sbatch slurm/test_tridet_cv.sh binary $fold; done
 ```
 
 Feature `data_path`s in `configs/_base_/datasets/sails_rmm/features_vjepa_*.py` resolve to
@@ -246,16 +288,27 @@ two directories, both **non-blocking**:
 | `classification_clips_cropped` | Output-only crop target of `dataprep/clip_gen/create_clip_segments.py`; nothing reads it. V-JEPA crops *live* from `classification_clips` + the `cache_for_tracking` SAM3 mask cache (`run_vjepa_*.sh --enable-crop`). |
 | `rmm/videos` | Only the fallback `--videos-root` default in `v-jepa/tools/extract_vjepa_features.py`; videos resolve from each window-split CSV's absolute `video_path` under `dataset_root/Phase_III_Videos/` (present), and features are already pre-extracted. |
 
-**Smoke-tested (fold 0, Aug 2026).** CPU stages pass: TAL split validation, TAL oracle
-(`test_tal_eval.py`, mAP≈1.0), classifier-effect analysis, `eval_best_postprocess`,
-OpenTAD split→JSON convert (idempotent), and fusion train/export. GPU inference via SLURM
-against the migrated lab paths all pass end-to-end:
+**Smoke-tested from a fresh clone of `clean-repo` (fold 0, Aug 2026).** Clone → submodule
++ patch → checkpoint overlay → convert annotations → SLURM eval. Path-resolution audit of
+every reported eval input passed. GPU inference:
 
-- OpenTAD TriDet test → `result_detection.json` (fold-0 avg-mAP 31.7%).
-- PoseC3D eval (fold-0 Top-1 78.3%, κ 0.62).
-- V-JEPA2 **crop** eval (fold-0 Top-1 0.820, κ 0.734; `crop_box` populated → live SAM3
-  crop path verified).
-- Two-stage eval (fold-0 `average_mAP` 0.2323 — reproduces the committed result exactly).
+| Job | Loaded ckpt + data | Inference | Wrote |
+| :--- | :--- | :--- | :--- |
+| OpenTAD TriDet binary | ✓ | avg-mAP 31.72% | `.../gpu1_id99/result_detection.json` |
+| OpenTAD TriDet balanced | ✓ | avg-mAP 18.47% | `.../gpu1_id99/result_detection.json` |
+| OpenTAD ActionFormer binary | ✓ | avg-mAP 28.92% | `.../gpu1_id97/` (id99 left for two-stage) |
+| OpenTAD ActionFormer balanced | ✓ | avg-mAP 16.55% | `.../gpu1_id97/result_detection.json` |
+| Two-stage (AF-binary → V-JEPA2) | ✓ | in-progress / load+infer verified | clone-relative |
+
+CPU stages (TAL split validation, TAL oracle `test_tal_eval.py` mAP≈1.0, convert) pass.
+
+**Not a clean clone pass:** PoseC3D/STGCN++ `pyskl/tools/test.py` — see known gaps
+(env torch/mmcv DDP mismatch; CV pickles have `train`/`val` only while configs set
+`split='test'`; `--cfg-options` is not accepted by this `test.py`). Classification
+numbers in the tables were produced before that env drift. Overlay includes
+`pyskl/work_dirs/**/best_*.pth` but **not** `pyskl/data/sails/**/*.pkl` (generate with
+`pyskl/tools/data/create_sails_annotations.py`, see
+`pyskl/configs/posec3d/slowonly_r50_sails_k400p/README.md`).
 
 ---
 
@@ -277,8 +330,8 @@ against the migrated lab paths all pass end-to-end:
   (`run_tal_eval_cv.py`, `window_to_segments.py`, `tal_map_eval.py`); `tal_map_eval.py`
   differs between them. Treat `tal/` as the eval entry point (its `run_tal_eval_cv.py` loads
   the shared `export_pyskl_window_preds` helper from `dataprep/tal/` by explicit path).
-- `OpenTAD/tools/prepare_data/sails_rmm/README.md` is empty — the convert step's required
-  `--fold`/`--task` args are documented in §4 and in the script's `--help`.
+- `OpenTAD/tools/prepare_data/sails_rmm/README.md` documents convert `--fold`/`--task`
+  (`binary` \| `4class`) and the `4class` ↔ SLURM `balanced` name mismatch.
 - Filesystem paths are centralized in [`config.yaml`](config.yaml) + [`paths.py`](paths.py)
   (the earlier hardcoded-`/orcd/scratch` paths were migrated to the lab project space).
 - **pyskl eval env has drifted to an incompatible PyTorch.** `envs/pyskl.yml` pins
@@ -287,11 +340,21 @@ against the migrated lab paths all pass end-to-end:
   `pyskl/tools/test.py` (which always runs through `init_dist`) aborts *after* the model +
   pose pickle load and the forward pass starts:
   `AttributeError: 'MMDistributedDataParallel' object has no attribute '_use_replicated_tensor_module'`.
-  Path resolution, checkpoint loading, and data loading are all verified working from a fresh
-  clone; only the DDP eval wrapper is affected. **Fix for the next maintainer:** recreate the
-  `pyskl` env with a Torch/mmcv pair that mmcv-full 1.7.0 supports (Torch ≤ ~1.13), or upgrade
-  mmcv, before re-running the PoseC3D/STGCN++ eval or `submit_all_weighted.sh`. The reported
-  classification numbers were generated before this Torch upgrade.
+  `--launcher none` is also rejected (`Invalid launcher type: none`). Path resolution,
+  checkpoint loading, and data loading are verified from a fresh clone; only the DDP eval
+  wrapper is affected. **Fix for the next maintainer:** recreate the `pyskl` env with a
+  Torch/mmcv pair that mmcv-full 1.7.0 supports (Torch ≤ ~1.13), or upgrade mmcv, before
+  re-running PoseC3D/STGCN++ eval. The reported classification numbers were generated
+  before this Torch upgrade.
 - **`pyskl/tools/test.py` indentation fix.** Two `dist.barrier()` calls under `if distributed:`
-  were unindented (committed syntax error, `SyntaxError`/`IndentationError` on import); fixed on
-  `clean-repo`.
+  were unindented (committed syntax error); fixed on `clean-repo`. This `test.py` also does
+  **not** accept `--cfg-options`.
+- **PoseC3D CV configs test a split the pickle does not have.** Fold pickles
+  (`pyskl/data/sails/cv/4class_conf04/fold0.pkl`) expose `train` and `val` only (val = the
+  held-out fold). The dumped `work_dirs/.../joint.py` sets `data.test.split = 'test'`.
+  Point test at `val` (or add a `test` key to the pickle) before eval. Those pickles are
+  **not** in git and **not** in `checkpoints_root` — generate them with
+  `pyskl/tools/data/create_sails_annotations.py`.
+- There was no `OpenTAD/slurm/test_actionformer_cv.sh` until `clean-repo`; only
+  `test_tridet_cv.sh` existed, which is why ActionFormer eval is easy to miss. Use the
+  ActionFormer wrapper (same args as TriDet: `<task> <fold>`).

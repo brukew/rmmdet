@@ -1754,6 +1754,107 @@ index 3a9089a..5c5e236 100644
 -    # print("output has shape {}, with mean {}".format(output.shape, torch.mean(output)))
 -    torch.set_printoptions(linewidth=180)
 -    print(output)
+diff --git a/slurm/test_actionformer_cv.sh b/slurm/test_actionformer_cv.sh
+new file mode 100755
+index 0000000..cc196a8
+--- /dev/null
++++ b/slurm/test_actionformer_cv.sh
+@@ -0,0 +1,95 @@
++#!/bin/bash
++#SBATCH --job-name=af_test
++#SBATCH --output=slurm-logs/test_af_%j.out
++#SBATCH --error=slurm-logs/test_af_%j.err
++#SBATCH --time=00:30:00
++#SBATCH --partition=ou_bcs_low
++#SBATCH --gres=gpu:1
++#SBATCH --cpus-per-task=4
++#SBATCH --mem=32G
++
++# Generate result_detection.json from an ActionFormer best checkpoint.
++# Submit from the repo root (so slurm-logs/ resolves next to paths.py):
++#   sbatch OpenTAD/slurm/test_actionformer_cv.sh binary 0
++#   sbatch OpenTAD/slurm/test_actionformer_cv.sh balanced 0
++#
++# Args: <task> <fold>   task in {binary,balanced}  (NOT "4class" — that name
++# is only used by convert_cv_splits_to_opentad_json.py; see that script's README).
++#
++# Writes ${WORK_DIR}/gpu1_id99/result_detection.json (overwrites). Two-stage
++# Stage-1 reads the ActionFormer *binary* id99 JSON.
++
++# --- Portable repo-root resolution (auto-inserted) --------------------------
++# Locate the repo root (the directory containing paths.py) so this script runs
++# from any clone name/location, under `bash` or `sbatch`. SLURM copies the
++# script to a spool dir, so if the script path does not resolve we fall back to
++# $SLURM_SUBMIT_DIR then $PWD. Override by exporting REPO_ROOT before launch.
++_rmm_find_root() {
++  local d="$1"
++  while [ -n "$d" ] && [ "$d" != "/" ]; do
++    if [ -f "$d/paths.py" ]; then printf '%s\n' "$d"; return 0; fi
++    d="$(dirname "$d")"
++  done
++  return 1
++}
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT:-x}/paths.py" ]; then
++  REPO_ROOT="$(_rmm_find_root "$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" 2>/dev/null && pwd)")" \
++    || REPO_ROOT="$(_rmm_find_root "${SLURM_SUBMIT_DIR:-$PWD}")" \
++    || REPO_ROOT="$(_rmm_find_root "$PWD")" || true
++fi
++if [ -z "${REPO_ROOT:-}" ] || [ ! -f "${REPO_ROOT}/paths.py" ]; then
++  echo "ERROR: cannot locate repo root (paths.py). cd to the repo or export REPO_ROOT." >&2
++  exit 1
++fi
++export REPO_ROOT
++# --- end repo-root resolution ----------------------------------------------
++
++set -e
++
++TASK=${1:-binary}
++FOLD=${2:-0}
++
++echo "=============================================="
++echo "ActionFormer Test (generate result_detection.json)"
++echo "=============================================="
++echo "Task: $TASK  Fold: $FOLD"
++echo "Job ID: ${SLURM_JOB_ID:-local}  Node: $(hostname)  $(date)"
++echo "=============================================="
++
++cd ${REPO_ROOT}/OpenTAD
++
++source ~/miniconda3/etc/profile.d/conda.sh
++conda activate opentad
++
++mkdir -p slurm-logs
++
++CONFIG="configs/actionformer/sails_rmm_vjepa_${TASK}_fold${FOLD}.py"
++
++if [ ! -f "$CONFIG" ]; then
++    echo "ERROR: Config file not found: $CONFIG"
++    exit 1
++fi
++
++WORK_DIR="exps/sails_rmm/actionformer_vjepa_${TASK}_fold${FOLD}"
++CKPT="${WORK_DIR}/gpu1_id0/checkpoint/best.pth"
++
++if [ ! -f "$CKPT" ]; then
++    echo "ERROR: Checkpoint not found: $CKPT"
++    echo "Overlay the shared checkpoint copy first (see REPRODUCE.md)."
++    exit 1
++fi
++
++echo "Config: $CONFIG"
++echo "Checkpoint: $CKPT"
++echo ""
++
++torchrun --standalone --nproc_per_node=1 \
++    tools/test.py \
++    "$CONFIG" \
++    --checkpoint "$CKPT" \
++    --id 99 \
++    --cfg-options post_processing.save_dict=True
++
++echo ""
++echo "Test complete!"
++echo "Results: ${WORK_DIR}/gpu1_id99/result_detection.json"
 diff --git a/slurm/test_e2e_nomc_cv.sh b/slurm/test_e2e_nomc_cv.sh
 new file mode 100755
 index 0000000..ca48c5c
@@ -1855,10 +1956,10 @@ index 0000000..ca48c5c
 +echo "Results: ${WORK_DIR}/gpu1_id98/result_detection.json"
 diff --git a/slurm/test_tridet_cv.sh b/slurm/test_tridet_cv.sh
 new file mode 100755
-index 0000000..fff67c3
+index 0000000..96be02f
 --- /dev/null
 +++ b/slurm/test_tridet_cv.sh
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,95 @@
 +#!/bin/bash
 +#SBATCH --job-name=td_test
 +#SBATCH --output=slurm-logs/test_td_%j.out
@@ -1869,9 +1970,17 @@ index 0000000..fff67c3
 +#SBATCH --cpus-per-task=4
 +#SBATCH --mem=32G
 +
-+# Generate result_detection.json from TriDet best checkpoint.
-+# Usage:
-+#   for fold in 0 1 2; do sbatch slurm/test_tridet_cv.sh binary $fold; done
++# Generate result_detection.json from a TriDet best checkpoint.
++# Submit from the repo root (so slurm-logs/ resolves next to paths.py):
++#   sbatch OpenTAD/slurm/test_tridet_cv.sh binary 0
++#   sbatch OpenTAD/slurm/test_tridet_cv.sh balanced 0
++#
++# Args: <task> <fold>   task in {binary,balanced}  (NOT "4class" — that name
++# is only used by convert_cv_splits_to_opentad_json.py).
++# Requires align1d built (see opentad_sails/README.md) and the matching
++# annotation JSON (see tools/prepare_data/sails_rmm/README.md).
++#
++# Writes ${WORK_DIR}/gpu1_id99/result_detection.json (overwrites).
 +
 +# --- Portable repo-root resolution (auto-inserted) --------------------------
 +# Locate the repo root (the directory containing paths.py) so this script runs
@@ -2165,12 +2274,51 @@ index 0000000..7320c0a
 +echo "Results saved to: exps/sails_rmm/tridet_vjepa_${TASK}_fold${FOLD}"
 diff --git a/tools/prepare_data/sails_rmm/README.md b/tools/prepare_data/sails_rmm/README.md
 new file mode 100644
-index 0000000..8cb7cb9
+index 0000000..91e7b4d
 --- /dev/null
 +++ b/tools/prepare_data/sails_rmm/README.md
-@@ -0,0 +1,2 @@
-+ 
+@@ -0,0 +1,41 @@
++# SAILS-RMM OpenTAD annotations
 +
++`tools/test.py` and the `slurm/test_*.sh` wrappers **will not run** until these JSONs
++exist in *this* OpenTAD checkout. They are not in git and not in the checkpoint overlay.
++A missing file looks like:
++
++```
++FileNotFoundError: data/sails_rmm/annotations/fold0_anno_binary.json
++```
++
++## Name mismatch (easy to get wrong)
++
++The convert script and the SLURM/config files use **different words for the same two tasks**:
++
++| Convert `--task` | Writes | Consumed by SLURM / config `TASK=` |
++| :--- | :--- | :--- |
++| `binary` | `fold{N}_anno_binary.json`, `category_idx_binary.txt` | `binary` |
++| `4class` | `fold{N}_anno.json`, `category_idx.txt` | `balanced` |
++
++There is **no** `--task balanced`. Passing it fails argparse. E2E/balanced configs
++(`sails_rmm_vjepa_balanced_fold*.py`) read `fold{N}_anno.json`, which is produced by
++`--task 4class`.
++
++## Generate (required before any OpenTAD test)
++
++From the repo root, with the `opentad` env:
++
++```bash
++cd OpenTAD
++conda activate opentad
++for fold in 0 1 2; do
++  python tools/prepare_data/sails_rmm/convert_cv_splits_to_opentad_json.py --fold $fold --task binary
++  python tools/prepare_data/sails_rmm/convert_cv_splits_to_opentad_json.py --fold $fold --task 4class
++done
++```
++
++`--fold` and `--task` are required. Output is `OpenTAD/data/sails_rmm/annotations/`
++inside the checkout you ran from (resolved via the parent repo's `paths.py`), not a
++global path.
++
++Reads the TAL CV splits under `dataprep/` in the parent repo.
 diff --git a/tools/prepare_data/sails_rmm/convert_cv_splits_to_opentad_json.py b/tools/prepare_data/sails_rmm/convert_cv_splits_to_opentad_json.py
 new file mode 100644
 index 0000000..8ddc311

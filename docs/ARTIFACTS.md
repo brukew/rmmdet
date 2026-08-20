@@ -70,6 +70,14 @@ at the exact path the scripts expect):
 rsync -a "$(python paths.py --get checkpoints_root)"/ .
 ```
 
+This is weights + `result_detection.json` only. It does **not** include:
+
+- OpenTAD annotation JSONs (`OpenTAD/data/sails_rmm/annotations/`) — generate with
+  `convert_cv_splits_to_opentad_json.py` (§4 of `REPRODUCE.md`).
+- pyskl pose-annotation pickles (`pyskl/data/sails/**/*.pkl`) — generate with
+  `pyskl/tools/data/create_sails_annotations.py`.
+
+
 ### What the shared copy contains (the reported-result finals)
 
 | Reported model(s) | Path prefix | Files | Size |

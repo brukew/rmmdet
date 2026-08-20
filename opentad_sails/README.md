@@ -18,7 +18,8 @@ The patch covers the SAILS configs (`configs/_base_/datasets/sails_rmm/`,
 (`opentad/models/...`, including a new `align1d/__init__.py` and a two-line
 `Align1D_cuda_kernal.cu` fix — `x.type()` → `x.scalar_type()` in the
 `AT_DISPATCH_FLOATING_TYPES` calls — so the ROI-align op compiles against the pinned
-PyTorch in `envs/opentad.yml`), the SLURM scripts (`slurm/`), the data-prep files
+PyTorch in `envs/opentad.yml`), the SLURM scripts (`slurm/`, including
+`test_actionformer_cv.sh` and `test_tridet_cv.sh`), the data-prep files
 (`tools/prepare_data/sails_rmm/`), and `tools/test.py`.
 
 > Artifacts (`exps/`, `logs/`, `*.out`, `*.err`, `wandb/`) are intentionally **not** in
@@ -54,9 +55,11 @@ cd OpenTAD/opentad/models/roi_heads/roi_extractors/align1d
 python setup.py build_ext --inplace     # produces Align1D.*.so (run on a GPU node)
 ```
 
-Then proceed with the data-prep step in `OpenTAD/tools/prepare_data/sails_rmm/README.md`
-(run `convert_cv_splits_to_opentad_json.py --fold <f> --task <binary|balanced>` to
-generate the annotation JSONs before `tools/test.py`).
+Then generate the annotation JSONs (not in git; not in the checkpoint overlay) —
+see `OpenTAD/tools/prepare_data/sails_rmm/README.md`. Convert `--task` is
+`binary` or `4class` (there is no `--task balanced`); SLURM/config `TASK` is
+`binary` or `balanced`. Skipping this step fails `tools/test.py` with
+`FileNotFoundError: data/sails_rmm/annotations/fold*_anno*.json`.
 
 ## Regenerating this patch (when OpenTAD changes again)
 
