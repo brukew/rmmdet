@@ -173,7 +173,7 @@
 
 ## Output Directories
 
-- Cosmos: `/orcd/scratch/bcs/001/sensein/sails/pred2annot_evaluation/rmm_type/cosmos/`
-- Qwen3-8B: `/orcd/scratch/bcs/001/sensein/sails/pred2annot_evaluation/rmm_type/qwen3/`
-- Qwen3-30B (sampled): `/orcd/scratch/bcs/001/sensein/sails/pred2annot_evaluation/rmm_type/qwen3_30b/`
-- Qwen3-30B (whole-video): `/orcd/scratch/bcs/001/sensein/sails/pred2annot_evaluation/rmm_type/qwen3_30b_video/`
+- Cosmos: `/orcd/data/satra/002/projects/SAILS/pred2annot_evaluation/rmm_type/cosmos/`
+- Qwen3-8B: `/orcd/data/satra/002/projects/SAILS/pred2annot_evaluation/rmm_type/qwen3/`
+- Qwen3-30B (sampled): `/orcd/data/satra/002/projects/SAILS/pred2annot_evaluation/rmm_type/qwen3_30b/`
+- Qwen3-30B (whole-video): `/orcd/data/satra/002/projects/SAILS/pred2annot_evaluation/rmm_type/qwen3_30b_video/`

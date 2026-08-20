@@ -179,7 +179,7 @@ Each CSV file contains the following columns:
 ## Stage 2: Clip Creation
 
 **Source Script:** `dataprep/clip_gen/create_clip_segments.py`  
-**Output Location:** `/orcd/scratch/bcs/001/sensein/sails/rmm/classification_clips/`
+**Output Location:** `/orcd/data/satra/002/projects/SAILS/rmm/classification_clips/`
 
 ### Overview
 
@@ -300,7 +300,7 @@ The `clip_manifest.csv` contains:
 **Batch Script:** `sails_sbatch/tracker/sam3_track.sh`  
 **Input CSV:** `sailsprep/subset_data/RMM.csv`  
 **Metadata File:** `actreg/dataprep/video_meta.json` (contains video info and cache paths)  
-**Output Location:** `/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking/masks/`
+**Output Location:** `/orcd/data/satra/002/projects/SAILS/cache_for_tracking/masks/`
 
 ### Overview
 

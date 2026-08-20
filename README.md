@@ -411,7 +411,7 @@ dataprep/
 
 Clips are stored in:
 ```
-/orcd/scratch/bcs/001/sensein/sails/rmm/classification_clips/canonical_clips/
+/orcd/data/satra/002/projects/SAILS/rmm/classification_clips/canonical_clips/
 ```
 
 Each clip is named `{segment_id}.mp4` (654 total clips).

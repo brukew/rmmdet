@@ -1,4 +1,4 @@
-4# Two-Stage TAL Results
+# Two-Stage TAL Results
 
 Binary ActionFormer detects RMM segments → V-JEPA2 classifies each into 4 RMM types → scores combined as `det_score × max(class_probs)`. Evaluated on 3-fold CV with no detection threshold (all proposals passed to classifier).
 

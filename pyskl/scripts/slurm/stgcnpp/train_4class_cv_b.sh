@@ -93,7 +93,7 @@ for FOLD in 0 1 2; do
         --output-dir ${WORK_DIR}/eval_val \
         --cfg-options \
             data.train.dataset.ann_file=$ANN_FILE \
-            data.val.ann_file=$ANN_FILE \
+            data.val.ann_file=$ANN_FILE
 done
 
 # Aggregate CV results

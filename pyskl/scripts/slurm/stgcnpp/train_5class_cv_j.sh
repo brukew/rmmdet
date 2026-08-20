@@ -95,7 +95,7 @@ for FOLD in 0 1 2; do
         --cfg-options \
             model.cls_head.num_classes=5 \
             data.train.dataset.ann_file=$ANN_FILE \
-            data.val.ann_file=$ANN_FILE \
+            data.val.ann_file=$ANN_FILE
 done
 
 # Aggregate CV results

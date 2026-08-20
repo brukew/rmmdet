@@ -99,7 +99,7 @@ from repo root use `python dataprep/tal/export_pyskl_window_preds.py` (the helpe
 | :--- | :--- | :--- | :--- |
 | `v-jepa/slurm/rerun_vjepa_eval_4class.sh` | `vjepa2` | `sbatch v-jepa/slurm/rerun_vjepa_eval_4class.sh` | overlay `model.safetensors`, lab `classification_clips` + SAM3 cache; writes `clip_level_preds.csv` for fusion |
 | `v-jepa/slurm/rerun_vjepa_eval_5class.sh` | `vjepa2` | same | 5-class |
-| `pyskl/tools/dist_test.sh` | `pyskl` | `bash pyskl/tools/dist_test.sh <config> <ckpt> 1 --eval top_k_accuracy` | pose pickle + `best_*.pth`. **Blocked** on the pinned env (`torch 2.9` + `mmcv-full 1.7` DDP). Config `data.test.split` is `'test'` but fold pickles only have `train`/`val` — point test at `val`. This `test.py` does **not** take `--cfg-options`. |
+| `pyskl/tools/test.py` | `pyskl` | `cd pyskl && python tools/test.py <work_dir>/joint.py -C <work_dir>/best_*.pth --launcher none --cfg-options data.test.split=val --out <out>.pkl --eval top_k_accuracy mean_class_accuracy` | pose pickle + `best_*.pth`. Use `--launcher none` (single-GPU); `dist_test.sh` is blocked by the DDP breakage in gotcha 5. Each `work_dir` holds the exact dumped config that produced its checkpoint — use that rather than the template in `configs/`. |
 | `pyskl/scripts/slurm/test_regularized.sh` | `pyskl` | `sbatch` | same env/split issues |
 
 Classification pickles: git `pyskl/data/sails/{cv,single,*.pkl}` (~15 MB). TAL window
@@ -143,9 +143,7 @@ All of these write git-ignored `runs/` / `work_dirs/` / `exps/`. Submit from rep
 | OpenTAD train | `OpenTAD/slurm/train_{actionformer,tridet}_cv.sh` | `opentad` | |
 
 Unweighted / focal / 4-stream variants live next to those files (`train_4class_cv.sh`,
-`train_*_focal.sh`, …). `pyskl/scripts/slurm/stgcnpp/train_*_cv_{j,b}.sh` have a
-pre-existing unbalanced quote in a Python `-c` block (`bash -n` fails) — use the
-`*_4stream*.sh` / `submit_all_weighted.sh` paths instead.
+`train_*_focal.sh`, …). Every `*.sh` / `*.sbatch` in the repo passes `bash -n`.
 
 ---
 
@@ -178,8 +176,11 @@ pre-existing unbalanced quote in a Python `-c` block (`bash -n` fails) — use t
    writes `eval_val/predictions_clip.csv`. `fusion/train_fusion_cv.py` looks for both.
 4. **`predictions_clip.csv` is gitignored** (`runs/`, plus the filename). Overlay now
    includes those CSVs so fusion can run without re-eval.
-5. **pyskl DDP** is broken on the pinned `envs/pyskl.yml` (Torch 2.9 + mmcv 1.7). Fix the
-   env before PoseC3D/STGCN++ `test.py`.
+5. **pyskl: use `--launcher none`, not `dist_test.sh`.** DDP is broken on the pinned
+   `envs/pyskl.yml` (Torch 2.9 against mmcv-full 1.7, which raises
+   `AttributeError: '_use_replicated_tensor_module'`). `tools/test.py --launcher none`
+   runs single-GPU via `MMDataParallel` and avoids that path entirely. CV fold pickles
+   have only `train`/`val`, so add `--cfg-options data.test.split=val`.
 6. **Qwen VLM baseline.** Metrics/predictions are vendored at
    `insights/vlm/qwen_outputs/` (~1.3 MB), so `scripts/extract_precision_recall.py`
    runs from a clone with no overlay. The source videos/model are not included.

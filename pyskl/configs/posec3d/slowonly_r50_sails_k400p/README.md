@@ -491,7 +491,7 @@ Ensure you override ALL ann_file paths:
 ### No pose caches found
 Run the annotation script with `--dry-run` to check coverage. Ensure pose HDF5 files are at:
 ```
-/orcd/scratch/bcs/001/sensein/sails/cache_for_tracking/pose_sam3/{video_basename}/{detector}_{thresh}_{pose}_sam3guided.h5
+/orcd/data/satra/002/projects/SAILS/cache_for_tracking/pose_sam3/{video_basename}/{detector}_{thresh}_{pose}_sam3guided.h5
 ```
 
 ### "TypeError: FormatCode() got unexpected keyword argument 'verify'"

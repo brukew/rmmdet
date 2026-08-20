@@ -302,8 +302,31 @@ every reported eval input passed. GPU inference:
 | OpenTAD ActionFormer balanced | ✓ | avg-mAP 16.55% | `.../gpu1_id97/result_detection.json` |
 | Two-stage (AF-binary → V-JEPA2) | ✓ | in-progress / load+infer verified | clone-relative |
 
+| PoseC3D classification (fold 0) | ✓ | top-1 76.81%, top-2 92.27%, mean-class 73.29% | `result.pkl` at `--out` |
+
 CPU stages (TAL split validation, TAL oracle `test_tal_eval.py` mAP≈1.0, convert) pass.
 
-**Not a clean clone pass:** PoseC3D/STGCN++ `pyskl/tools/test.py` (pinned `envs/pyskl.yml`
-is Torch 2.9 + mmcv-full 1.7, which breaks DDP). See [`docs/ENTRYPOINTS.md`](docs/ENTRYPOINTS.md).
-Classification headline numbers were produced before that env drift.
+**pyskl must run single-GPU, not DDP.** `pyskl/tools/dist_test.sh` fails on the pinned
+`envs/pyskl.yml` because Torch 2.9 and mmcv-full 1.7 disagree about DDP internals
+(`AttributeError: '_use_replicated_tensor_module'`). Use the non-distributed path, which
+goes through `MMDataParallel` and is unaffected:
+
+```bash
+cd pyskl
+WORK=work_dirs/posec3d/cv/4class_conf04/fold0
+python tools/test.py $WORK/joint.py -C $WORK/best_top1_acc_epoch_5.pth \
+    --launcher none \
+    --cfg-options data.test.split=val \
+    --out /tmp/posec3d_fold0.pkl \
+    --eval top_k_accuracy mean_class_accuracy
+```
+
+Two details matter. Each `work_dir` contains the exact config that produced its
+checkpoint (`joint.py` above) — use that, not the template in `configs/`, whose
+`ann_file` still points at a placeholder. And CV fold pickles contain only `train` and
+`val`, so `data.test.split` must be redirected to `val`.
+
+The numbers above differ from the committed `eval_val/metrics.json` (top-1 77.56%) by
+under a point because the headline classification metrics were produced by
+`tools/evaluate_sails.py`, which aggregates clips differently and samples frames
+stochastically. Treat `metrics.json` as the reported value.

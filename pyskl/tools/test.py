@@ -7,7 +7,7 @@ import os.path as osp
 import time
 import torch
 import torch.distributed as dist
-from mmcv import Config
+from mmcv import Config, DictAction
 from mmcv import digit_version as dv
 from mmcv import load
 from mmcv.cnn import fuse_conv_bn
@@ -64,6 +64,14 @@ def parse_args():
         choices=['pytorch', 'slurm', 'none'],
         default='pytorch',
         help='job launcher (use "none" for single-GPU non-distributed testing)')
+    parser.add_argument(
+        '--cfg-options',
+        nargs='+',
+        action=DictAction,
+        default={},
+        help='override settings in the config, e.g. data.test.split=val for CV '
+        'folds whose pickles contain no test split. Key-value pairs are merged '
+        'into the config dict.')
     parser.add_argument(
         '--compile',
         action='store_true',
@@ -124,6 +132,8 @@ def main():
     args = parse_args()
 
     cfg = Config.fromfile(args.config)
+    if args.cfg_options:
+        cfg.merge_from_dict(args.cfg_options)
 
     out = osp.join(cfg.work_dir, 'result.pkl') if args.out is None else args.out
 
@@ -154,9 +164,9 @@ def main():
         cfg.gpu_ids = [0]
     else:
         distributed = True
-    init_dist(args.launcher, **cfg.dist_params)
-    rank, world_size = get_dist_info()
-    cfg.gpu_ids = range(world_size)
+        init_dist(args.launcher, **cfg.dist_params)
+        rank, world_size = get_dist_info()
+        cfg.gpu_ids = range(world_size)
 
     # build the dataloader
     dataset = build_dataset(cfg.data.test, dict(test_mode=True))
