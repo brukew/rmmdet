@@ -184,7 +184,7 @@ def main():
         assert retry >= 0, 'Failed to launch memcached. '
 
     if distributed:
-    dist.barrier()
+        dist.barrier()
 
     outputs = inference_pytorch(args, cfg, data_loader, distributed=distributed)
 
@@ -197,7 +197,7 @@ def main():
                 print(f'{name}: {val:.04f}')
 
     if distributed:
-    dist.barrier()
+        dist.barrier()
     if rank == 0 and memcached:
         mc_off()
 

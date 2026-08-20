@@ -281,3 +281,17 @@ against the migrated lab paths all pass end-to-end:
   `--fold`/`--task` args are documented in §4 and in the script's `--help`.
 - Filesystem paths are centralized in [`config.yaml`](config.yaml) + [`paths.py`](paths.py)
   (the earlier hardcoded-`/orcd/scratch` paths were migrated to the lab project space).
+- **pyskl eval env has drifted to an incompatible PyTorch.** `envs/pyskl.yml` pins
+  `torch==2.9.0` with `mmcv-full==1.7.0`; the mmcv-1.7 `MMDistributedDataParallel` wrapper
+  reads a Torch-1.x internal (`_use_replicated_tensor_module`) that Torch 2.x removed, so
+  `pyskl/tools/test.py` (which always runs through `init_dist`) aborts *after* the model +
+  pose pickle load and the forward pass starts:
+  `AttributeError: 'MMDistributedDataParallel' object has no attribute '_use_replicated_tensor_module'`.
+  Path resolution, checkpoint loading, and data loading are all verified working from a fresh
+  clone; only the DDP eval wrapper is affected. **Fix for the next maintainer:** recreate the
+  `pyskl` env with a Torch/mmcv pair that mmcv-full 1.7.0 supports (Torch ≤ ~1.13), or upgrade
+  mmcv, before re-running the PoseC3D/STGCN++ eval or `submit_all_weighted.sh`. The reported
+  classification numbers were generated before this Torch upgrade.
+- **`pyskl/tools/test.py` indentation fix.** Two `dist.barrier()` calls under `if distributed:`
+  were unindented (committed syntax error, `SyntaxError`/`IndentationError` on import); fixed on
+  `clean-repo`.

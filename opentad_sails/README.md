@@ -13,10 +13,12 @@ submodule checkout.
 | `UPSTREAM_COMMIT.txt` | The exact upstream OpenTAD commit the patch applies on top of |
 | `sails_changes.patch` | All SAILS changes vs. that commit (modified + new + deleted files) |
 
-The patch covers **33 files**: 18 configs (`configs/_base_/datasets/sails_rmm/`,
-`configs/actionformer/sails_rmm_*`, `configs/tridet/sails_rmm_*`), 7 model-code edits
-(`opentad/models/...`, including the removal of the prebuilt CUDA kernel and a new
-`align1d/__init__.py`), 4 SLURM scripts (`slurm/`), 2 data-prep files
+The patch covers the SAILS configs (`configs/_base_/datasets/sails_rmm/`,
+`configs/actionformer/sails_rmm_*`, `configs/tridet/sails_rmm_*`), model-code edits
+(`opentad/models/...`, including a new `align1d/__init__.py` and a two-line
+`Align1D_cuda_kernal.cu` fix — `x.type()` → `x.scalar_type()` in the
+`AT_DISPATCH_FLOATING_TYPES` calls — so the ROI-align op compiles against the pinned
+PyTorch in `envs/opentad.yml`), the SLURM scripts (`slurm/`), the data-prep files
 (`tools/prepare_data/sails_rmm/`), and `tools/test.py`.
 
 > Artifacts (`exps/`, `logs/`, `*.out`, `*.err`, `wandb/`) are intentionally **not** in
@@ -43,9 +45,18 @@ git checkout "$(head -1 ../opentad_sails/UPSTREAM_COMMIT.txt)"
 git apply --whitespace=nowarn ../opentad_sails/sails_changes.patch
 ```
 
-After applying, the `align1d` ROI extractor must be rebuilt (the prebuilt CUDA kernel was
-removed); follow OpenTAD's install instructions for the custom op, then proceed with the
-data-prep step in `OpenTAD/tools/prepare_data/sails_rmm/README.md`.
+After applying, build the `align1d` ROI-align CUDA op (needed by **TriDet**; ActionFormer
+is anchor-free and does not use it). The patched `.cu` compiles against the pinned
+PyTorch, so a from-source build works on a GPU node:
+
+```bash
+cd OpenTAD/opentad/models/roi_heads/roi_extractors/align1d
+python setup.py build_ext --inplace     # produces Align1D.*.so (run on a GPU node)
+```
+
+Then proceed with the data-prep step in `OpenTAD/tools/prepare_data/sails_rmm/README.md`
+(run `convert_cv_splits_to_opentad_json.py --fold <f> --task <binary|balanced>` to
+generate the annotation JSONs before `tools/test.py`).
 
 ## Regenerating this patch (when OpenTAD changes again)
 
